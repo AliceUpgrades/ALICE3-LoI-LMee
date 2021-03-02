@@ -339,7 +339,7 @@ void plotFinalPlotsLowB_Systems (
   //	hpt_mass4;1     mass vs pt,|y|<0.84,charm, effi and pt weight
   //	hpt_mass5;1     mass vs pt,|y|<0.84,charm, pt > 0.4 GeV/c
   //	hpt_mass6;1     mass vs pt,|y|<0.84,charm, pt > 0.2 GeV/c
-  TString filenameCharm = "inputFile /charm_diele_v3_hpt_mass6_proj.root";
+  TString filenameCharm = "inputFiles/charm_diele_v3_hpt_mass6_proj.root";
   TFile* fCharm = new TFile(filenameCharm, "READ");
   TH1D* hCharm    = convertCharmHistogram((TH1D*) fCharm->Get(Form("meeCharm_%s%d", projXorY, meebin)),doPtee);
   hCharm->Smooth(1000); // remove stat fluctuations
