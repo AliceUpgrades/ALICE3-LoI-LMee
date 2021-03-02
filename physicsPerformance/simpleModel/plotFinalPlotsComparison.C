@@ -24,7 +24,7 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
 
   Int_t col[]      = {kBlack,kRed,kOrange-3,kGreen+3,kOrange-1,kOrange+7,kGreen-3,kMagenta+3,kAzure+7,kCyan+2,kPink-8,kYellow+2,kBlue+2,kMagenta-6};
 
-  const Int_t nFileMax = 4;
+  const Int_t nFileMax = 5;
   Int_t nFile = 0;
   TString sFile[nFileMax];
   TString sFile2[nFileMax];
@@ -37,10 +37,10 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
   if(iStudy ==  0){
 
     nFile = 4;
-    sFile[0] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_IPcut0_events2500000000.root";
-    sFile[1] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_IPcut0_events14175000000.root";
-    sFile[2] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_IPcut0_events57256410256.root";
-    sFile[3] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_IPcut0_events538333333333.root";
+    sFile[0] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
+    sFile[1] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_0_IPcut0_events14175000000.root";
+    sFile[2] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_0_IPcut0_events57256410256.root";
+    sFile[3] = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_0_IPcut0_events538333333333.root";
             
     sFile2[0] = "Pb-Pb";
     sFile2[1] = "Xe-Xe";
@@ -52,17 +52,20 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
 
   else if(iStudy ==  1){
     
-    nFile = 4;
+    nFile = 5;
 
     sFile[0]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl0_IPcut1_events2500000000.root";
     sFile[1]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl1_IPcut1_events2500000000.root";
-    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_IPcut0_events2500000000.root";
-    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_IPcut0_events2500000000.root";
-    
+    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000.root";
+    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
+    sFile[4]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
+
     sFile2[0] = "ITS3 (LoI)";
     sFile2[1] = "ITS3 (LoI)";
     sFile2[2] = "ITS3 (improved)";
     sFile2[3] = "ALICE 3";
+    sFile2[4] = "ALICE 3 (+RICH)";
+
   }
   
   else
