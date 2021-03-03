@@ -67,15 +67,15 @@ void plotFinalPlotsTemperatureComparison(Bool_t bAsymmetric = kFALSE, Int_t iStu
 
     nFile = 4;
     
-    sFile[0]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
-    sFile[1]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_0_IPcut0_events14175000000.root";
-    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_0_IPcut0_events57256410256.root";
-    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_0_IPcut0_events538333333333.root";
+    sFile[0]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFile[1]     = "./finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_1_IPcut0_events14175000000_Conv1.0.root";
+    sFile[2]     = "./finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_1_IPcut0_events57256410256_Conv1.0.root";
+    sFile[3]     = "./finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_1_IPcut0_events538333333333_Conv1.0.root";
             
-    sFileSyst[0]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
-    sFileSyst[1]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_0_IPcut0_events14175000000.root";
-    sFileSyst[2]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_0_IPcut0_events57256410256.root";
-    sFileSyst[3]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_0_IPcut0_events538333333333.root";
+    sFileSyst[0]  = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFileSyst[1]  = "./finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_1_IPcut0_events14175000000_Conv1.0.root";
+    sFileSyst[2]  = "./finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_1_IPcut0_events57256410256_Conv1.0.root";
+    sFileSyst[3]  = "./finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_1_IPcut0_events538333333333_Conv1.0.root";
 
     sFile2[0] = "Pb-Pb";
     sFile2[1] = "Xe-Xe";
@@ -91,16 +91,16 @@ void plotFinalPlotsTemperatureComparison(Bool_t bAsymmetric = kFALSE, Int_t iStu
 
     sFile[0]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl0_IPcut1_events2500000000.root";
     sFile[1]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl1_IPcut1_events2500000000.root";
-    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000.root";
-    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
-    sFile[4]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000.root";
+    sFile[2]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000_Conv1.0.root";
+    sFile[3]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000_Conv1.0.root";
+    sFile[4]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
 
             
     sFileSyst[0]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl0_IPcut1_events2500000000000.root";
     sFileSyst[1]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl1_IPcut1_events2500000000000.root";
-    sFileSyst[2]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000.root";
-    sFileSyst[3]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000.root";
-    sFileSyst[4]  = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000.root";
+    sFileSyst[2]  = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000_Conv1.0.root";
+    sFileSyst[3]  = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000_Conv1.0.root";
+    sFileSyst[4]  = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
 
     sFile2[0] = "ITS3 (LoI)";
     sFile2[1] = "ITS3 (LoI)";
@@ -109,7 +109,30 @@ void plotFinalPlotsTemperatureComparison(Bool_t bAsymmetric = kFALSE, Int_t iStu
     sFile2[4] = "ALICE 3 (+RICH)";
 
   }
+  else if(iStudy ==  2){
 
+    nFile = 5;
+  
+    sFile[0]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFile[1]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.2.root";
+    sFile[2]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.5.root";
+    sFile[3]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.8.root";
+    sFile[4]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv2.0.root";
+
+    sFileSyst[0]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFileSyst[1]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.2.root";
+    sFileSyst[2]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.5.root";
+    sFileSyst[3]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.8.root";
+    sFileSyst[4]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv2.0.root";
+   
+
+    sFile2[0] = "0% Conversions";
+    sFile2[1] = "25% ";
+    sFile2[2] = "50%";
+    sFile2[3] = "75%";
+    sFile2[4] = "100%";
+
+  }
   
 
   else{
@@ -327,6 +350,6 @@ void plotFinalPlotsTemperatureComparison(Bool_t bAsymmetric = kFALSE, Int_t iStu
   logo->Draw();
   leg2->Draw();
   
-  c->SaveAs(Form("figs/comparison/finalPlotsTemperatureComparison_study%d.png",iStudy));
-  cNorm->SaveAs(Form("figs/comparison/finalPlotsTemperatureComparison_norm_study%d.png",iStudy));
+  c->SaveAs(Form("./finalPlotsTemperatureComparison_study%d.png",iStudy));
+  cNorm->SaveAs(Form("./finalPlotsTemperatureComparison_norm_study%d.png",iStudy));
 }
