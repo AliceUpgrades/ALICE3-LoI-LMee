@@ -128,7 +128,7 @@ void plotFinalPlotsLowB_Systems (
   Double_t ScaleReicheltHistos_becauseIPcut = 1.; // only for Current ITS, see below!
   Double_t xmaxMee  = 2.5;
   Double_t ymindNdx = 1E-4 *PrimEff;
-  Double_t ymaxdNdx = 100. *PrimEff;// from Npp360
+  Double_t ymaxdNdx = 1000. *PrimEff;// from Npp360
   if (doPtee) {
     xmaxMee         = 1.5; // gives 3...
     ymindNdx        = 1E-4 *PrimEff;
@@ -165,22 +165,22 @@ void plotFinalPlotsLowB_Systems (
     if(Run5){
       if(!doPtee){
 	if(RICH)
-	  inputfilename = Form("out/lowB/LHC16j6a/AnaPartTreeOut_RecRun5Pt200_RICH_Results.root");
+	  inputfilename = Form("inputFiles/AnaPartTreeOut_RecRun5Pt200_RICH_Results.root");
 	else
-	  inputfilename = Form("out/lowB/LHC16j6a/AnaPartTreeOut_RecRun5Pt200_Results.root");
+	  inputfilename = Form("inputFiles/AnaPartTreeOut_RecRun5Pt200_Results.root");
       }
       else{
 	if(RICH)
-	  inputfilename = Form("out/lowB/LHC16j6a/AnaPartTreeOut_RecRun5Pt200_RICH_pT_Results.root");
+	  inputfilename = Form("inputFiles/AnaPartTreeOut_RecRun5Pt200_RICH_pT_Results.root");
 	else
-	  inputfilename = Form("out/lowB/LHC16j6a/AnaPartTreeOut_RecRun5Pt200_pT_Results.root");
+	  inputfilename = Form("inputFiles/AnaPartTreeOut_RecRun5Pt200_pT_Results.root");
       }
     }
     else{
       if(!doPtee)
-	inputfilename = Form("out/lowB/LHC16j6a/AnaPartTreeOut_RecRun3Pt200_Results.root");
+	inputfilename = Form("inputFiles/AnaPartTreeOut_RecRun3Pt200_Results.root");
       else{
-	inputfilename = Form("out/lowB/LHC16j6a/AnaPartTreeOut_RecRun3Pt200_pT_Results.root");
+	inputfilename = Form("inputFiles/AnaPartTreeOut_RecRun3Pt200_pT_Results.root");
       }
     }
   }
@@ -362,33 +362,33 @@ void plotFinalPlotsLowB_Systems (
   if(!Run5){
     if(doPtee){
       if(meebin==0)
-	filenameEff = "efficiency/MW/pairEfficiency_pT_Study7.root";
+	filenameEff = "inputFiles/pairEfficiency_pT_Study7.root";
       else
-	filenameEff = Form("efficiency/MW/pairEfficiency_pT_meebin%d_Study7.root",meebin);
+	filenameEff = Form("inputFiles/pairEfficiency_pT_meebin%d_Study7.root",meebin);
     }
     else
-      filenameEff = "efficiency/MW/pairEfficiency_Study7.root";
+      filenameEff = "inputFiles/pairEfficiency_Study7.root";
   }
   else{
     if(RICH){
       if(doPtee){
 	if(meebin==0)
-	  filenameEff = "efficiency/MW/pairEfficiency_pT_Study9.root";
+	  filenameEff = "inputFiles/pairEfficiency_pT_Study9.root";
 	else
-	  filenameEff = Form("efficiency/MW/pairEfficiency_pT_meebin%d_Study9.root",meebin);
+	  filenameEff = Form("inputFiles/pairEfficiency_pT_meebin%d_Study9.root",meebin);
       }
       else
-	filenameEff = "efficiency/MW/pairEfficiency_Study9.root";
+	filenameEff = "inputFiles/pairEfficiency_Study9.root";
     }
     else{
       if(doPtee){
 	if(meebin==0)
-	  filenameEff = "efficiency/MW/pairEfficiency_pT_Study8.root";
+	  filenameEff = "inputFiles/pairEfficiency_pT_Study8.root";
 	else
-	  filenameEff = Form("efficiency/MW/pairEfficiency_pT_meebin%d_Study8.root",meebin);
+	  filenameEff = Form("inputFiles/pairEfficiency_pT_meebin%d_Study8.root",meebin);
       }
       else
-	filenameEff = "efficiency/MW/pairEfficiency_Study8.root";
+	filenameEff = "inputFiles/pairEfficiency_Study8.root";
     }
   }
 
@@ -901,6 +901,11 @@ void plotFinalPlotsLowB_Systems (
   legSyst2->AddEntry(fGrSystErrOnly_Excess_CombBkg,"from Signal + BG","f");
   legSyst2->AddEntry(fGrSystErrOnly_Charm_Cocktail,"from cocktail and charm","f");
   legSyst2->Draw();
+
+  if(meebin==0)
+    cSystComp->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Syst_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
+  else
+    cSystComp->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Syst_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
    // ----------------------------------------------------------------------
 
 
@@ -1035,17 +1040,17 @@ void plotFinalPlotsLowB_Systems (
   fPave->DrawClone();
 
   if(meebin==0)
-    fCanvSignalsVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_Mee_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    fCanvSignalsVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Mee_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
   else
-    fCanvSignalsVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Mee_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    fCanvSignalsVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Mee_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 
   cInputQA->Update();
 
   if(meebin==0){
-    cInputQA->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_inputQA_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    cInputQA->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_inputQA_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
   }
   else{
-    cInputQA->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_inputQA_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    cInputQA->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_inputQA_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
   }
 
   // ----------------------------------------------------------------------
@@ -1099,10 +1104,10 @@ void plotFinalPlotsLowB_Systems (
   fPave->DrawClone();
 
   if(meebin==0){
-    fCanvExcessVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_Excess_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    fCanvExcessVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Excess_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
   }
   else{
-    fCanvExcessVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Excess_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    fCanvExcessVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Excess_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 
   }
 
@@ -1162,9 +1167,9 @@ void plotFinalPlotsLowB_Systems (
   logo->DrawClone();
 
   if(meebin==0)
-    fCanvExcessVsMee2->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_Excess2_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    fCanvExcessVsMee2->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Excess2_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
   else
-    fCanvExcessVsMee2->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Excess2_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    fCanvExcessVsMee2->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Excess2_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 
 
   if(!doPtee){
@@ -1386,9 +1391,9 @@ void plotFinalPlotsLowB_Systems (
 	fLegendPolarizationSignif->Draw();
 
 	if(meebin==0)
-	  fCanvPolarizationVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_Polarization_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+	  fCanvPolarizationVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Polarization_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 	else
-	  fCanvPolarizationVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Polarization_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+	  fCanvPolarizationVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Polarization_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 	
 	cout << "Polarization done" << endl;
 
@@ -1610,9 +1615,9 @@ void plotFinalPlotsLowB_Systems (
 	fLegendFlowSignif->Draw();
 
 	if(meebin==0)
-	  fCanvFlowVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_Flow_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+	  fCanvFlowVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Flow_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 	else
-	  fCanvFlowVsMee->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Flow_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+	  fCanvFlowVsMee->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Flow_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 	
 	cout << "Flow done" << endl;
 
@@ -1817,18 +1822,18 @@ void plotFinalPlotsLowB_Systems (
 
 
   if(meebin==0)
-    cTemp->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_Temperature_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    cTemp->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_Temperature_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
   else
-    cTemp->SaveAs(Form("figs/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Temperature_Run5_%d_RICH_%d_IPcut%d_events%.0f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC));
+    cTemp->SaveAs(Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_Temperature_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.png",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling));
 
   
   // ----------------------------------------------------------------------
   // Write output file
   if(writeFile){
 
-    TString fileOutName = Form("out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_%s_histos_Run5_%d_RICH_%d_IPcut%d_events%.0f.root",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC);
+    TString fileOutName = Form("./finalPlotsLowB_Systems_preliminary_pT%d_%s_histos_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.root",doPtee,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling);
     if(meebin!=0)
-      fileOutName = Form("out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_histos_Run5_%d_RICH_%d_IPcut%d_events%.0f.root",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC);
+      fileOutName = Form("./finalPlotsLowB_Systems_preliminary_pT%d_meebin%d_%s_histos_Run5_%d_RICH_%d_IPcut%d_events%.0f_Conv%.1f.root",doPtee,meebin,sSystem[iSystem].Data(),Run5,RICH,doIPcut,nEventsLHC,conversionBGScaling);
     Printf("Write to file %s",fileOutName.Data()); 
     
     TFile *fOut = TFile::Open(fileOutName,"RECREATE");
