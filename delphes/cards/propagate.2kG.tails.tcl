@@ -2,6 +2,8 @@ set barrel_Bz 0.2
 set barrel_Radius 100.e-2
 set barrel_HalfLength 200.e-2
 set barrel_TimeResolution 0.020e-9
+set barrel_TailRight 1.0
+set barrel_TailLeft 1.0
 set barrel_Acceptance { 0.0 + 1.0 * fabs(eta) < 1.443 }
 
 set ExecutionPath {
@@ -9,7 +11,7 @@ set ExecutionPath {
     Merger
     Acceptance
     DecayFilter
-    TimeSmearing
+    TimeSmearingTail
     TreeWriter
 }
 
@@ -44,15 +46,17 @@ module DecayFilter DecayFilter {
     set OutputArray tracks
 }
 
-module TimeSmearing TimeSmearing {
+module TimeSmearingTail TimeSmearingTail {
     add InputArray DecayFilter/tracks
     add OutputArray tracks
     set TimeResolution $barrel_TimeResolution
+    set TailRight $barrel_TailRight
+    set TailLeft $barrel_TailLeft
 }
 
 module TreeWriter TreeWriter {
     # add Branch InputArray BranchName BranchClass
     add Branch Delphes/allParticles Particle GenParticle
-    add Branch TimeSmearing/tracks Track Track
+    add Branch TimeSmearingTail/tracks Track Track
 }
 
