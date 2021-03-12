@@ -48,12 +48,13 @@ void plotFinalPlotsLowB_Systems (
   // ----------------------------------------------------------------------
   
   // ----------------------------------------------------------------------
-  // Collision system set up
+  // Collision system set up (from simpleScalingsWithPythiaInput.C)
   const Int_t nSystems = 4;
   TString sSystem[nSystems] = {"Pb","Xe","Kr","Ar"};
   TString sSystem2[nSystems] = {"Pb-Pb","Xe-Xe","Kr-Kr","Ar-Ar"};
-  Double_t A[nSystems] = {208.,129.,78.,40.};
-  Double_t lumiFactor[nSystems]     = {1.,7.8,44.,646.};
+  Double_t nCh[nSystems]   = {1830.3,1114.45,723.35,315.05};//from David's report (Pythia)
+  Double_t nColl[nSystems] = {1598.70,856.70,456.10,162.75};//from David's report (Glauber)
+  Double_t lumiFactor[nSystems]  = {1.,5.87,25.,219.512};// from yellow report (p=1.5, in older version of this macro 1.9 was used)
   Double_t sigmaHadFactor[nSystems] = {7.8,5.67,4.06,2.6};
 
    if(iSystem >= nSystems){
@@ -216,7 +217,7 @@ void plotFinalPlotsLowB_Systems (
   hBG->Scale(conversionBGScaling);
 	     
   // scaling for collision system
-  Double_t scaleBG = TMath::Power(A[iSystem]/A[0],2.); 
+  Double_t scaleBG = TMath::Power(nCh[iSystem]/nCh[0],2.); 
   Printf("Scale BG input for Pb-Pb with %f",scaleBG);
   hBG->Scale(scaleBG);
   
@@ -230,7 +231,7 @@ void plotFinalPlotsLowB_Systems (
   TString filenameCocktail = "~/MAC_201909/ALICE//dileptons/Upgrade/ITS/analysis_Patrick/DileptonUpgradeStudiesPatrick/Input_Averbeck/cocktail_10M_pbpb_0020_upgrade_2760GeV_v1.root";
   TFile *fCocktail = TFile::Open(filenameCocktail,"READ");
   
-  Double_t scaleCocktail = TMath::Power(A[iSystem]/A[0],1.); 
+  Double_t scaleCocktail = TMath::Power(nCh[iSystem]/nCh[0],1.); 
   Printf("Scale cocktail input for Pb-Pb with %f",scaleCocktail);
 
   Int_t binMaxPt  = 0;
@@ -333,7 +334,7 @@ void plotFinalPlotsLowB_Systems (
   hRhoRR->Scale(fHistRhoMed2D->GetYaxis()->GetBinWidth(1));//this is also done in Patrick's projection macro
   hQGP->Scale(fHistQGP2D->GetYaxis()->GetBinWidth(1));//this is also done in Patrick's projection macro
 
-  Double_t scaleRapp = TMath::Power(A[iSystem]/A[0],1.4); 
+  Double_t scaleRapp = TMath::Power(nCh[iSystem]/nCh[0],1.4); 
   Printf("Scale Rapp input for Pb-Pb with %f",scaleRapp);
 
   hRhoVacRR->Scale(scaleRapp);
@@ -352,7 +353,7 @@ void plotFinalPlotsLowB_Systems (
   TH1D* hCharm    = convertCharmHistogram((TH1D*) fCharm->Get(Form("meeCharm_%s%d", projXorY, meebin)),doPtee);
   hCharm->Smooth(1000); // remove stat fluctuations
 
-  Double_t scaleHF = TMath::Power(A[iSystem]/A[0],4./3.); 
+  Double_t scaleHF = TMath::Power(nColl[iSystem]/nColl[0],1.); 
   Printf("Scale HF input for Pb-Pb with %f",scaleHF);
 
   hCharm->Scale(scaleHF);
