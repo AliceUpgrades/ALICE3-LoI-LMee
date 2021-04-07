@@ -7,9 +7,10 @@ runDelphes() {
   # write function to be more readable
   echo "Main:numberOfEvents $2" >> pythia8.$1.cfg
   random=$(date +%d%H%M%S)
-  echo "Random:seed = $random" >> pythia8.$1.cfg
-  echo "Beams:allowVertexSpread on " >> pythia8.$I.cfg
-  echo "Beams:sigmaTime 60." >> pythia8.$I.cfg
+  # echo "Random:seed = $random" >> pythia8.$1.cfg
+  echo "Random:seed = $1" >> pythia8.$1.cfg
+  # echo "Beams:allowVertexSpread on " >> pythia8.$I.cfg
+  # echo "Beams:sigmaTime 60." >> pythia8.$I.cfg
 
   DelphesPythia8 propagate.tcl pythia8.$1.cfg delphes.$1.root  &> delphes.$1.log &&
   root -q -l "bkg.cxx(\"delphes.$1.root\", \"background.$1.root\")" &> bkg.$1.log
@@ -18,17 +19,18 @@ runDelphes() {
 # SYSTEM="pp_inel"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 SYSTEM="PbPb"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 
-NJOBS=5        # number of max parallel runs
-NRUNS=15     # number of runs
+NJOBS=2        # number of max parallel runs
+NRUNS=2     # number of runs
 
-NEVENTS=100    # number of events in a run
+NEVENTS=250    # number of events in a run
 
 RADIUS=100     # radius tracks have to reach for reco
 
 BFIELD=5      # magnetic field  [kG]
 SIGMAT=0.020   # time resolution [ns]
+SIGMA0=0.200         # vertex time spread [ns]
 TAILLX=1.0     # tail on left    [q]
-TAILRX=1.0     # tail on right   [q]
+TAILRX=1.3     # tail on right   [q]
 TOFRAD=100.    # TOF radius      [cm]
 TOFLEN=200.    # TOF half length [cm]
 TOFETA=1.443   # TOF max pseudorapidity
@@ -57,6 +59,14 @@ cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.werner.rmin${RADI
 cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
 cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 
+# cp ../../LUTs/default/lutCovm.el.5kG.dat lutCovm.el.dat # default lUTS for test
+# cp ../../LUTs/default/lutCovm.mu.5kG.dat lutCovm.mu.dat # default lUTS for test
+# cp ../../LUTs/default/lutCovm.pi.5kG.dat lutCovm.pi.dat # default lUTS for test
+# cp ../../LUTs/default/lutCovm.ka.5kG.dat lutCovm.ka.dat # default lUTS for test
+# cp ../../LUTs/default/lutCovm.pr.5kG.dat lutCovm.pr.dat # default lUTS for test
+
+
+
 # Set B fild in propagation card and analysis macro
 sed -i -e "s/set Bz .*$/set Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" bkg.cxx
@@ -74,6 +84,7 @@ sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\
 sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
 sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" bkg.cxx
+sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" bkg.cxx
 
 ### create LUTs
 # BFIELDT=`awk -v a=$BFIELD 'BEGIN {print a*0.1}'`
@@ -104,6 +115,6 @@ rm -rf background.*.root &&
 rm lutCovm*
 rm propagate.tcl
 rm *.root
-rm *.log
+# rm *.log
 rm *.cfg
 rm bkg.cxx

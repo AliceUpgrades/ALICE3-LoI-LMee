@@ -1,7 +1,8 @@
 R__LOAD_LIBRARY(libDelphes)
 R__LOAD_LIBRARY(libDelphesO2)
 
-// bool smear = true;
+bool pairing = true;
+bool smear = true;
 // bool nsigma = true;
 double Bz = 0.2;
 double eMass = 0.000511;
@@ -10,8 +11,10 @@ double eMass = 0.000511;
 double tof_radius = 100.; // [cm]
 double tof_length = 200.; // [cm]
 double tof_sigmat = 0.02; // [ns]
-
-
+double tof_sigma0 = 0.20; // [ns]
+// RICH params
+double rich_radius = 100.; // [cm]
+double rich_length = 200.; // [cm]
 
 // Cinematic cuts on tracks
 double PtCut = 0.04;
@@ -186,7 +189,14 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
     // TOF layer
     o2::delphes::TOFLayer toflayer;
-    toflayer.setup(tof_radius, tof_length, tof_sigmat);
+    toflayer.setup(tof_radius, tof_length, tof_sigmat, tof_sigma0);
+    // RICH detector
+    o2::delphes::RICHdetector richdetector;
+    richdetector.setup(rich_radius, rich_length);
+    richdetector.setIndex(1.03);
+    richdetector.setRadiatorLength(2.);
+    richdetector.setEfficiency(0.4);
+    richdetector.setSigma(7.e-3);
 
     // smearer
     o2::delphes::TrackSmearer smearer;
@@ -200,29 +210,48 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     auto nTracks = new TH1F("nTracks",";Tracks",10000,0,10000);
     auto nTracksEle = new TH1F("nTracksEle",";Tracks",1000,0,1000);
     auto nTracksPos = new TH1F("nTracksPos",";Tracks",1000,0,1000);
+
+    // Histograms TOF
     auto hTime0 = new TH1F("hTime0", ";t_{0} (ns)", 1000, -1., 1.);
     auto hBetaP = new TH2F("hBetaP", ";#it{p} (GeV/#it{c});#beta",400 ,0. ,4. , 1000, 0.1, 1.1);
 
-    TH2 *hNsigmaP[5];
+    TH2 *hNsigmaP_tof[5];
     const char *pname[5] = {"el", "mu", "pi", "ka", "pr"};
     const char *plabel[5] = {"e", "#mu", "#pi", "K", "p"};
     for (int i = 0; i < 5; ++i)
-      hNsigmaP[i] = new TH2F(Form("hNsigmaP_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]),400,0. , 4. , 200, -10., 10.);
+      hNsigmaP_tof[i] = new TH2F(Form("hNsigmaP_tof_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]),400,0. , 4. , 250, -25., 25.);
 
     // auto hBetaP = new TH2F("hBetaP",";p (GeV/c);#beta",400,0.,4.,1000,0.1,1.1);
     // auto tofNsigma = new TH2F("tofNsigma",";pT (GeV/c); n#sigma_{TOF}",400,0,4,200,-10.,10.);
-    auto tofNsigmaEleCut = new TH2F("tofNsigmaEleCut",";pT (GeV/c); n#sigma_{TOF}",400,0,4,200,-10.,10.);
-    auto tofNsigmaPionCut = new TH2F("tofNsigmaPionCut",";pT (GeV/c); n#sigma_{TOF}",400,0,4,200,-10.,10.);
+    auto tofNsigmaEleCut = new TH2F("tofNsigmaEleCut",";pT (GeV/c); n#sigma_{TOF}",400,0,4,250,-10.,10.);
+    auto tofNsigmaPionCut = new TH2F("tofNsigmaPionCut",";pT (GeV/c); n#sigma_{TOF}",400,0,4,250,-10.,10.);
+
+    // histograms RICH
+    auto hAngleP = new TH2F("hAngleP", ";#it{p} (GeV/#it{c});#theta (rad)", 200, 0, 20, 250, 0., 0.25);
+    TH2 *hNsigmaP_rich[5];
+    std::map<int, int> pidmap = { {11, 0}, {13, 1}, {211, 2}, {321, 3}, {2212, 4} };
+    std::map<int, double> pidmass = { {0, 0.00051099891}, {1, 0.10565800}, {2, 0.13957000}, {3, 0.49367700}, {4, 0.93827200} };
+    for (int i = 0; i < 5; ++i) {
+      hNsigmaP_rich[i] = new TH2F(Form("hNsigmaP_rich_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]), 200, 0, 20, 250, -25., 25.);
+    }
+
+
     // Track histograms
     auto hPt_trackEle = new TH1F("hPt_trackEle",";p_T (GeV/c)",200,0,20);
     auto hPt_trackPos = new TH1F("hPt_trackPos",";p_T (GeV/c)",200,0,20);
     // Pair histograms
-    auto hM_Pt_sameMother = new TH2F("hM_Pt_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.);
-    auto hM_Pt_ULS = new TH2F("hM_Pt_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
-    auto hM_Pt_LSplus = new TH2F("hM_Pt_LSplus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
-    auto hM_Pt_LSminus = new TH2F("hM_Pt_LSminus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
+    auto hM_Pt_DCA_sameMother = new TH3F("hM_Pt_DCA_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.,200,0.,20.);
+    auto hM_Pt_DCA_ULS = new TH3F("hM_Pt_DCA_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
+    auto hM_Pt_DCA_LSplus = new TH3F("hM_Pt_DCA_LSplus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
+    auto hM_Pt_DCA_LSminus = new TH3F("hM_Pt_DCA_LSminus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
 
-    std::vector<Track *> vecElectron,vecPositron,vecTOFtracks;
+    // auto hM_Pt_sameMother = new TH2F("hM_Pt_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.);
+    // auto hM_Pt_ULS = new TH2F("hM_Pt_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
+    // auto hM_Pt_LSplus = new TH2F("hM_Pt_LSplus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
+    // auto hM_Pt_LSminus = new TH2F("hM_Pt_LSminus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
+
+
+    std::vector<Track *> vecElectron,vecPositron,vecPIDtracks;
 
     for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry)
     {
@@ -241,53 +270,72 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             if (!smearer.smearTrack(*track)) continue;
 
             // select primaries based on 3 sigma DCA cuts
-            if (fabs(track->D0 / track->ErrorD0) > 3.) continue;
-            if (fabs(track->DZ / track->ErrorDZ) > 3.) continue;
+            if (fabs(track->D0) > 3.) continue;
+            if (fabs(track->DZ) > 3.) continue;
 
             // check if has TOF
             if (!toflayer.hasTOF(*track)) continue;
-
+            // check if has RICH
+            if (!richdetector.hasRICH(*track)) continue;
             // push track
-            // tof_tracks.push_back(track);
             // push all tracks into a vector.
-            vecTOFtracks.push_back(track);
-            // look only at electrons and fill track histos
+            vecPIDtracks.push_back(track);
+
 
         }
 
-        nTracks->Fill(vecTOFtracks.size());
+        nTracks->Fill(vecPIDtracks.size());
 
         std::array<float, 2> tzero;
-        toflayer.eventTime(vecTOFtracks, tzero);
+        toflayer.eventTime(vecPIDtracks, tzero);
         hTime0->Fill(tzero[0]);
 
-        for(auto track : vecTOFtracks)
+        for(auto track : vecPIDtracks)
         {
+          // TOF PID
           auto p = track->P;
           auto beta = toflayer.getBeta(*track);
           hBetaP->Fill(p, beta);
 
           // fill nsigma
-          std::array<float, 5> deltat, nsigma;
-          toflayer.makePID(*track, deltat, nsigma);
-          for (int i = 0; i < 5; ++i) hNsigmaP[i]->Fill(p, nsigma[i]);
+          std::array<float, 5> deltat, nsigmaTOF;
+          toflayer.makePID(*track, deltat, nsigmaTOF);
+          for (int i = 0; i < 5; ++i) hNsigmaP_tof[i]->Fill(p, nsigmaTOF[i]);
 
-          if(fabs(nsigma[0]) > 3.) continue;
-          if(fabs(nsigma[2]) < 3.) continue;
+          // if(fabs(nsigmaTOF[0]) > 3.) continue;
+          // if(fabs(nsigmaTOF[2]) < 3.) continue;
+
+          // RICH PID
+          auto measurement = richdetector.getMeasuredAngle(*track);
+          auto angle = measurement.first;
+          auto anglee = measurement.second;
+          if (anglee == 0.) continue;
+
+
+          hAngleP->Fill(p, angle);
+
+          // make pid
+          std::array<float, 5> deltaangle, nsigmaRICH;
+          richdetector.makePID(*track, deltaangle, nsigmaRICH);
+          for (int i = 0; i < 5; ++i)
+          {
+            hNsigmaP_rich[i]->Fill(p, nsigmaRICH[i]);
+          }
+
 
           if (track->Charge < 0. )
           {
-              vecElectron.push_back(track);
+              if (pairing) vecElectron.push_back(track);
               hPt_trackEle->Fill(track->PT);
           }
           else if (track->Charge > 0. )
           {
-              vecPositron.push_back(track);
+              if (pairing) vecPositron.push_back(track);
               hPt_trackPos->Fill(track->PT);
           }
 
         }
-        vecTOFtracks.clear();
+        vecPIDtracks.clear();
 
 
 
@@ -295,37 +343,50 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
         nTracksPos->Fill(vecPositron.size());
         // pairing
         TLorentzVector LV1,LV2,LV;
-        for (auto track1 : vecElectron)
-        {
+        double dca= 0. ,dca1 = 0.,dca2 = 0.;
+        if (pairing){
+          for (auto track1 : vecElectron)
+          {
 
-            LV1.SetPtEtaPhiM(track1->PT,track1->Eta,track1->Phi,eMass);
-            for (auto track2 : vecPositron) {
-                LV2.SetPtEtaPhiM(track2->PT,track2->Eta,track2->Phi,eMass);
-                LV = LV1 + LV2;
-                hM_Pt_ULS->Fill(LV.Mag(),LV.Pt()); // ULS spectrum
-            }
-        }
-        // Nested for loops for the calculation of the LS spectra
-        for (auto track1 = vecPositron.begin(); track1!=vecPositron.end(); ++track1)
-        {
-            for (auto track2 = track1+1; track2!=vecPositron.end(); ++track2)
-            {
-                LV1.SetPtEtaPhiM((*track1)->PT,(*track1)->Eta,(*track1)->Phi,eMass);
-                LV2.SetPtEtaPhiM((*track2)->PT,(*track2)->Eta,(*track2)->Phi,eMass);
-                LV = LV1 + LV2;
-                hM_Pt_LSplus->Fill(LV.Mag(),LV.Pt());
-            }
-        }
+              LV1.SetPtEtaPhiM(track1->PT,track1->Eta,track1->Phi,eMass);
+              for (auto track2 : vecPositron) {
+                  LV2.SetPtEtaPhiM(track2->PT,track2->Eta,track2->Phi,eMass);
+                  LV = LV1 + LV2;
+                  // pair dca calculation
+                   dca1 = (track1->D0/track1->ErrorD0);
+                   dca2 = (track2->D0/track2->ErrorD0);
+                   dca = sqrt(dca1*dca1 + dca2*dca2) / 2;
+                   hM_Pt_DCA_ULS->Fill(LV.Mag(),LV.Pt(),dca); // ULS spectrum
+              }
+          }
+          // Nested for loops for the calculation of the LS spectra
+          for (auto track1 = vecPositron.begin(); track1!=vecPositron.end(); ++track1)
+          {
+              for (auto track2 = track1+1; track2!=vecPositron.end(); ++track2)
+              {
+                  LV1.SetPtEtaPhiM((*track1)->PT,(*track1)->Eta,(*track1)->Phi,eMass);
+                  LV2.SetPtEtaPhiM((*track2)->PT,(*track2)->Eta,(*track2)->Phi,eMass);
+                  LV = LV1 + LV2;
+                  dca1 = ((*track1)->D0/(*track1)->ErrorD0);
+                  dca2 = ((*track2)->D0/(*track2)->ErrorD0);
+                  dca = sqrt(dca1*dca1 + dca2*dca2) / 2;
+                  hM_Pt_DCA_LSplus->Fill(LV.Mag(),LV.Pt(),dca);
+              }
+          }
 
-        for (auto track1 = vecElectron.begin(); track1!=vecElectron.end(); ++track1)
-        {
-            for (auto track2 = track1+1; track2!=vecElectron.end(); ++track2)
-            {
-                LV1.SetPtEtaPhiM((*track1)->PT,(*track1)->Eta,(*track1)->Phi,eMass);
-                LV2.SetPtEtaPhiM((*track2)->PT,(*track2)->Eta,(*track2)->Phi,eMass);
-                LV = LV1 + LV2;
-                hM_Pt_LSminus->Fill(LV.Mag(),LV.Pt());
-            }
+          for (auto track1 = vecElectron.begin(); track1!=vecElectron.end(); ++track1)
+          {
+              for (auto track2 = track1+1; track2!=vecElectron.end(); ++track2)
+              {
+                  LV1.SetPtEtaPhiM((*track1)->PT,(*track1)->Eta,(*track1)->Phi,eMass);
+                  LV2.SetPtEtaPhiM((*track2)->PT,(*track2)->Eta,(*track2)->Phi,eMass);
+                  LV = LV1 + LV2;
+                  dca1 = ((*track1)->D0/(*track1)->ErrorD0);
+                  dca2 = ((*track2)->D0/(*track2)->ErrorD0);
+                  dca = sqrt(dca1*dca1 + dca2*dca2) / 2;
+                  hM_Pt_DCA_LSminus->Fill(LV.Mag(),LV.Pt(),dca);
+              }
+          }
         }
         vecElectron.clear();
         vecPositron.clear();
@@ -336,14 +397,18 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     nTracksPos->Write();
     hPt_trackEle->Write();
     hPt_trackPos->Write();
-    hM_Pt_sameMother->Write();
-    hM_Pt_ULS->Write();
-    hM_Pt_LSplus->Write();
-    hM_Pt_LSminus->Write();
+    hM_Pt_DCA_sameMother->Write();
+    hM_Pt_DCA_ULS->Write();
+    hM_Pt_DCA_LSplus->Write();
+    hM_Pt_DCA_LSminus->Write();
     hTime0->Write();
     hBetaP->Write();
     for (int i = 0; i < 5; ++i)
-      hNsigmaP[i]->Write();
+      hNsigmaP_tof[i]->Write();
+    hAngleP->Write();
+    for (int i = 0; i < 5; ++i) {
+     hNsigmaP_rich[i]->Write();
+    }
     fout->Close();
 
 }
