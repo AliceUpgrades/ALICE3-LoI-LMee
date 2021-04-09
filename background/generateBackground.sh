@@ -108,7 +108,7 @@ done
 ### merge runs when all done
 wait
 hadd -f background.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root background.*.root &&
-mv background.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root ./output
+mv background.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root ./output/
 rm -rf background.*.root &&
 
 ### clean up

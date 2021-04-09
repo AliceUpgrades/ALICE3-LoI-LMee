@@ -216,10 +216,14 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     auto hBetaP = new TH2F("hBetaP", ";#it{p} (GeV/#it{c});#beta",400 ,0. ,4. , 1000, 0.1, 1.1);
 
     TH2 *hNsigmaP_tof[5];
+    TH2 *hNsigmaP_tof_after[5];
     const char *pname[5] = {"el", "mu", "pi", "ka", "pr"};
     const char *plabel[5] = {"e", "#mu", "#pi", "K", "p"};
     for (int i = 0; i < 5; ++i)
+    {
       hNsigmaP_tof[i] = new TH2F(Form("hNsigmaP_tof_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]),400,0. , 4. , 250, -25., 25.);
+        hNsigmaP_tof_after[i] = new TH2F(Form("hNsigmaP_tof_after_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]),400,0. , 4. , 250, -25., 25.);
+    }
 
     // auto hBetaP = new TH2F("hBetaP",";p (GeV/c);#beta",400,0.,4.,1000,0.1,1.1);
     // auto tofNsigma = new TH2F("tofNsigma",";pT (GeV/c); n#sigma_{TOF}",400,0,4,200,-10.,10.);
@@ -229,10 +233,12 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     // histograms RICH
     auto hAngleP = new TH2F("hAngleP", ";#it{p} (GeV/#it{c});#theta (rad)", 200, 0, 20, 250, 0., 0.25);
     TH2 *hNsigmaP_rich[5];
+    TH2 *hNsigmaP_rich_after[5];
     std::map<int, int> pidmap = { {11, 0}, {13, 1}, {211, 2}, {321, 3}, {2212, 4} };
     std::map<int, double> pidmass = { {0, 0.00051099891}, {1, 0.10565800}, {2, 0.13957000}, {3, 0.49367700}, {4, 0.93827200} };
     for (int i = 0; i < 5; ++i) {
       hNsigmaP_rich[i] = new TH2F(Form("hNsigmaP_rich_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]), 200, 0, 20, 250, -25., 25.);
+      hNsigmaP_rich_after[i] = new TH2F(Form("hNsigmaP_rich_after_%s", pname[i]), Form(";#it{p} (GeV/#it{c});n#sigma_{%s}", plabel[i]), 200, 0, 20, 250, -25., 25.);
     }
 
 
@@ -251,7 +257,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     // auto hM_Pt_LSminus = new TH2F("hM_Pt_LSminus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
 
 
-    std::vector<Track *> vecElectron,vecPositron,vecPIDtracks;
+    std::vector<Track *> vecElectron,vecPositron,vecPIDtracks,vecTOFtracks;
 
     for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry)
     {
@@ -269,15 +275,16 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             // smear track
             if (!smearer.smearTrack(*track)) continue;
 
-            // select primaries based on 3 sigma DCA cuts
-            if (fabs(track->D0) > 3.) continue;
+            // cut away tracks that are way off.
+            if (fabs(track->D0) > 0.4) continue; // adopt to just stay in the beampipe?
             if (fabs(track->DZ) > 3.) continue;
 
             // check if has TOF
-            if (!toflayer.hasTOF(*track)) continue;
+            if (toflayer.hasTOF(*track)) vecPIDtracks.push_back(track);
+
             // check if has RICH
-            if (!richdetector.hasRICH(*track)) continue;
-            // push track
+            // if (!richdetector.hasRICH(*track)) continue;
+
             // push all tracks into a vector.
             vecPIDtracks.push_back(track);
 
@@ -287,11 +294,13 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
         nTracks->Fill(vecPIDtracks.size());
 
         std::array<float, 2> tzero;
-        toflayer.eventTime(vecPIDtracks, tzero);
+        toflayer.eventTime(vecTOFtracks, tzero);
         hTime0->Fill(tzero[0]);
 
         for(auto track : vecPIDtracks)
         {
+          bool TOFpid = false;
+          bool RICHpid = false;
           // TOF PID
           auto p = track->P;
           auto beta = toflayer.getBeta(*track);
@@ -301,10 +310,11 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
           std::array<float, 5> deltat, nsigmaTOF;
           toflayer.makePID(*track, deltat, nsigmaTOF);
           for (int i = 0; i < 5; ++i) hNsigmaP_tof[i]->Fill(p, nsigmaTOF[i]);
-
-          // if(fabs(nsigmaTOF[0]) > 3.) continue;
-          // if(fabs(nsigmaTOF[2]) < 3.) continue;
-
+          if(p < 0.6)
+          {
+            if(fabs(nsigmaTOF[0]) < 3.) TOFpid = true; // is within 3 sigma of the electron band
+            if(fabs( (nsigmaTOF[2]) < 3.)) TOFpid = false; // is within 3 sigma of the electron band
+          }
           // RICH PID
           auto measurement = richdetector.getMeasuredAngle(*track);
           auto angle = measurement.first;
@@ -321,7 +331,20 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
           {
             hNsigmaP_rich[i]->Fill(p, nsigmaRICH[i]);
           }
+          if(richdetector.hasRICH(*track))
+          {
+            if(fabs(nsigmaRICH[0]) < 3.) RICHpid = true;
+            if(fabs( (nsigmaRICH[2]) < 3.) && (p > 1.) ) RICHpid = false;
+          }
 
+          if (!(RICHpid || TOFpid)) continue;
+
+          // fill pid histos after cuts
+          for (int i = 0; i < 5; ++i)
+          {
+            hNsigmaP_tof_after[i]->Fill(p, nsigmaTOF[i]);
+            hNsigmaP_rich_after[i]->Fill(p, nsigmaRICH[i]);
+          }
 
           if (track->Charge < 0. )
           {
@@ -403,11 +426,13 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     hM_Pt_DCA_LSminus->Write();
     hTime0->Write();
     hBetaP->Write();
-    for (int i = 0; i < 5; ++i)
-      hNsigmaP_tof[i]->Write();
     hAngleP->Write();
-    for (int i = 0; i < 5; ++i) {
-     hNsigmaP_rich[i]->Write();
+    for (int i = 0; i < 5; ++i)
+    {
+      hNsigmaP_tof[i]->Write();
+      hNsigmaP_rich[i]->Write();
+      hNsigmaP_tof_after[i]->Write();
+      hNsigmaP_rich_after[i]->Write();
     }
     fout->Close();
 
