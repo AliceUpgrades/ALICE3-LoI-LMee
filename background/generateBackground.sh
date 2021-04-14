@@ -1,16 +1,11 @@
 #! /usr/bin/env bash
 
 runDelphes() {
+  # write function to be more readable
   ### copy pythia8 configuration and adjust it
   cp ./pythia8.cfg pythia8.$1.cfg
-
-  # write function to be more readable
-  echo "Main:numberOfEvents $2" >> pythia8.$1.cfg
-  random=$(date +%d%H%M%S)
-  # echo "Random:seed = $random" >> pythia8.$1.cfg
+  sleep 0.5 # be save that the file is copied before modifing it. this can corrupt it when latency is high
   echo "Random:seed = $1" >> pythia8.$1.cfg
-  # echo "Beams:allowVertexSpread on " >> pythia8.$I.cfg
-  # echo "Beams:sigmaTime 60." >> pythia8.$I.cfg
 
   DelphesPythia8 propagate.tcl pythia8.$1.cfg delphes.$1.root  &> delphes.$1.log &&
   root -q -l "bkg.cxx(\"delphes.$1.root\", \"background.$1.root\")" &> bkg.$1.log
@@ -19,10 +14,10 @@ runDelphes() {
 # SYSTEM="pp_inel"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 SYSTEM="PbPb"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 
-NJOBS=2        # number of max parallel runs
-NRUNS=2     # number of runs
+NJOBS=10        # number of max parallel runs
+NRUNS=10     # number of runs
 
-NEVENTS=250    # number of events in a run
+NEVENTS=50    # number of events in a run
 
 RADIUS=100     # radius tracks have to reach for reco
 
@@ -51,6 +46,18 @@ cp ../delphes/cards/propagate.2kG.tails.tcl propagate.tcl
 cp ./macros/bkg.cxx bkg.cxx
 # pythia configuration
 cp ../pythia/pythia8_${SYSTEM}.cfg pythia8.cfg
+
+echo "" >> pythia8.cfg
+echo "### run time configuration" >> pythia8.cfg
+echo "Main:numberOfEvents $NEVENTS" >> pythia8.cfg
+echo "Beams:allowVertexSpread on " >> pythia8.cfg
+echo "Beams:sigmaTime 60." >> pythia8.cfg
+echo "Random:setSeed on" >> pythia8.cfg
+
+
+
+# PY8CFG="pythia8_PbPb"  # pythia8 configuration
+# cp $DELPHESO2_ROOT/examples/pythia8/$PY8CFG.cfg pythia8.cfg
 # cp $DELPHESO2_ROOT/examples/pythia8/pythia8_inel.cfg pythia8.cfg
 # LUTs
 cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
@@ -68,7 +75,7 @@ cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADI
 
 
 # Set B fild in propagation card and analysis macro
-sed -i -e "s/set Bz .*$/set Bz ${BFIELD}e\-1/" propagate.tcl
+sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" bkg.cxx
 
 ### set TOF radius
@@ -86,6 +93,7 @@ sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.
 sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" bkg.cxx
 sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" bkg.cxx
 
+
 ### create LUTs
 # BFIELDT=`awk -v a=$BFIELD 'BEGIN {print a*0.1}'`
 # $DELPHESO2_ROOT/examples/scripts/create_luts.sh werner $BFIELDT $TOFRAD
@@ -100,7 +108,7 @@ for (( I = 1; I <= $NRUNS; I++ )); do
   echo " --- starting run $I"
   touch .running.$I
 
-  runDelphes $I $NEVENTS &&
+  runDelphes $I &&
   (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I completed") ||
   (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I crashed") &
 done
@@ -115,6 +123,6 @@ rm -rf background.*.root &&
 rm lutCovm*
 rm propagate.tcl
 rm *.root
-# rm *.log
+rm *.log
 rm *.cfg
 rm bkg.cxx
