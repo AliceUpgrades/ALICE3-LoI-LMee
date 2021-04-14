@@ -4,7 +4,7 @@ runDelphes() {
   # write function to be more readable
   ### copy pythia8 configuration and adjust it
   cp ./pythia8.cfg pythia8.$1.cfg
-  sleep 0.5 # be save that the file is copied before modifing it. this can corrupt it when latency is high
+  sleep 2 # be save that the file is copied before modifing it. this can get corrupt it when latency is high
   echo "Random:seed = $1" >> pythia8.$1.cfg
 
   DelphesPythia8 propagate.tcl pythia8.$1.cfg delphes.$1.root  &> delphes.$1.log &&
@@ -15,9 +15,9 @@ runDelphes() {
 SYSTEM="PbPb"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 
 NJOBS=10        # number of max parallel runs
-NRUNS=10     # number of runs
+NRUNS=100       # number of runs
 
-NEVENTS=50    # number of events in a run
+NEVENTS=100     # number of events in a run
 
 RADIUS=100     # radius tracks have to reach for reco
 
