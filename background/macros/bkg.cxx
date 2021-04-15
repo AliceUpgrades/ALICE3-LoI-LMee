@@ -244,7 +244,10 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
     // Track histograms
     auto hPt_trackEle = new TH1F("hPt_trackEle",";p_T (GeV/c)",200,0,20);
-    auto hPt_trackPos = new TH1F("hPt_trackPos",";p_T (GeV/c)",200,0,20);
+    auto hPt_trackPID = new TH1F("hPt_trackPID",";p_T (GeV/c)",200,0,20);
+    // check the pid codes of Mothers
+    auto hPdg_mother = new TH1F("hPdg_mother",";pdg code mother",601,-0.5,600.5);
+
     // Pair histograms
     auto hM_Pt_DCA_sameMother = new TH3F("hM_Pt_DCA_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.,200,0.,20.);
     auto hM_Pt_DCA_ULS = new TH3F("hM_Pt_DCA_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
@@ -259,6 +262,8 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
     std::vector<Track *> vecElectron,vecPositron,vecPIDtracks,vecTOFtracks;
 
+    int eventCounter = 1;
+
     for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry)
     {
         // Load selected branches with data from specified event
@@ -272,6 +277,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             auto track = (Track *)tracks->At(itrack);
             auto particle = (GenParticle *)track->Particle.GetObject();
 
+
             // smear track
             if (!smearer.smearTrack(*track)) continue;
 
@@ -280,7 +286,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             if (fabs(track->DZ) > 3.) continue;
 
             // check if has TOF
-            if (toflayer.hasTOF(*track)) vecPIDtracks.push_back(track);
+            if (toflayer.hasTOF(*track)) vecTOFtracks.push_back(track);
 
             // check if has RICH
             // if (!richdetector.hasRICH(*track)) continue;
@@ -296,9 +302,19 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
         std::array<float, 2> tzero;
         toflayer.eventTime(vecTOFtracks, tzero);
         hTime0->Fill(tzero[0]);
+        vecTOFtracks.clear();
 
         for(auto track : vecPIDtracks)
         {
+          auto particle = (GenParticle *)track->Particle.GetObject();
+          auto pid = particle->PID;
+
+          auto imother = particle->M1;
+          if (imother == -1) return false;
+          auto mother = (GenParticle *)particles->At(imother);
+          auto mpid = mother->PID;
+
+
           bool TOFpid = false;
           bool RICHpid = false;
           // TOF PID
@@ -345,16 +361,20 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             hNsigmaP_tof_after[i]->Fill(p, nsigmaTOF[i]);
             hNsigmaP_rich_after[i]->Fill(p, nsigmaRICH[i]);
           }
+          hPt_trackPID->Fill(track->PT);
+          if(abs(pid) == 11)
+          {
+            hPt_trackEle->Fill(track->PT);
+            hPdg_mother->Fill(mpid);
+          }
 
           if (track->Charge < 0. )
           {
               if (pairing) vecElectron.push_back(track);
-              hPt_trackEle->Fill(track->PT);
           }
           else if (track->Charge > 0. )
           {
               if (pairing) vecPositron.push_back(track);
-              hPt_trackPos->Fill(track->PT);
           }
 
         }
@@ -378,7 +398,12 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
                   // pair dca calculation
                    dca1 = (track1->D0/track1->ErrorD0);
                    dca2 = (track2->D0/track2->ErrorD0);
-                   dca = sqrt(dca1*dca1 + dca2*dca2) / 2;
+                   dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
+                   // if(LV.Mag() < 0.01)
+                   // {
+                   //   printf(">>> Event %d +-\n",eventCounter);
+                   //   printf(">>> mass %f: pt1 = %f, pt2 = %f, eta1 = %f, eta2 = %f, phi1 = %f, phi2 = %f\n",LV.Mag(),track1->PT,track1->Eta,track1->Phi,track2->PT,track2->Eta,track2->Phi);
+                   // }
                    hM_Pt_DCA_ULS->Fill(LV.Mag(),LV.Pt(),dca); // ULS spectrum
               }
           }
@@ -392,7 +417,12 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
                   LV = LV1 + LV2;
                   dca1 = ((*track1)->D0/(*track1)->ErrorD0);
                   dca2 = ((*track2)->D0/(*track2)->ErrorD0);
-                  dca = sqrt(dca1*dca1 + dca2*dca2) / 2;
+                  // if(LV.Mag() < 0.01)
+                  // {
+                  //   printf(">>> Event %d ++\n",eventCounter);
+                  //   printf(">>> mass %f: pt1 = %f, pt2 = %f, eta1 = %f, eta2 = %f, phi1 = %f, phi2 = %f\n",LV.Mag(),(*track1)->PT,(*track1)->Eta,(*track1)->Phi,(*track2)->PT,(*track2)->Eta,(*track2)->Phi);
+                  // }
+                  dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
                   hM_Pt_DCA_LSplus->Fill(LV.Mag(),LV.Pt(),dca);
               }
           }
@@ -406,20 +436,26 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
                   LV = LV1 + LV2;
                   dca1 = ((*track1)->D0/(*track1)->ErrorD0);
                   dca2 = ((*track2)->D0/(*track2)->ErrorD0);
-                  dca = sqrt(dca1*dca1 + dca2*dca2) / 2;
+                  // if(LV.Mag() < 0.01)
+                  // {
+                  //   printf(">>> Event %d --\n",eventCounter);
+                  //   printf(">>> mass %f: pt1 = %f, pt2 = %f, eta1 = %f, eta2 = %f, phi1 = %f, phi2 = %f\n",LV.Mag(),(*track1)->PT,(*track1)->Eta,(*track1)->Phi,(*track2)->PT,(*track2)->Eta,(*track2)->Phi);
+                  // }
+                  dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
                   hM_Pt_DCA_LSminus->Fill(LV.Mag(),LV.Pt(),dca);
               }
           }
         }
         vecElectron.clear();
         vecPositron.clear();
+        eventCounter++;
     }
     auto fout = TFile::Open(outputFile, "RECREATE");
     nTracks->Write();
     nTracksEle->Write();
     nTracksPos->Write();
     hPt_trackEle->Write();
-    hPt_trackPos->Write();
+    hPt_trackPID->Write();
     hM_Pt_DCA_sameMother->Write();
     hM_Pt_DCA_ULS->Write();
     hM_Pt_DCA_LSplus->Write();
@@ -427,6 +463,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     hTime0->Write();
     hBetaP->Write();
     hAngleP->Write();
+    hPdg_mother->Write();
     for (int i = 0; i < 5; ++i)
     {
       hNsigmaP_tof[i]->Write();
