@@ -37,11 +37,11 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
   if(iStudy ==  0){
 
     nFile = 4;
-    sFile[0] = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
-    sFile[1] = "./finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_1_IPcut0_events14175000000_Conv1.0.root";
-    sFile[2] = "./finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_1_IPcut0_events57256410256_Conv1.0.root";
-    sFile[3] = "./finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_1_IPcut0_events538333333333_Conv1.0.root";
-            
+    sFile[0]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFile[1]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Xe_histos_Run5_1_RICH_1_IPcut0_events10667596154_Conv1.0.root";
+    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Kr_histos_Run5_1_RICH_1_IPcut0_events32532051282_Conv1.0.root";
+    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Ar_histos_Run5_1_RICH_1_IPcut0_events182926666667_Conv1.0.root";
+               
     sFile2[0] = "Pb-Pb";
     sFile2[1] = "Xe-Xe";
     sFile2[2] = "Kr-Kr";
@@ -53,12 +53,13 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
   else if(iStudy ==  1){
     
     nFile = 5;
+    nFile = 3;
 
     sFile[0]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl0_IPcut1_events2500000000.root";
     sFile[1]     = "~/MAC_201909/ALICE/dileptons/Upgrade/ITS/analysis/out/lowB_HF/finalPlots/finalPlotsLowB_ITS3_EoI_updateRFactorSyst_histos_ITSCyl1_IPcut1_events2500000000.root";
-    sFile[2]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000_Conv1.0.root";
-    sFile[3]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000_Conv1.0.root";
-    sFile[4]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_0_RICH_0_IPcut0_events2500000000_Conv1.0.root";
+    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_0_IPcut0_events2500000000_Conv1.0.root";
+    sFile[4]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
 
     sFile2[0] = "ITS3 (LoI)";
     sFile2[1] = "ITS3 (LoI)";
@@ -71,11 +72,11 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
 
     nFile = 5;
   
-    sFile[0]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
-    sFile[1]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.2.root";
-    sFile[2]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.5.root";
-    sFile[3]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.8.root";
-    sFile[4]     = "./finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv2.0.root";   
+    sFile[0]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.0.root";
+    sFile[1]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.2.root";
+    sFile[2]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.5.root";
+    sFile[3]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv1.8.root";
+    sFile[4]     = "out/lowB/finalPlots/finalPlotsLowB_Systems_preliminary_pT0_Pb_histos_Run5_1_RICH_1_IPcut0_events2500000000_Conv2.0.root";   
 
     sFile2[0] = "0% Conversions";
     sFile2[1] = "25% ";
@@ -235,9 +236,9 @@ void plotFinalPlotsComparison(Int_t iStudy = 0){
     }
   }
 
-  c->SaveAs(Form("./finalPlotsComparison_study%d.png",iStudy));
-  cRatio->SaveAs(Form("./finalPlotsComparison_ratios_study%d.png",iStudy));
-  d->SaveAs(Form("./finalPlotsComparison_syst_study%d.png",iStudy));
+  c->SaveAs(Form("figs/comparison/finalPlotsComparison_study%d.png",iStudy));
+  cRatio->SaveAs(Form("figs/comparison/finalPlotsComparison_ratios_study%d.png",iStudy));
+  d->SaveAs(Form("figs/comparison/finalPlotsComparison_syst_study%d.png",iStudy));
 
 }
 
