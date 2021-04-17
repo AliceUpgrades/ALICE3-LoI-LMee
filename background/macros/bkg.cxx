@@ -399,11 +399,6 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
                    dca1 = (track1->D0/track1->ErrorD0);
                    dca2 = (track2->D0/track2->ErrorD0);
                    dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
-                   // if(LV.Mag() < 0.01)
-                   // {
-                   //   printf(">>> Event %d +-\n",eventCounter);
-                   //   printf(">>> mass %f: pt1 = %f, pt2 = %f, eta1 = %f, eta2 = %f, phi1 = %f, phi2 = %f\n",LV.Mag(),track1->PT,track1->Eta,track1->Phi,track2->PT,track2->Eta,track2->Phi);
-                   // }
                    hM_Pt_DCA_ULS->Fill(LV.Mag(),LV.Pt(),dca); // ULS spectrum
               }
           }
@@ -417,11 +412,6 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
                   LV = LV1 + LV2;
                   dca1 = ((*track1)->D0/(*track1)->ErrorD0);
                   dca2 = ((*track2)->D0/(*track2)->ErrorD0);
-                  // if(LV.Mag() < 0.01)
-                  // {
-                  //   printf(">>> Event %d ++\n",eventCounter);
-                  //   printf(">>> mass %f: pt1 = %f, pt2 = %f, eta1 = %f, eta2 = %f, phi1 = %f, phi2 = %f\n",LV.Mag(),(*track1)->PT,(*track1)->Eta,(*track1)->Phi,(*track2)->PT,(*track2)->Eta,(*track2)->Phi);
-                  // }
                   dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
                   hM_Pt_DCA_LSplus->Fill(LV.Mag(),LV.Pt(),dca);
               }
@@ -436,11 +426,6 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
                   LV = LV1 + LV2;
                   dca1 = ((*track1)->D0/(*track1)->ErrorD0);
                   dca2 = ((*track2)->D0/(*track2)->ErrorD0);
-                  // if(LV.Mag() < 0.01)
-                  // {
-                  //   printf(">>> Event %d --\n",eventCounter);
-                  //   printf(">>> mass %f: pt1 = %f, pt2 = %f, eta1 = %f, eta2 = %f, phi1 = %f, phi2 = %f\n",LV.Mag(),(*track1)->PT,(*track1)->Eta,(*track1)->Phi,(*track2)->PT,(*track2)->Eta,(*track2)->Phi);
-                  // }
                   dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
                   hM_Pt_DCA_LSminus->Fill(LV.Mag(),LV.Pt(),dca);
               }
