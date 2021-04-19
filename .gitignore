@@ -7,3 +7,4 @@
 #Exeptions
 !rootfiles/*
 !final_plots/*
+!resolutionfiles/*
