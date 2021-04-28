@@ -350,7 +350,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
           if(richdetector.hasRICH(*track))
           {
             if(fabs(nsigmaRICH[0]) < 3.) RICHpid = true;
-            if(fabs( (nsigmaRICH[2]) < 3.) && (p > 1.) ) RICHpid = false;
+            if( (fabs(nsigmaRICH[2]) < 3.) && (p > 1.) ) RICHpid = false;
           }
 
           if (!(RICHpid || TOFpid)) continue;
