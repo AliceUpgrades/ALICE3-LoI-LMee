@@ -4,6 +4,7 @@ R__LOAD_LIBRARY(libDelphesO2)
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "TObjArray.h"
 
 
 // class GenParticle;
@@ -20,15 +21,21 @@ R__LOAD_LIBRARY(libDelphesO2)
 bool bSmear   = true;
 bool bUseTOF  = true;
 bool bUseRICH = true;
-double Bz = 0.2;
+double Bz = 0.2;            // becomes overwritten by the generateEfficiencies.sh skript
 double eMass = 0.000511;
 
 // Cinematic cuts on tracks
 // double PtCut = 0.0;     // open cuts
-double PtCut = 0.04;    // if B=0.2T
-// double PtCut = 0.08;    // if B=0.5T
+double PtCut = 0.04;       // if B=0.2T becomes overwritten by the generateEfficiencies.sh skript
+// double PtCut = 0.08;    // if B=0.5T becomes overwritten by the generateEfficiencies.sh skript
 double EtaCut = 1.1;
 // double EtaCut = 10.;    // open cuts
+
+Double_t pt_binning[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
+// Double_t eta_binning[]  = {-5.0,-4.9,-4.8,-4.7,-4.6,-4.5,-4.4,-4.3,-4.2,-4.1,-4.0,-3.9,-3.8,-3.7,-3.6,-3.5,-3.4,-3.3,-3.2,-3.1,-3.0,-2.9,-2.8,-2.7,-2.6,-2.5,-2.4,-2.3,-2.2,-2.1,-2.0,-1.9,-1.8,-1.7,-1.6,-1.5,-1.4,-1.3,-1.2,-1.1,-1.0,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5.0};
+Int_t nEtaBins = 10;    Double_t maxEta = 5.;
+Int_t nPhiBins = 180;    Double_t maxPhi = 2*TMath::Pi();
+
 
 // TOF
 double tof_radius = 100.; // [cm]
@@ -39,18 +46,6 @@ double tof_sigma0 = 0.20; // [ns]
 // TOF ele pt acceptance
 double tof_EleAccep_pt_cut = 0.6;  // [GeV/c]
 
-// TOF cuts on tracks
-double nSigmaTOFEle   = 3.;
-double nSigmaTOFPi = 3.;
-// double nSigmaTOFEle   = 99.;
-// double nSigmaTOFPi = -99.;
-// double nSigmaTOFMu = -99.;
-// double nSigmaTOFKa = 2.;
-// double nSigmaTOFPro = 2.;
-// double nSigmaTOFMu = -99.;
-// double nSigmaTOFKa = -99.;
-// double nSigmaTOFPro = -99.;
-// double nSigmaTOFOther = -5.;
 
 // RICH
 double rich_radius = 100.;
@@ -60,16 +55,19 @@ double rich_length = 200.;
 // double rich_Ele_pt_cut = 1.8; // [GeV/c]
 double rich_PionRejection_pt_cut = 1.0; // [GeV/c]
 
-// RICH cuts on tracks
-double nSigmaRICHEle   = 3.;
-// double nSigmaRICHMu = 99.;
-double nSigmaRICHPi = 3.;
-// double nSigmaRICHKa = 3.;
-// double nSigmaRICHPro = 2.;
 
-// double nSigmaRICHOther = -5.;
-// double nSigmaRICHEle   = 99.;
-// double nSigmaRICHOther = 0.;
+
+// PID Scenarios
+bool useTOFPID[]         = {kTRUE,  kTRUE, kTRUE, kTRUE};
+bool useRICHPID[]        = {kFALSE, kTRUE, kTRUE, kTRUE};
+// TOF cuts on tracks
+double nSigmaTOFEle[]    = {3.0,    3.0,   3.0,   3.0};
+double nSigmaTOFPi[]     = {3.0,    3.0,   3.0,   3.0};
+// RICH cuts on tracks
+double nSigmaRICHEle[]   = {3.0,    3.0,   3.0,   3.0};
+double nSigmaRICHPi[]    = {3.0,    3.0,   3.5,   4.0};
+
+
 
 // void makeHistNice(TH1* h, int color){
 //   h->SetMarkerColor(color);
@@ -208,34 +206,156 @@ bool hasCharmAncestor(GenParticle *particle, TClonesArray *particles)
   return bCharm;
 }
 
+
+// Resolution
+// TObjArray *fArrResoPt = 0x0;
+// TObjArray *fArrResoEta = 0x0;
+// TObjArray *fArrResoPhi_Pos = 0x0;
+// TObjArray *fArrResoPhi_Neg = 0x0;
+TString smearingfile;
+
+// void ReadResoFile(TFile *fRes)
+// {
+//   //
+//   // Set resolution arrays
+//   //
+//
+//   TObjArray *ArrResoPt = 0x0;
+//   TObjArray *ArrResoEta = 0x0;
+//   TObjArray *ArrResoPhi_Pos = 0x0;
+//   TObjArray *ArrResoPhi_Neg = 0x0;
+//
+//   // Set resolutions: default Run 2
+//   if(fRes && fRes->IsOpen()){
+//     // Oton
+//     ArrResoPt = (TObjArray *)fRes->Get("RelPtResArrCocktail");
+//     ArrResoEta = (TObjArray *)fRes->Get("EtaResArrVsPt");
+//     ArrResoPhi_Pos = (TObjArray *)fRes->Get("PhiPosResArrVsPt");
+//     ArrResoPhi_Neg = (TObjArray *)fRes->Get("PhiEleResArrVsPt");
+//   }
+//   else {
+//     printf("no resolution file given!");
+//   }
+//
+//   fArrResoPt = ArrResoPt;
+//   fArrResoEta = ArrResoEta;
+//   fArrResoPhi_Pos = ArrResoPhi_Pos;
+//   fArrResoPhi_Neg = ArrResoPhi_Neg;
+//
+//   if(!fArrResoPt || !fArrResoEta || !fArrResoPhi_Pos || !fArrResoPhi_Neg) {
+//     printf("Did not find the resolution arrays\n");
+//   }
+//
+// }
+
+//_____________________________________________________________________________________________
+TLorentzVector  ApplySmearing(TObjArray* fArrResoPt, TObjArray* fArrResoEta, TObjArray* fArrResoPhi_Pos, TObjArray* fArrResoPhi_Neg, const TLorentzVector& vec, Double_t ch)
+{
+  //
+  // Smearing in pt, eta, phi: Run 2 method
+  //
+
+  if(!fArrResoPt || !fArrResoEta || !fArrResoPhi_Pos || !fArrResoPhi_Neg){
+    printf("No smearing of generated tracks for efficiencies\n");
+    return vec;
+  }
+
+  //Double_t theta, phi, pt, p, mass, eta;
+  Double_t phi, pt, mass, eta;
+  TLorentzVector resvec;
+
+  mass = eMass;
+  pt = vec.Pt();
+  phi = vec.Phi();
+  eta = vec.Eta();
+
+  // smear pt
+  Int_t ptbin     = ((TH2D *)(fArrResoPt->At(0)))->GetXaxis()->FindBin(pt);
+  Int_t ptbin_max = ((TH2D *)(fArrResoPt->At(0)))->GetXaxis()->GetNbins();
+  // make sure that no underflow or overflow bins are used
+  if (ptbin < 1)
+    ptbin = 1;
+  else if (ptbin > ptbin_max)
+    ptbin = ptbin_max;
+  Double_t smearing = ((TH1D *)(fArrResoPt->At(ptbin)))->GetRandom() * pt;
+  const Double_t sPt = pt - smearing;
+
+  // smear eta
+  ptbin     = ((TH2D *)(fArrResoEta->At(0)))->GetXaxis()->FindBin(pt);
+  ptbin_max = ((TH2D *)(fArrResoEta->At(0)))->GetXaxis()->GetNbins();
+  if (ptbin < 1)
+    ptbin = 1;
+  else if (ptbin > ptbin_max)
+    ptbin = ptbin_max;
+  smearing = ((TH1D *)(fArrResoEta->At(ptbin)))->GetRandom();
+  const Double_t sEta = eta - smearing;
+
+  // smear phi
+  ptbin     = ((TH2D *)(fArrResoPhi_Pos->At(0)))->GetXaxis()->FindBin(pt);
+  ptbin_max = ((TH2D *)(fArrResoPhi_Pos->At(0)))->GetXaxis()->GetNbins();
+  if (ptbin < 1)
+    ptbin = 1;
+  if (ptbin > ptbin_max)
+    ptbin = ptbin_max;
+  if (ch > 0) {
+    smearing = ((TH1D *)(fArrResoPhi_Pos->At(ptbin)))->GetRandom();
+  } else if (ch < 0) {
+    smearing = ((TH1D *)(fArrResoPhi_Neg->At(ptbin)))->GetRandom();
+  }
+  const Double_t sPhi = phi - smearing;
+
+  // printf(" Original Pt = %f Phi %f Eta %f -> final pt = %f Phi %f Eta %f
+  // \n",pt,phi,eta,sPt,sPhi,sEta);
+
+  const Double_t sPx = sPt * cos(sPhi);
+  const Double_t sPy = sPt * sin(sPhi);
+  const Double_t sPz = sPt * sinh(sEta);
+  const Double_t sP = sPt * cosh(sEta);
+  const Double_t sE = sqrt(sP * sP + mass * mass);
+
+  resvec.SetPxPyPzE(sPx, sPy, sPz, sE);
+  return resvec;
+}
+
+
 // Pair histograms ULS
 std::string title2d = ";#it{m}_{ee} (GeV/#it{c}^{2});#it{p}_{T} (GeV/#it{c})";
 
-auto hMPt_ULS_gen         = new TH2F("hMPt_ULS_gen",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_gen_primary = new TH2F("hMPt_ULS_gen_primary",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_gen_heavy   = new TH2F("hMPt_ULS_gen_heavy",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_gen_charm   = new TH2F("hMPt_ULS_gen_charm",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_gen_beauty  = new TH2F("hMPt_ULS_gen_beauty",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_rec         = new TH2F("hMPt_ULS_rec",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_rec_primary = new TH2F("hMPt_ULS_rec_primary",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_rec_heavy   = new TH2F("hMPt_ULS_rec_heavy",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_rec_charm   = new TH2F("hMPt_ULS_rec_charm",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_ULS_rec_beauty  = new TH2F("hMPt_ULS_rec_beauty",title2d.c_str(),300.,0,3.,200,0.,20.);
+auto hMPt_ULS_gen         = new TH2F("hMPt_ULS_gen",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_gen_primary = new TH2F("hMPt_ULS_gen_primary",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_gen_heavy   = new TH2F("hMPt_ULS_gen_heavy",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_gen_charm   = new TH2F("hMPt_ULS_gen_charm",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_gen_beauty  = new TH2F("hMPt_ULS_gen_beauty",title2d.c_str(),300.,0,3.,200,0.,10.);
+auto hMPt_ULS_rec         = new TH2F("hMPt_ULS_rec",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_primary = new TH2F("hMPt_ULS_rec_primary",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_heavy   = new TH2F("hMPt_ULS_rec_heavy",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_charm   = new TH2F("hMPt_ULS_rec_charm",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_beauty  = new TH2F("hMPt_ULS_rec_beauty",title2d.c_str(),300.,0,3.,200,0.,10.);
+auto hMPt_ULS_rec_MCpidEle         = new TH2F("hMPt_ULS_rec_MCpidEle",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_MCpidEle_primary = new TH2F("hMPt_ULS_rec_MCpidEle_primary",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_MCpidEle_heavy   = new TH2F("hMPt_ULS_rec_MCpidEle_heavy",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_MCpidEle_charm   = new TH2F("hMPt_ULS_rec_MCpidEle_charm",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_ULS_rec_MCpidEle_beauty  = new TH2F("hMPt_ULS_rec_MCpidEle_beauty",title2d.c_str(),300.,0,3.,200,0.,10.);
 // Pair histograms LS
-auto hMPt_LS_gen         = new TH2F("hMPt_LS_gen",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_gen_primary = new TH2F("hMPt_LS_gen_primary",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_gen_heavy   = new TH2F("hMPt_LS_gen_heavy",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_gen_charm   = new TH2F("hMPt_LS_gen_charm",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_gen_beauty  = new TH2F("hMPt_LS_gen_beauty",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_rec         = new TH2F("hMPt_LS_rec",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_rec_primary = new TH2F("hMPt_LS_rec_primary",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_rec_heavy   = new TH2F("hMPt_LS_rec_heavy",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_rec_charm   = new TH2F("hMPt_LS_rec_charm",title2d.c_str(),300.,0,3.,200,0.,20.);
-auto hMPt_LS_rec_beauty  = new TH2F("hMPt_LS_rec_beauty",title2d.c_str(),300.,0,3.,200,0.,20.);
+auto hMPt_LS_gen         = new TH2F("hMPt_LS_gen",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_gen_primary = new TH2F("hMPt_LS_gen_primary",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_gen_heavy   = new TH2F("hMPt_LS_gen_heavy",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_gen_charm   = new TH2F("hMPt_LS_gen_charm",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_gen_beauty  = new TH2F("hMPt_LS_gen_beauty",title2d.c_str(),300.,0,3.,200,0.,10.);
+auto hMPt_LS_rec         = new TH2F("hMPt_LS_rec",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_primary = new TH2F("hMPt_LS_rec_primary",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_heavy   = new TH2F("hMPt_LS_rec_heavy",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_charm   = new TH2F("hMPt_LS_rec_charm",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_beauty  = new TH2F("hMPt_LS_rec_beauty",title2d.c_str(),300.,0,3.,200,0.,10.);
+auto hMPt_LS_rec_MCpidEle         = new TH2F("hMPt_LS_rec_MCpidEle",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_MCpidEle_primary = new TH2F("hMPt_LS_rec_MCpidEle_primary",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_MCpidEle_heavy   = new TH2F("hMPt_LS_rec_MCpidEle_heavy",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_MCpidEle_charm   = new TH2F("hMPt_LS_rec_MCpidEle_charm",title2d.c_str(),300.,0,3.,200,0.,10.);
+// auto hMPt_LS_rec_MCpidEle_beauty  = new TH2F("hMPt_LS_rec_MCpidEle_beauty",title2d.c_str(),300.,0,3.,200,0.,10.);
 
 
 // function to ULS or LS pair reconstructed particles
-void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> vec_track_pos, bool pairULS, TClonesArray *particles){
+void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> vec_track_pos, bool pairULS, bool MCpidEle, TClonesArray *particles){
   // pairing reconstructed ULS or LS pairs
   double vec_track_neg_size = vec_track_neg.size();
   double vec_track_pos_size = vec_track_pos.size();
@@ -263,27 +383,37 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       LV2.SetPtEtaPhiM(track2->PT,track2->Eta,track2->Phi,eMass);
       LV = LV1 + LV2;
 
-      if(pairULS)  hMPt_ULS_rec->Fill(LV.Mag(),LV.Pt());
-      if(!pairULS) hMPt_LS_rec->Fill(LV.Mag(),LV.Pt());
+      if(pairULS && !MCpidEle)  hMPt_ULS_rec->Fill(LV.Mag(),LV.Pt());
+      if(!pairULS && !MCpidEle) hMPt_LS_rec->Fill(LV.Mag(),LV.Pt());
+      if(pairULS && MCpidEle)  hMPt_ULS_rec_MCpidEle->Fill(LV.Mag(),LV.Pt());
+      if(!pairULS && MCpidEle) hMPt_LS_rec_MCpidEle->Fill(LV.Mag(),LV.Pt());
 
-      if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)){ // same mother and neutral LF particle, pion or eta
-        if(pairULS)  hMPt_ULS_rec_primary->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_rec_primary->Fill(LV.Mag(),LV.Pt());
-      }
-      if (mother1 != mother2 && hasHeavyAncestor(particle1, particles) && hasHeavyAncestor(particle2, particles)){
-        if(pairULS)  hMPt_ULS_rec_heavy->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_rec_heavy->Fill(LV.Mag(),LV.Pt());
-      }
-      if ( isCharm(m1Pid) && isCharm(m2Pid) && !hasBeautyAncestor(particle1, particles) && !hasBeautyAncestor(particle2, particles) ){
-      // if(mother1 != mother2  && hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles))
-        if(pairULS)  hMPt_ULS_rec_charm->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_rec_charm->Fill(LV.Mag(),LV.Pt());
-      }
-      if( isBeauty(m1Pid) && isBeauty(m2Pid) ){
-      // if(mother1 != mother2 && hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) )
-        if(pairULS)  hMPt_ULS_rec_beauty->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_rec_beauty->Fill(LV.Mag(),LV.Pt());
-      }
+      // if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)){ // same mother and neutral LF particle, pion or eta
+      //   if(pairULS && !MCpidEle)  hMPt_ULS_rec_primary->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && !MCpidEle) hMPt_LS_rec_primary->Fill(LV.Mag(),LV.Pt());
+      //   if(pairULS && MCpidEle)  hMPt_ULS_rec_MCpidEle_primary->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && MCpidEle) hMPt_LS_rec_MCpidEle_primary->Fill(LV.Mag(),LV.Pt());
+      // }
+      // if (mother1 != mother2 && hasHeavyAncestor(particle1, particles) && hasHeavyAncestor(particle2, particles)){
+      //   if(pairULS && !MCpidEle)  hMPt_ULS_rec_heavy->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && !MCpidEle) hMPt_LS_rec_heavy->Fill(LV.Mag(),LV.Pt());
+      //   if(pairULS && MCpidEle)  hMPt_ULS_rec_MCpidEle_heavy->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && MCpidEle) hMPt_LS_rec_MCpidEle_heavy->Fill(LV.Mag(),LV.Pt());
+      // }
+      // if ( isCharm(m1Pid) && isCharm(m2Pid) && !hasBeautyAncestor(particle1, particles) && !hasBeautyAncestor(particle2, particles) ){
+      // // if(mother1 != mother2  && hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles))
+      //   if(pairULS && !MCpidEle)  hMPt_ULS_rec_charm->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && !MCpidEle) hMPt_LS_rec_charm->Fill(LV.Mag(),LV.Pt());
+      //   if(pairULS && MCpidEle)  hMPt_ULS_rec_MCpidEle_charm->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && MCpidEle) hMPt_LS_rec_MCpidEle_charm->Fill(LV.Mag(),LV.Pt());
+      // }
+      // if( isBeauty(m1Pid) && isBeauty(m2Pid) ){
+      // // if(mother1 != mother2 && hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) )
+      //   if(pairULS && !MCpidEle)  hMPt_ULS_rec_beauty->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && !MCpidEle) hMPt_LS_rec_beauty->Fill(LV.Mag(),LV.Pt());
+      //   if(pairULS && MCpidEle)  hMPt_ULS_rec_MCpidEle_beauty->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS && MCpidEle) hMPt_LS_rec_MCpidEle_beauty->Fill(LV.Mag(),LV.Pt());
+      // }
     }
   }
 }
@@ -320,28 +450,28 @@ void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<Gen
       if(pairULS)  hMPt_ULS_gen->Fill(LV.Mag(),LV.Pt());
       if(!pairULS) hMPt_LS_gen->Fill(LV.Mag(),LV.Pt());
 
-      if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)) // same mother and neutral LF particle, pion or eta
-      {
-        if(pairULS)  hMPt_ULS_gen_primary->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_gen_primary->Fill(LV.Mag(),LV.Pt());
-      }
-      if (mother1 != mother2 && hasHeavyAncestor(particle1, particles) && hasHeavyAncestor(particle2, particles))
-      {
-        if(pairULS)  hMPt_ULS_gen_heavy->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_gen_heavy->Fill(LV.Mag(),LV.Pt());
-      }
-      if ( isCharm(m1Pid) && isCharm(m2Pid) && !hasBeautyAncestor(particle1, particles) && !hasBeautyAncestor(particle2, particles) )
-      // if(mother1 != mother2  && hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles))
-      {
-        if(pairULS)  hMPt_ULS_gen_charm->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_gen_charm->Fill(LV.Mag(),LV.Pt());
-      }
-      if( isBeauty(m1Pid) && isBeauty(m2Pid) )
-      // if(mother1 != mother2 && hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) )
-      {
-        if(pairULS)  hMPt_ULS_gen_beauty->Fill(LV.Mag(),LV.Pt());
-        if(!pairULS) hMPt_LS_gen_beauty->Fill(LV.Mag(),LV.Pt());
-      }
+      // if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)) // same mother and neutral LF particle, pion or eta
+      // {
+      //   if(pairULS)  hMPt_ULS_gen_primary->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS) hMPt_LS_gen_primary->Fill(LV.Mag(),LV.Pt());
+      // }
+      // if (mother1 != mother2 && hasHeavyAncestor(particle1, particles) && hasHeavyAncestor(particle2, particles))
+      // {
+      //   if(pairULS)  hMPt_ULS_gen_heavy->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS) hMPt_LS_gen_heavy->Fill(LV.Mag(),LV.Pt());
+      // }
+      // if ( isCharm(m1Pid) && isCharm(m2Pid) && !hasBeautyAncestor(particle1, particles) && !hasBeautyAncestor(particle2, particles) )
+      // // if(mother1 != mother2  && hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles))
+      // {
+      //   if(pairULS)  hMPt_ULS_gen_charm->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS) hMPt_LS_gen_charm->Fill(LV.Mag(),LV.Pt());
+      // }
+      // if( isBeauty(m1Pid) && isBeauty(m2Pid) )
+      // // if(mother1 != mother2 && hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) )
+      // {
+      //   if(pairULS)  hMPt_ULS_gen_beauty->Fill(LV.Mag(),LV.Pt());
+      //   if(!pairULS) hMPt_LS_gen_beauty->Fill(LV.Mag(),LV.Pt());
+      // }
     }
   }
 }
@@ -372,10 +502,39 @@ void anaEEstudy(
   // if(nEvents > -1) numberOfEntries = nEvents;
   // Printf("Process %lld out of %lld entries",numberOfEntries,numberOfEntriesTree);
 
+  Int_t nPtBins  = sizeof(pt_binning)/sizeof(*pt_binning) -1;
+  Double_t eta_binning[nEtaBins+1];
+  Double_t phi_binning[nPhiBins+1];
+  for (int iBin = 0; iBin < nEtaBins+1; iBin++) {eta_binning[iBin] = -maxEta + iBin * 2.* maxEta/nEtaBins; /* std::cout << eta_binning[iBin] << " eta bin border " << std::endl;  */}
+  for (int iBin = 0; iBin < nPhiBins+1; iBin++) {phi_binning[iBin] = 0. + iBin * maxPhi/nPhiBins;      /* std::cout << phi_binning[iBin] << " phi bin border " << std::endl;  */}
+
+
   // Get pointers to branches used in this analysis
   auto events = treeReader->UseBranch("Event");
   auto tracks = treeReader->UseBranch("Track");
   auto particles = treeReader->UseBranch("Particle");
+
+  // Smearing for generated tracks
+  if (Bz==0.5) smearingfile = "../resolutionfiles/resolution_test_5kG.root";
+  else if (Bz==0.2) smearingfile = "../resolutionfiles/resolution_test_2kG.root";
+  TFile *fRes = TFile::Open(smearingfile.Data());
+  // ReadResoFile(fRes);
+
+  // Set resolutions: default Run 2
+  TObjArray *fArrResoPt = 0x0;
+  TObjArray *fArrResoEta = 0x0;
+  TObjArray *fArrResoPhi_Pos = 0x0;
+  TObjArray *fArrResoPhi_Neg = 0x0;
+  if(fRes && fRes->IsOpen()){
+    // Oton
+    fArrResoPt = (TObjArray *)fRes->Get("RelPtResArrCocktail");
+    fArrResoEta = (TObjArray *)fRes->Get("EtaResArrVsPt");
+    fArrResoPhi_Pos = (TObjArray *)fRes->Get("PhiPosResArrVsPt");
+    fArrResoPhi_Neg = (TObjArray *)fRes->Get("PhiEleResArrVsPt");
+  }
+  else {
+    printf("no resolution file given!");
+  }
 
 
   // TOF layer
@@ -423,7 +582,7 @@ void anaEEstudy(
   // smearer.loadTable(321, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.ka.2kG.100cm.default.dat");
   // smearer.loadTable(2212, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.pr.2kG.100cm.default.dat");
 
-  smearer.useEfficiency(false);
+  smearer.useEfficiency(true);
 
   // if (Bz == 0.2) {
   //   smearer.loadTable(11, "./lutCovm.el.2kG.20cm.scenario1.dat");
@@ -443,25 +602,126 @@ void anaEEstudy(
   // }
 
 
+  int nPIDscenarios = sizeof(nSigmaTOFEle) / sizeof(nSigmaTOFEle[0]);
+  TList* listGenTracks = new TList();
+  TList* listRecTracks = new TList();
+  listGenTracks->SetOwner();
+  listRecTracks->SetOwner();
+  listGenTracks->SetName("GenTracks");
+  listRecTracks->SetName("RecTracks");
+
+
   // Event histograms
   auto nTracks = new TH1F("nTracks",";Tracks",500,0,500);
   auto nParticles = new TH1F("nParticles",";Particles",500,0,500);
 
-  // Track histograms
-  auto hTrack_ElePos_Rec_Pt_Eta_Phi = new TH3F("hTrack_ElePos_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hNegTrack_Rec_Pt_Eta_Phi = new TH3F("hNegTrack_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPosTrack_Rec_Pt_Eta_Phi = new TH3F("hPosTrack_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hAllTracks_Rec_Pt_Eta_Phi = new TH3F("hAllTracks_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Ele_Rec_Pt_Eta_Phi = new TH3F("hTrack_Ele_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Pos_Rec_Pt_Eta_Phi = new TH3F("hTrack_Pos_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Muon_Rec_Pt_Eta_Phi = new TH3F("hTrack_Muon_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Pion_Rec_Pt_Eta_Phi = new TH3F("hTrack_Pion_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Kaon_Rec_Pt_Eta_Phi = new TH3F("hTrack_Kaon_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Proton_Rec_Pt_Eta_Phi = new TH3F("hTrack_Proton_Rec_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_ElePos_Gen_Pt_Eta_Phi = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Ele_Gen_Pt_Eta_Phi = new TH3F("hTrack_Ele_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hTrack_Pos_Gen_Pt_Eta_Phi = new TH3F("hTrack_Pos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
+  //Check smearing of generated tracks
+  auto hSmearing_For_Eff_pt = new TH2F("hSmearing_For_Eff_pt","(#it{p}_{T,gen}-#it{p}_{T,rec})/#it{p}_{T,gen};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.5,0.5);
+  auto hSmearing_For_Eff_phi_pos = new TH2F("hSmearing_For_Eff_phi_pos","#phi_{gen}-#phi_{rec};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.4,0.1);
+  auto hSmearing_For_Eff_phi_neg = new TH2F("hSmearing_For_Eff_phi_neg","#phi_{gen}-#phi_{rec};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.1,0.4);
+  auto hSmearing_For_Eff_eta = new TH2F("hSmearing_For_Eff_eta","#eta_{gen}-#eta_{rec};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.1,0.1);
 
+  // Track histograms
+  TH3F* hTrack_ElePos_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hNegTrack_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hPosTrack_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hAllTracks_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hTrack_Ele_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hTrack_Pos_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hTrack_Muon_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hTrack_Pion_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hTrack_Kaon_Rec_Pt_Eta_Phi[nPIDscenarios];
+  TH3F* hTrack_Proton_Rec_Pt_Eta_Phi[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_primary_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_primary_Ele_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_primary_Pos_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_hf_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_hf_Ele_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_hf_Pos_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_charm_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_charm_Ele_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_charm_Pos_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_beauty_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_beauty_Ele_rec[nPIDscenarios];
+  // TH3F* hPt_Eta_Phi_beauty_Pos_rec[nPIDscenarios];
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_ElePos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hNegTrack_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hNegTrack_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hPosTrack_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hPosTrack_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hAllTracks_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hAllTracks_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Ele_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Muon_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Muon_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pion_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pion_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Kaon_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Kaon_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Proton_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Proton_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_primary_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_primary_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_Ele_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_primary_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_Pos_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_hf_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_hf_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_hf_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_charm_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_charm_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_charm_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_beauty_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_beauty_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_beauty_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+
+
+  std::vector<TList*> vecTListPIDscenarios;
+  for (int iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
+    TList* lPIDscenario = new TList();
+    lPIDscenario->SetName(Form("PIDscenario_%i", iPIDscenario+1));
+    lPIDscenario->SetOwner();
+    lPIDscenario->Add(hTrack_ElePos_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hNegTrack_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hPosTrack_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hAllTracks_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hTrack_Ele_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hTrack_Pos_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hTrack_Muon_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hTrack_Pion_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hTrack_Kaon_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario->Add(hTrack_Proton_Rec_Pt_Eta_Phi[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_primary_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_primary_Ele_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_primary_Pos_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_hf_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_hf_Ele_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_hf_Pos_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_charm_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_charm_Ele_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_charm_Pos_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_beauty_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_beauty_Ele_rec[iPIDscenario]);
+    // lPIDscenario->Add(hPt_Eta_Phi_beauty_Pos_rec[iPIDscenario]);
+    // listRecTracks->Add(lPIDscenario);
+    vecTListPIDscenarios.push_back(lPIDscenario);
+  }
+
+                                                                                std::cout << __LINE__ << " ... COUT LINE ..." << std::endl;
+
+
+  TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_Ele_Gen_Pt_Eta_Phi = new TH3F("hTrack_Ele_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_Pos_Gen_Pt_Eta_Phi = new TH3F("hTrack_Pos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_ElePos_GenSmeared_Pt_Eta_Phi = new TH3F("hTrack_ElePos_GenSmeared_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_Ele_GenSmeared_Pt_Eta_Phi = new TH3F("hTrack_Ele_GenSmeared_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_Pos_GenSmeared_Pt_Eta_Phi = new TH3F("hTrack_Pos_GenSmeared_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_primary_gen = new TH3F("hPt_Eta_Phi_primary_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_primary_Ele_gen = new TH3F("hPt_Eta_Phi_primary_Ele_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_primary_Pos_gen = new TH3F("hPt_Eta_Phi_primary_Pos_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_hf_gen = new TH3F("hPt_Eta_Phi_hf_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_hf_Ele_gen = new TH3F("hPt_Eta_Phi_hf_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_hf_Pos_gen = new TH3F("hPt_Eta_Phi_hf_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_charm_gen = new TH3F("hPt_Eta_Phi_charm_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_charm_Ele_gen = new TH3F("hPt_Eta_Phi_charm_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_charm_Pos_gen = new TH3F("hPt_Eta_Phi_charm_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_beauty_gen = new TH3F("hPt_Eta_Phi_beauty_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_beauty_Ele_gen = new TH3F("hPt_Eta_Phi_beauty_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_beauty_Pos_gen = new TH3F("hPt_Eta_Phi_beauty_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+
+                                                                                std::cout << __LINE__ << " ... COUT LINE ..." << std::endl;
   auto hradiustrack = new TH1F("hradiustrack",";R",1000,0,10000);
 
   auto hPrimaryM = new TH1F("hPrimaryM",";MotherPDG",1000,0.5,1000.5);
@@ -472,16 +732,9 @@ void anaEEstudy(
   auto hCharmGM = new TH1F("hCharmGM",";MotherPDG",1000,0,10000);
   auto hBeautyM = new TH1F("hBeautyM",";MotherPDG",1000,0,10000);
   auto hBeautyGM = new TH1F("hBeautyGM",";MotherPDG",1000,0,10000);
-  auto hPt_Eta_Phi_primary_recAdditional = new TH3F("hPt_Eta_Phi_primary_recAdditional", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_primary_rec = new TH3F("hPt_Eta_Phi_primary_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_primary_Ele_rec = new TH3F("hPt_Eta_Phi_primary_Ele_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_primary_Pos_rec = new TH3F("hPt_Eta_Phi_primary_Pos_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_primary_gen = new TH3F("hPt_Eta_Phi_primary_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_primary_Ele_gen = new TH3F("hPt_Eta_Phi_primary_Ele_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_primary_Pos_gen = new TH3F("hPt_Eta_Phi_primary_Pos_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
 
-  auto hBeforeSmearing_Pt_Eta_Phi_rec = new TH3F("hBeforeSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hAfterSmearing_Pt_Eta_Phi_rec = new TH3F("hAfterSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
+  auto hBeforeSmearing_Pt_Eta_Phi_rec = new TH3F("hBeforeSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 500, 0., 10., 200, -10., 10.,180,0,2*TMath::Pi());
+  auto hAfterSmearing_Pt_Eta_Phi_rec = new TH3F("hAfterSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 500, 0., 10., 200, -10., 10.,180,0,2*TMath::Pi());
   // auto hPt_Eta_Phi_rec_Eta_Cut_1 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_1", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
   // auto hPt_Eta_Phi_rec_Eta_Cut_2 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_2", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
   // auto hPt_Eta_Phi_rec_Eta_Cut_3 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_3", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
@@ -493,26 +746,6 @@ void anaEEstudy(
   // auto hPt_Eta_Phi_rec_Eta_Cut_9 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_9", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
   // auto hPt_Eta_Phi_rec_Eta_Cut_10 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_10", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
 
-  auto hPt_Eta_Phi_hf_rec = new TH3F("hPt_Eta_Phi_hf_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_hf_Ele_rec = new TH3F("hPt_Eta_Phi_hf_Ele_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_hf_Pos_rec = new TH3F("hPt_Eta_Phi_hf_Pos_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_hf_gen = new TH3F("hPt_Eta_Phi_hf_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_hf_Ele_gen = new TH3F("hPt_Eta_Phi_hf_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_hf_Pos_gen = new TH3F("hPt_Eta_Phi_hf_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_charm_rec = new TH3F("hPt_Eta_Phi_charm_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_charm_Ele_rec = new TH3F("hPt_Eta_Phi_charm_Ele_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_charm_Pos_rec = new TH3F("hPt_Eta_Phi_charm_Pos_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_charm_gen = new TH3F("hPt_Eta_Phi_charm_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_charm_Ele_gen = new TH3F("hPt_Eta_Phi_charm_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_charm_Pos_gen = new TH3F("hPt_Eta_Phi_charm_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-
-  auto hPt_Eta_Phi_beauty_rec = new TH3F("hPt_Eta_Phi_beauty_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_beauty_Ele_rec = new TH3F("hPt_Eta_Phi_beauty_Ele_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_beauty_Pos_rec = new TH3F("hPt_Eta_Phi_beauty_Pos_rec", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_beauty_gen = new TH3F("hPt_Eta_Phi_beauty_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_beauty_Ele_gen = new TH3F("hPt_Eta_Phi_beauty_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  auto hPt_Eta_Phi_beauty_Pos_gen = new TH3F("hPt_Eta_Phi_beauty_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-
 
 
   auto hM_Pt_sig_gen = new TH2F("hM_Pt_sig_gen",title2d.c_str(),300.,0,3.,200,0.,20.);
@@ -520,8 +753,8 @@ void anaEEstudy(
 
 
   // TOF histograms
-  auto hBetaP_beforeSmearing = new TH2F("hBetaP_beforeSmearing", ";#it{p} GeV/c;#beta", 1000, 0., 10., 1000, 0.1, 1.1);
-  auto hBetaP_afterSmearing = new TH2F("hBetaP_afterSmearing", ";#it{p} GeV/c;#beta", 1000, 0., 10., 1000, 0.1, 1.1);
+  auto hBetaP_beforeSmearing = new TH2F("hBetaP_beforeSmearing", ";#it{p} GeV/c;#beta", 500, 0., 10., 500, 0.1, 1.1);
+  auto hBetaP_afterSmearing = new TH2F("hBetaP_afterSmearing", ";#it{p} GeV/c;#beta", 500, 0., 10., 500, 0.1, 1.1);
   TH2 *hNsigmaP_TOF[5];
   TH2 *hNsigmaP_TOF_trueElec[5];
   TH2 *hNsigmaP_TOF_trueMuon[5];
@@ -536,18 +769,18 @@ void anaEEstudy(
   TH2 *hNsigmaP_afterPIDcuts_TOF_trueProton[5];
   const char *pname[5] = {"el", "mu", "pi", "ka", "pr"};
   const char *plabel[5] = {"e", "#mu", "#pi", "K", "p"};
-  for (int i = 0; i < 5; ++i) hNsigmaP_TOF[i] = new TH2F(Form("hNsigmaP_%s_TOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_TOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_TOF[i] = new TH2F(Form("hNsigmaP_%s_TOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_TOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_TOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 100.);
 
 
   // RICH histograms
@@ -570,33 +803,32 @@ void anaEEstudy(
   TH2 *hNsigmaP_afterPIDcuts_RICH_truePion[5];
   TH2 *hNsigmaP_afterPIDcuts_RICH_trueKaon[5];
   TH2 *hNsigmaP_afterPIDcuts_RICH_trueProton[5];
-  auto hCherenkovAngleP_beforeSmearing = new TH2F("hCherenkovAngleP_beforeSmearing", ";#it{p} GeV/c; cherenkov angle", 1000, 0., 10., 500, 0., 0.4);
-  auto hCherenkovAngleP_afterSmearing = new TH2F("hCherenkovAngleP_afterSmearing", ";#it{p} GeV/c; cherenkov angle", 1000, 0., 10., 500, 0., 0.4);
+  auto hCherenkovAngleP_beforeSmearing = new TH2F("hCherenkovAngleP_beforeSmearing", ";#it{p} GeV/c; cherenkov angle", 500, 0., 10., 200, 0., 0.4);
+  auto hCherenkovAngleP_afterSmearing = new TH2F("hCherenkovAngleP_afterSmearing", ";#it{p} GeV/c; cherenkov angle", 500, 0., 10., 200, 0., 0.4);
   for (int i = 0; i < 5; ++i) hNsigmaBeta_RICH[i] = new TH2F(Form("hNsigmaBeta_%s_RICH", pname[i]), Form(";#beta ;n#sigma_{%s}", plabel[i]), 200, 0., 1.1, 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH[i] = new TH2F(Form("hDeltaAngleP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 1000, 0., 10., 400, -0.4, 0.4);
-  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueElec[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 1000, 0., 10., 400, -0.4, 0.4);
-  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueMuon[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 1000, 0., 10., 400, -0.4, 0.4);
-  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_truePion[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 1000, 0., 10., 400, -0.4, 0.4);
-  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueKaon[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 1000, 0., 10., 400, -0.4, 0.4);
-  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueProton[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 1000, 0., 10., 400, -0.4, 0.4);
-  for (int i = 0; i < 5; ++i) hNsigmaP_RICH[i] = new TH2F(Form("hNsigmaP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueElec[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -80., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -65., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -40., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -100., 100.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueElec[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -80., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -65., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -40., 25.);
-  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 1000, 0., 10., 400, -25., 25.);
+  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH[i] = new TH2F(Form("hDeltaAngleP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueElec[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueMuon[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_truePion[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueKaon[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+  for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueProton[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+  for (int i = 0; i < 5; ++i) hNsigmaP_RICH[i] = new TH2F(Form("hNsigmaP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueElec[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -80., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -65., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -40., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 100.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueElec[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -80., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -65., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -40., 25.);
+  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
 
-  std::vector<Track *> vecElectron,vecPositron;
-  std::vector<Track *> vecNegTracks,vecPosTracks;
+  std::vector<Track *> vecElectron[nPIDscenarios],vecPositron[nPIDscenarios];
+  std::vector<Track *> vecNegTracks[nPIDscenarios],vecPosTracks[nPIDscenarios];
   std::vector<GenParticle *> vecElectronGen,vecPositronGen;
-  std::vector<Track *> vecAdditonalRecEle, vecAdditonalRecPos;
-  std::vector<Track *> vecNegTracks_onlyTOFpid, vecPosTracks_onlyTOFpid;
+  std::vector<Track *> vecNegTracks_onlyTOFpid[nPIDscenarios], vecPosTracks_onlyTOFpid[nPIDscenarios];
 
 
   for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry) {
@@ -704,108 +936,141 @@ void anaEEstudy(
       // kinatic cuts on tracks
       if (!kineCuts(track)) continue;
 
-      // ################## PID selection ##################
-      // PID selection, identifying particles by using TOF "OR" RICH.
-      // using TOF  electron inclusion and pion rejection
-      // using RICH electron inclusion and pion rejection
-      bool TOFpid = false;
-      bool RICHpid = false;
-      if((toflayer.hasTOF(*track)) && (p < tof_EleAccep_pt_cut)) {
-        if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-        if(fabs( (PIDnsigmaTOF[2]) < nSigmaTOFPi)) TOFpid = false; // is within 3 sigma of the pion band (TOF)
+      bool acceptedByPID[nPIDscenarios];
+      std::fill_n(acceptedByPID, nPIDscenarios, kFALSE);
+      // std::cout << " *** number of PID scenarios = " << nPIDscenarios << std::endl;
+      for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
+        //setting variables for i-th PID scenario
+        bool   i_useTOFPID = useTOFPID[iPID_scenario];
+        bool   i_useRICHPID = useRICHPID[iPID_scenario];
+        double i_SigmaTOFEle = nSigmaTOFEle[iPID_scenario];
+        double i_SigmaTOFPi = nSigmaTOFPi[iPID_scenario];
+        double i_SigmaRICHEle = nSigmaRICHEle[iPID_scenario];
+        double i_SigmaRICHPi = nSigmaRICHPi[iPID_scenario];
+
+
+        // std::cout << " *** iScenario = " << iPID_scenario << ", useTOFPID = " << i_useTOFPID << std::endl;
+        // std::cout << " *** iScenario = " << iPID_scenario << ", useRICHPID = " << i_useRICHPID << std::endl;
+        // std::cout << " *** iScenario = " << iPID_scenario << ", selceted nSigmaTOFEle = " << i_SigmaTOFEle << std::endl;
+        // std::cout << " *** iScenario = " << iPID_scenario << ", selceted nSigmaTOFPion = " << i_SigmaTOFPi << std::endl;
+        // std::cout << " *** iScenario = " << iPID_scenario << ", selceted nSigmaRICHEle = " << i_SigmaRICHEle << std::endl;
+        // std::cout << " *** iScenario = " << iPID_scenario << ", selceted nSigmaRICHPion = " << i_SigmaRICHPi << std::endl;
+
+
+        // ################## PID selection ##################
+        // PID selection, identifying particles by using TOF "OR" RICH.
+        // using TOF  electron inclusion and pion rejection
+        // using RICH electron inclusion and pion rejection
+        bool TOFpid = false;
+        bool RICHpid = false;
+        if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_pt_cut)) {
+          // if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+          // if(fabs( (PIDnsigmaTOF[2]) < nSigmaTOFPi)) TOFpid = false; // is within 3 sigma of the pion band (TOF)
+          if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+          if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
+        }
+        if(i_useRICHPID && richdetector.hasRICH(*track)) {
+          // if(fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
+          // if(fabs( (PIDnsigmaRICH[2]) < nSigmaRICHPi) && (p > rich_PionRejection_pt_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
+          if(fabs(PIDnsigmaRICH[0]) < i_SigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
+          if(fabs( (PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_pt_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
+        }
+
+        if (!(RICHpid || TOFpid)) continue; // check if TOF or RICH signal is true.
+        // ################## end of PID selection ##################
+        // std::cout << "particle is accepted -> set acceptedByPID kTURE" << std::endl;
+        acceptedByPID[iPID_scenario] = kTRUE;
+
+
+
+        // fill histograms
+                                  hAllTracks_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec); // Pt Eta Phi of all type of reconstructed particles
+        if     (track->Charge < 0)  hNegTrack_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed negative tracks
+        else if(track->Charge > 0)  hPosTrack_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed positive tracks
+
+        // Pt Eta Phi plots for different type of particles
+        if      (abs(particle->PID) == 13)    hTrack_Muon_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
+        else if (abs(particle->PID) == 211)   hTrack_Pion_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
+        else if (abs(particle->PID) == 321)   hTrack_Kaon_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
+        else if (abs(particle->PID) == 2212)  hTrack_Proton_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
+        else if (abs(particle->PID) == 11)  sleep(0);
+        else std::cout << "Particle not identified!    Particle PID: " << abs(particle->PID) << std::endl;
+
+
+        // fill nsigma after PID cuts     (after PID selection has been applied)
+        // for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF[i]->Fill(p, PIDnsigmaTOF[i]);
+        // for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH[i]->Fill(p, PIDnsigmaRICH[i]);
+        // NSigma plots, separating for true particle ID
+        // if      (abs(particle->PID) == 11)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueElec[i]->Fill(p, PIDnsigmaTOF[i]);
+        // else if (abs(particle->PID) == 13)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueMuon[i]->Fill(p, PIDnsigmaTOF[i]);
+        // else if (abs(particle->PID) == 211)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_truePion[i]->Fill(p, PIDnsigmaTOF[i]);
+        // else if (abs(particle->PID) == 321)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueKaon[i]->Fill(p, PIDnsigmaTOF[i]);
+        // else if (abs(particle->PID) == 2212) for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueProton[i]->Fill(p, PIDnsigmaTOF[i]);
+        //
+        // if      (abs(particle->PID) == 11)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueElec[i]->Fill(p, PIDnsigmaRICH[i]);
+        // else if (abs(particle->PID) == 13)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueMuon[i]->Fill(p, PIDnsigmaRICH[i]);
+        // else if (abs(particle->PID) == 211)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);
+        // else if (abs(particle->PID) == 321)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);
+        // else if (abs(particle->PID) == 2212) for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]);
+
+
+        // fill track vector
+        if (track->Charge < 0) vecNegTracks[iPID_scenario].push_back(track);       //  vector of all reconstructed negative tracks
+        else if (track->Charge > 0) vecPosTracks[iPID_scenario].push_back(track);  //  vector of all reconstructed positve tracks
+
+        if (particle->PID == 11 ) vecElectron[iPID_scenario].push_back(track);       // vector of reconstructed electrons
+        else if (particle->PID == -11 ) vecPositron[iPID_scenario].push_back(track); // vector of reconstructed positrons
+
+        if (track->Charge < 0) vecNegTracks_onlyTOFpid[iPID_scenario].push_back(track);      // vector of all reconstructed negative tracks selcted by TOF only
+        else if (track->Charge > 0) vecPosTracks_onlyTOFpid[iPID_scenario].push_back(track); // vector of all reconstructed positve tracks selcted by TOF only
+
+        // look only at electrons
+        if(abs(particle->PID) != 11 ) continue;   // considering only electrons & positrons
+
+                                        hTrack_ElePos_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed electrons + positrons
+        if (particle->PID == 11)        hTrack_Ele_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);     // Pt Eta Phi of reconstructed electrons
+        else if (particle->PID == -11)  hTrack_Pos_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);     // Pt Eta Phi of reconstructed positrons
+
+
+        // // separate electrons & positrons originating from different light flavour (priamary), charm (cc) and buty (bb) decays
+        // if (!hasStrangeAncestor(particle, particles) && !hasHeavyAncestor(particle, particles)) {
+        //   hPrimaryM ->Fill(mother->PID);
+        //   hPrimaryGM->Fill(gmother->PID);
+        //                                  hPt_Eta_Phi_primary_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //   if      (particle->PID == 11)  hPt_Eta_Phi_primary_Ele_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //   else if (particle->PID == -11) hPt_Eta_Phi_primary_Pos_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        // }
+        // else {
+        //     if (hasCharmAncestor(particle, particles) || hasBeautyAncestor(particle, particles)){
+        //                                      hPt_Eta_Phi_hf_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //       if      (particle->PID == 11)  hPt_Eta_Phi_hf_Ele_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //       else if (particle->PID == -11) hPt_Eta_Phi_hf_Pos_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //     }
+        //     if(isCharm(mPid) && !hasBeautyAncestor(particle, particles)){
+        //       hCharmGM->Fill(gmother->PID);
+        //                                      hPt_Eta_Phi_charm_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //       if      (particle->PID == 11)  hPt_Eta_Phi_charm_Ele_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //       else if (particle->PID == -11) hPt_Eta_Phi_charm_Pos_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //     }
+        //     else if (isBeauty(mPid)) {
+        //     // else if (hasBeautyAncestor(particle, particles) && mPid > 500 && mPid < 600) {
+        //       hBeautyM->Fill(mother->PID);
+        //       hBeautyGM->Fill(gmother->PID);
+        //                                     hPt_Eta_Phi_beauty_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //       if     (particle->PID == 11)  hPt_Eta_Phi_beauty_Ele_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //       else if(particle->PID == -11) hPt_Eta_Phi_beauty_Pos_rec[iPID_scenario]->Fill(track->PT, track->Eta, phiRec);
+        //     }
+        //     else if (hasStrangeAncestor(particle, particles)) continue;
+        //     // else {
+        //     //   std::cout << particle->X << " " << particle->Y << " " << particle->Z << std::endl;
+        //     //   std::cout << " --- mother PDG     : " << mother->PID << std::endl;
+        //     //   std::cout << " --- grandmother PDG: " << gmother->PID << std::endl;
+        //     // }
+        // }
+
       }
-      if(richdetector.hasRICH(*track)) {
-        if(fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
-        if(fabs( (PIDnsigmaRICH[2]) < nSigmaRICHPi) && (p > rich_PionRejection_pt_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
-      }
-
-      if (!(RICHpid || TOFpid)) continue; // check if TOF or RICH signal is true.
-      // ################## end of PID selection ##################
-
-      // fill histograms
-                                  hAllTracks_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec); // Pt Eta Phi of all type of reconstructed particles
-      if     (track->Charge < 0)  hNegTrack_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed negative tracks
-      else if(track->Charge > 0)  hPosTrack_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed positive tracks
-
-      // Pt Eta Phi plots for different type of particles
-      if      (abs(particle->PID) == 13)    hTrack_Muon_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);
-      else if (abs(particle->PID) == 211)   hTrack_Pion_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);
-      else if (abs(particle->PID) == 321)   hTrack_Kaon_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);
-      else if (abs(particle->PID) == 2212)  hTrack_Proton_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);
-      else if (abs(particle->PID) == 11)  sleep(0);
-      else std::cout << "Particle not identified!    Particle PID: " << abs(particle->PID) << std::endl;
 
 
-      // fill nsigma after PID cuts     (after PID selection has been applied)
-      for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF[i]->Fill(p, PIDnsigmaTOF[i]);
-      for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH[i]->Fill(p, PIDnsigmaRICH[i]);
-      // NSigma plots, separating for true particle ID
-      if      (abs(particle->PID) == 11)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueElec[i]->Fill(p, PIDnsigmaTOF[i]);
-      else if (abs(particle->PID) == 13)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueMuon[i]->Fill(p, PIDnsigmaTOF[i]);
-      else if (abs(particle->PID) == 211)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_truePion[i]->Fill(p, PIDnsigmaTOF[i]);
-      else if (abs(particle->PID) == 321)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueKaon[i]->Fill(p, PIDnsigmaTOF[i]);
-      else if (abs(particle->PID) == 2212) for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueProton[i]->Fill(p, PIDnsigmaTOF[i]);
-
-      if      (abs(particle->PID) == 11)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueElec[i]->Fill(p, PIDnsigmaRICH[i]);
-      else if (abs(particle->PID) == 13)   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueMuon[i]->Fill(p, PIDnsigmaRICH[i]);
-      else if (abs(particle->PID) == 211)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);
-      else if (abs(particle->PID) == 321)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);
-      else if (abs(particle->PID) == 2212) for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]);
-
-
-      // fill track vector
-      if (track->Charge < 0) vecNegTracks.push_back(track);       //  vector of all reconstructed negative tracks
-      else if (track->Charge > 0) vecPosTracks.push_back(track);  //  vector of all reconstructed positve tracks
-
-      if (particle->PID == 11 ) vecElectron.push_back(track);       // vector of reconstructed electrons
-      else if (particle->PID == -11 ) vecPositron.push_back(track); // vector of reconstructed positrons
-
-      if (track->Charge < 0) vecNegTracks_onlyTOFpid.push_back(track);      // vector of all reconstructed negative tracks selcted by TOF only
-      else if (track->Charge > 0) vecPosTracks_onlyTOFpid.push_back(track); // vector of all reconstructed positve tracks selcted by TOF only
-
-      // look only at electrons
-      if(abs(particle->PID) != 11 ) continue;   // considering only electrons & positrons
-
-                                      hTrack_ElePos_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed electrons + positrons
-      if (particle->PID == 11)        hTrack_Ele_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);     // Pt Eta Phi of reconstructed electrons
-      else if (particle->PID == -11)  hTrack_Pos_Rec_Pt_Eta_Phi->Fill(track->PT,track->Eta,phiRec);     // Pt Eta Phi of reconstructed positrons
-
-
-      // separate electrons & positrons originating from different light flavour (priamary), charm (cc) and buty (bb) decays
-      if (!hasStrangeAncestor(particle, particles) && !hasHeavyAncestor(particle, particles)) {
-        hPrimaryM ->Fill(mother->PID);
-        hPrimaryGM->Fill(gmother->PID);
-                                       hPt_Eta_Phi_primary_rec->Fill(track->PT, track->Eta, phiRec);
-        if      (particle->PID == 11)  hPt_Eta_Phi_primary_Ele_rec->Fill(track->PT, track->Eta, phiRec);
-        else if (particle->PID == -11) hPt_Eta_Phi_primary_Pos_rec->Fill(track->PT, track->Eta, phiRec);
-      }
-      else {
-          if (hasCharmAncestor(particle, particles) || hasBeautyAncestor(particle, particles)){
-                                           hPt_Eta_Phi_hf_rec->Fill(track->PT, track->Eta, phiRec);
-            if      (particle->PID == 11)  hPt_Eta_Phi_hf_Ele_rec->Fill(track->PT, track->Eta, phiRec);
-            else if (particle->PID == -11) hPt_Eta_Phi_hf_Pos_rec->Fill(track->PT, track->Eta, phiRec);
-          }
-          if(isCharm(mPid) && !hasBeautyAncestor(particle, particles)){
-            hCharmGM->Fill(gmother->PID);
-                                           hPt_Eta_Phi_charm_rec->Fill(track->PT, track->Eta, phiRec);
-            if      (particle->PID == 11)  hPt_Eta_Phi_charm_Ele_rec->Fill(track->PT, track->Eta, phiRec);
-            else if (particle->PID == -11) hPt_Eta_Phi_charm_Pos_rec->Fill(track->PT, track->Eta, phiRec);
-          }
-          else if (isBeauty(mPid)) {
-          // else if (hasBeautyAncestor(particle, particles) && mPid > 500 && mPid < 600) {
-            hBeautyM->Fill(mother->PID);
-            hBeautyGM->Fill(gmother->PID);
-                                          hPt_Eta_Phi_beauty_rec->Fill(track->PT, track->Eta, phiRec);
-            if     (particle->PID == 11)  hPt_Eta_Phi_beauty_Ele_rec->Fill(track->PT, track->Eta, phiRec);
-            else if(particle->PID == -11) hPt_Eta_Phi_beauty_Pos_rec->Fill(track->PT, track->Eta, phiRec);
-          }
-          else if (hasStrangeAncestor(particle, particles)) continue;
-          // else {
-          //   std::cout << particle->X << " " << particle->Y << " " << particle->Z << std::endl;
-          //   std::cout << " --- mother PDG     : " << mother->PID << std::endl;
-          //   std::cout << " --- grandmother PDG: " << gmother->PID << std::endl;
-          // }
-      }
 
     }
 
@@ -814,6 +1079,8 @@ void anaEEstudy(
     //##################################################
     //############## generated Track Loop ##############
     //##################################################
+    TLorentzVector LV; // for smearing of generated particles
+    TLorentzVector LV_smeared; // for smearing of generated particles
 
     // loop over particles and fill vectors for generated electrons and positrons
     for (Int_t iparticle = 0; iparticle < particles->GetEntries(); ++iparticle) {
@@ -841,6 +1108,15 @@ void anaEEstudy(
         // look only at electrons
       if(abs(particle->PID) != 11 ) continue;
 
+      // Smeared generated particles
+     LV.SetPtEtaPhiM(particle->PT,particle->Eta,phiGen,eMass);
+     Double_t charge = -particle->PID;
+     LV_smeared = ApplySmearing(fArrResoPt,fArrResoEta,fArrResoPhi_Pos,fArrResoPhi_Neg,LV,charge);
+     if(charge > 0.) hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
+     if(charge < 0.) hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
+     hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta());
+     if(LV.Pt() > 0.) hSmearing_For_Eff_pt->Fill(particle->PT, (LV.Pt() - LV_smeared.Pt())/LV.Pt());
+
       if (particle->PID == 11 ) vecElectronGen.push_back(particle);       // vector filled with generated electrons
       else if (particle->PID == -11 ) vecPositronGen.push_back(particle); // vector filled with generated positrons
 
@@ -848,37 +1124,40 @@ void anaEEstudy(
       if (particle->PID == 11)        hTrack_Ele_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated electrons
       else if (particle->PID == -11)  hTrack_Pos_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated positrons
 
+                                      hTrack_ElePos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),LV_smeared.Phi()); // Pt Eta Phi of generated smeared electrons + positrons
+      if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),LV_smeared.Phi());    // Pt Eta Phi of generated smeared electrons
+      else if (particle->PID == -11)  hTrack_Pos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),LV_smeared.Phi());    // Pt Eta Phi of generated smeared positrons
 
       // fill histograms
       // separate electrons & positrons originating from different light flavour (priamary), charm (cc) and buty (bb) decays
-      if (!hasStrangeAncestor(particle, particles) && !hasHeavyAncestor(particle, particles)) {
-        hPt_Eta_Phi_primary_gen->Fill(particle->PT, particle->Eta, phiGen);
-        if(particle->PID == 11) hPt_Eta_Phi_primary_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
-        else if(particle->PID == -11) hPt_Eta_Phi_primary_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
-      }
-      else {
-          if (hasCharmAncestor(particle, particles) || hasBeautyAncestor(particle, particles)){
-            hPt_Eta_Phi_hf_gen->Fill(particle->PT, particle->Eta, phiGen);
-            if(particle->PID == 11) hPt_Eta_Phi_hf_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
-            else if(particle->PID == -11) hPt_Eta_Phi_hf_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
-          }
-          if(isCharm(mPid) && !hasBeautyAncestor(particle, particles)){
-            hPt_Eta_Phi_charm_gen->Fill(particle->PT, particle->Eta, phiGen);
-            if(particle->PID == 11) hPt_Eta_Phi_charm_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
-            else if(particle->PID == -11) hPt_Eta_Phi_charm_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
-          }
-          else if (isBeauty(mPid)) {
-            hPt_Eta_Phi_beauty_gen->Fill(particle->PT, particle->Eta, phiGen);
-            if(particle->PID == 11) hPt_Eta_Phi_beauty_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
-            else if(particle->PID == -11) hPt_Eta_Phi_beauty_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
-          }
-          else if (hasStrangeAncestor(particle, particles)) continue;
-          // else {
-          //   std::cout << particle->X << " " << particle->Y << " " << particle->Z << std::endl;
-          //   std::cout << " --- mother PDG     : " << mother->PID << std::endl;
-          //   std::cout << " --- grandmother PDG: " << gmother->PID << std::endl;
-          // }
-      }
+      // if (!hasStrangeAncestor(particle, particles) && !hasHeavyAncestor(particle, particles)) {
+      //   hPt_Eta_Phi_primary_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //   if(particle->PID == 11) hPt_Eta_Phi_primary_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //   else if(particle->PID == -11) hPt_Eta_Phi_primary_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
+      // }
+      // else {
+      //     if (hasCharmAncestor(particle, particles) || hasBeautyAncestor(particle, particles)){
+      //       hPt_Eta_Phi_hf_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //       if(particle->PID == 11) hPt_Eta_Phi_hf_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //       else if(particle->PID == -11) hPt_Eta_Phi_hf_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //     }
+      //     if(isCharm(mPid) && !hasBeautyAncestor(particle, particles)){
+      //       hPt_Eta_Phi_charm_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //       if(particle->PID == 11) hPt_Eta_Phi_charm_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //       else if(particle->PID == -11) hPt_Eta_Phi_charm_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //     }
+      //     else if (isBeauty(mPid)) {
+      //       hPt_Eta_Phi_beauty_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //       if(particle->PID == 11) hPt_Eta_Phi_beauty_Ele_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //       else if(particle->PID == -11) hPt_Eta_Phi_beauty_Pos_gen->Fill(particle->PT, particle->Eta, phiGen);
+      //     }
+      //     else if (hasStrangeAncestor(particle, particles)) continue;
+      //     // else {
+      //     //   std::cout << particle->X << " " << particle->Y << " " << particle->Z << std::endl;
+      //     //   std::cout << " --- mother PDG     : " << mother->PID << std::endl;
+      //     //   std::cout << " --- grandmother PDG: " << gmother->PID << std::endl;
+      //     // }
+      // }
     }
 
 
@@ -888,15 +1167,20 @@ void anaEEstudy(
     //##################################################
 
     bool pairULS = kTRUE;
-    dileptonPairingRec(vecNegTracks, vecPosTracks, pairULS, particles);
-    dileptonPairingRec(vecNegTracks, vecNegTracks, !pairULS, particles);
-    dileptonPairingRec(vecPosTracks, vecPosTracks, !pairULS, particles);
+    bool MCpidEle = kTRUE;
+    dileptonPairingRec(vecNegTracks[0], vecPosTracks[0],  pairULS, !MCpidEle, particles);
+    dileptonPairingRec(vecNegTracks[0], vecNegTracks[0], !pairULS, !MCpidEle, particles);
+    dileptonPairingRec(vecPosTracks[0], vecPosTracks[0], !pairULS, !MCpidEle, particles);
+    dileptonPairingRec(vecElectron[0],  vecPositron[0],   pairULS,  MCpidEle, particles);
+    dileptonPairingRec(vecElectron[0],  vecElectron[0],  !pairULS,  MCpidEle, particles);
+    dileptonPairingRec(vecPositron[0],  vecPositron[0],  !pairULS,  MCpidEle, particles);
 
-    vecNegTracks.clear();
-    vecPosTracks.clear();
-
-    vecElectron.clear();
-    vecPositron.clear();
+    for (size_t iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
+      vecNegTracks[iPIDscenario].clear();
+      vecPosTracks[iPIDscenario].clear();
+      vecElectron[iPIDscenario].clear();
+      vecPositron[iPIDscenario].clear();
+    }
 
 
     pairULS = kTRUE;
@@ -918,26 +1202,48 @@ void anaEEstudy(
   // fout->cd();
   // listGenerated->Write("generated",1);
 
-  // fout->cd();
-  // fout->mkdir("generated/");
-  // fout->cd("generated/");
-  // fout->mkdir("generated/ULS");
-  // fout->cd("generated/ULS");
+  fout->cd();
+  fout->mkdir("generated/");
+  fout->cd("generated/");
+  listGenTracks->Write();
+
+  fout->cd();
+  fout->mkdir("reconstructed");
+  fout->cd("reconstructed");
+
+  for (size_t iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
+    fout->mkdir(Form("reconstructed/%s",vecTListPIDscenarios.at(iPIDscenario)->GetName()));
+    fout->cd(Form("reconstructed/%s",vecTListPIDscenarios.at(iPIDscenario)->GetName()));
+    vecTListPIDscenarios.at(iPIDscenario)->Write();
+    vecTListPIDscenarios.at(iPIDscenario)->Clear();
+  }
+  vecTListPIDscenarios.clear();
+
+
+  fout->cd();
+  hSmearing_For_Eff_phi_pos->Write();
+  hSmearing_For_Eff_phi_neg->Write();
+  hSmearing_For_Eff_eta->Write();
+  hSmearing_For_Eff_pt->Write();
+
   nTracks->Write();
   nParticles->Write();
-  hAllTracks_Rec_Pt_Eta_Phi->Write();
-  hNegTrack_Rec_Pt_Eta_Phi->Write();
-  hPosTrack_Rec_Pt_Eta_Phi->Write();
-  hTrack_ElePos_Rec_Pt_Eta_Phi->Write();
-  hTrack_Ele_Rec_Pt_Eta_Phi->Write();
-  hTrack_Pos_Rec_Pt_Eta_Phi->Write();
-  hTrack_Muon_Rec_Pt_Eta_Phi->Write();
-  hTrack_Pion_Rec_Pt_Eta_Phi->Write();
-  hTrack_Kaon_Rec_Pt_Eta_Phi->Write();
-  hTrack_Proton_Rec_Pt_Eta_Phi->Write();
+  // hAllTracks_Rec_Pt_Eta_Phi->Write();
+  // hNegTrack_Rec_Pt_Eta_Phi->Write();
+  // hPosTrack_Rec_Pt_Eta_Phi->Write();
+  // hTrack_ElePos_Rec_Pt_Eta_Phi->Write();
+  // hTrack_Ele_Rec_Pt_Eta_Phi->Write();
+  // hTrack_Pos_Rec_Pt_Eta_Phi->Write();
+  // hTrack_Muon_Rec_Pt_Eta_Phi->Write();
+  // hTrack_Pion_Rec_Pt_Eta_Phi->Write();
+  // hTrack_Kaon_Rec_Pt_Eta_Phi->Write();
+  // hTrack_Proton_Rec_Pt_Eta_Phi->Write();
   hTrack_ElePos_Gen_Pt_Eta_Phi->Write();
   hTrack_Ele_Gen_Pt_Eta_Phi->Write();
   hTrack_Pos_Gen_Pt_Eta_Phi->Write();
+  hTrack_ElePos_GenSmeared_Pt_Eta_Phi->Write();
+  hTrack_Ele_GenSmeared_Pt_Eta_Phi->Write();
+  hTrack_Pos_GenSmeared_Pt_Eta_Phi->Write();
   hradiustrack->Write();
   hPrimaryM->Write();
   hPrimaryGM->Write();
@@ -948,52 +1254,62 @@ void anaEEstudy(
   hBeautyGM->Write();
   hBeforeSmearing_Pt_Eta_Phi_rec->Write();
   hAfterSmearing_Pt_Eta_Phi_rec->Write();
-  hPt_Eta_Phi_primary_recAdditional->Write();
-  hPt_Eta_Phi_primary_rec->Write();
-  hPt_Eta_Phi_primary_Ele_rec->Write();
-  hPt_Eta_Phi_primary_Pos_rec->Write();
-  hPt_Eta_Phi_hf_rec->Write();
-  hPt_Eta_Phi_hf_Ele_rec->Write();
-  hPt_Eta_Phi_hf_Pos_rec->Write();
-  hPt_Eta_Phi_charm_rec->Write();
-  hPt_Eta_Phi_charm_Ele_rec->Write();
-  hPt_Eta_Phi_charm_Pos_rec->Write();
-  hPt_Eta_Phi_beauty_rec->Write();
-  hPt_Eta_Phi_beauty_Ele_rec->Write();
-  hPt_Eta_Phi_beauty_Pos_rec->Write();
-  hPt_Eta_Phi_primary_gen->Write();
-  hPt_Eta_Phi_primary_Ele_gen->Write();
-  hPt_Eta_Phi_primary_Pos_gen->Write();
-  hPt_Eta_Phi_hf_gen->Write();
-  hPt_Eta_Phi_hf_Ele_gen->Write();
-  hPt_Eta_Phi_hf_Pos_gen->Write();
-  hPt_Eta_Phi_charm_gen->Write();
-  hPt_Eta_Phi_charm_Ele_gen->Write();
-  hPt_Eta_Phi_charm_Pos_gen->Write();
-  hPt_Eta_Phi_beauty_gen->Write();
-  hPt_Eta_Phi_beauty_Ele_gen->Write();
-  hPt_Eta_Phi_beauty_Pos_gen->Write();
+  // hPt_Eta_Phi_primary_rec->Write();
+  // hPt_Eta_Phi_primary_Ele_rec->Write();
+  // hPt_Eta_Phi_primary_Pos_rec->Write();
+  // hPt_Eta_Phi_hf_rec->Write();
+  // hPt_Eta_Phi_hf_Ele_rec->Write();
+  // hPt_Eta_Phi_hf_Pos_rec->Write();
+  // hPt_Eta_Phi_charm_rec->Write();
+  // hPt_Eta_Phi_charm_Ele_rec->Write();
+  // hPt_Eta_Phi_charm_Pos_rec->Write();
+  // hPt_Eta_Phi_beauty_rec->Write();
+  // hPt_Eta_Phi_beauty_Ele_rec->Write();
+  // hPt_Eta_Phi_beauty_Pos_rec->Write();
+  // hPt_Eta_Phi_primary_gen->Write();
+  // hPt_Eta_Phi_primary_Ele_gen->Write();
+  // hPt_Eta_Phi_primary_Pos_gen->Write();
+  // hPt_Eta_Phi_hf_gen->Write();
+  // hPt_Eta_Phi_hf_Ele_gen->Write();
+  // hPt_Eta_Phi_hf_Pos_gen->Write();
+  // hPt_Eta_Phi_charm_gen->Write();
+  // hPt_Eta_Phi_charm_Ele_gen->Write();
+  // hPt_Eta_Phi_charm_Pos_gen->Write();
+  // hPt_Eta_Phi_beauty_gen->Write();
+  // hPt_Eta_Phi_beauty_Ele_gen->Write();
+  // hPt_Eta_Phi_beauty_Pos_gen->Write();
 
   hMPt_ULS_gen->Write();
-  hMPt_ULS_gen_primary->Write();
-  hMPt_ULS_gen_heavy->Write();
-  hMPt_ULS_gen_charm->Write();
-  hMPt_ULS_gen_beauty->Write();
+  // hMPt_ULS_gen_primary->Write();
+  // hMPt_ULS_gen_heavy->Write();
+  // hMPt_ULS_gen_charm->Write();
+  // hMPt_ULS_gen_beauty->Write();
   hMPt_LS_gen->Write();
-  hMPt_LS_gen_primary->Write();
-  hMPt_LS_gen_heavy->Write();
-  hMPt_LS_gen_charm->Write();
-  hMPt_LS_gen_beauty->Write();
+  // hMPt_LS_gen_primary->Write();
+  // hMPt_LS_gen_heavy->Write();
+  // hMPt_LS_gen_charm->Write();
+  // hMPt_LS_gen_beauty->Write();
   hMPt_ULS_rec->Write();
-  hMPt_ULS_rec_primary->Write();
-  hMPt_ULS_rec_heavy->Write();
-  hMPt_ULS_rec_charm->Write();
-  hMPt_ULS_rec_beauty->Write();
+  // hMPt_ULS_rec_primary->Write();
+  // hMPt_ULS_rec_heavy->Write();
+  // hMPt_ULS_rec_charm->Write();
+  // hMPt_ULS_rec_beauty->Write();
+  hMPt_ULS_rec_MCpidEle->Write();
+  // hMPt_ULS_rec_MCpidEle_primary->Write();
+  // hMPt_ULS_rec_MCpidEle_heavy->Write();
+  // hMPt_ULS_rec_MCpidEle_charm->Write();
+  // hMPt_ULS_rec_MCpidEle_beauty->Write();
   hMPt_LS_rec->Write();
-  hMPt_LS_rec_primary->Write();
-  hMPt_LS_rec_heavy->Write();
-  hMPt_LS_rec_charm->Write();
-  hMPt_LS_rec_beauty->Write();
+  // hMPt_LS_rec_primary->Write();
+  // hMPt_LS_rec_heavy->Write();
+  // hMPt_LS_rec_charm->Write();
+  // hMPt_LS_rec_beauty->Write();
+  hMPt_LS_rec_MCpidEle->Write();
+  // hMPt_LS_rec_MCpidEle_primary->Write();
+  // hMPt_LS_rec_MCpidEle_heavy->Write();
+  // hMPt_LS_rec_MCpidEle_charm->Write();
+  // hMPt_LS_rec_MCpidEle_beauty->Write();
+
   // fout->cd("generated/");
   // fout->mkdir("generated/LS");
   // fout->cd("generated/LS");
@@ -1032,7 +1348,6 @@ void anaEEstudy(
   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF_trueProton[i]->Write();
 
 
-
   hCherenkovAngleP_beforeSmearing->Write();
   hCherenkovAngleP_afterSmearing->Write();
   for (int i = 0; i < 5; ++i) hNsigmaP_RICH[i]->Write();
@@ -1056,16 +1371,13 @@ void anaEEstudy(
   for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueProton[i]->Write();
 
 
-
-
-
-
   // fout->cd("reconstructed/");
+
   // fout->mkdir("reconstructed/LS");
   // fout->cd("reconstructed/LS");
-
-
   fout->Close();
+
+
 
   // stop watch
   watch->Stop();

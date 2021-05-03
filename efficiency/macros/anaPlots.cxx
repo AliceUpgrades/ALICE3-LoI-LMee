@@ -1,20 +1,23 @@
 // use bools to select which  histograms are upperIntEdge
 
-
 bool bPlotEfficiency = kTRUE;
-bool bPlotPIDhistograms = kTRUE;
-  bool bPlotNSigmaProjections = kTRUE;
+bool bPlotPIDhistograms = kFALSE;
+  bool bPlotNSigmaProjections = kFALSE;
 bool bPlotTrackContamination = kTRUE;
 
-bool bPlotPairHistograms = kTRUE;
+bool bPlotPairHistograms = kFALSE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
+int ith_PIDscenario = 2;
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_mass = {0.0, 3.0}; // Intervalls for projection in mass slices
 
+Double_t pt_bin_proj[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
+// Double_t pt_bin_proj[]  = {0.0,0.1,0.5,1.,4};
+Int_t nbinspt_proj  = sizeof(pt_bin_proj)/sizeof(*pt_bin_proj) -1;
 
 void makeHistNice(TH1* h, int color){
   h->SetTitle("");
@@ -68,6 +71,9 @@ void anaPlots(TString inputFile)
 {
   TFile *fIn  = TFile::Open(inputFile.Data());
 
+  // select which PID cenario (written in the input file) should be analyzed
+  TString pathPIDScenario = Form("reconstructed/PIDscenario_%i", ith_PIDscenario);
+
   double BField;
   TString collSystem;
   Bool_t findBField;
@@ -85,49 +91,53 @@ void anaPlots(TString inputFile)
   // fIn->cd("generated/ULS");
   // Track histograms
 
-  TH3F* hRec_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_rec");
-  TH3F* hRecEle_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_Ele_rec");
-  TH3F* hRecPos_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_Pos_rec");
-  TH3F* hRec_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_rec");
-  TH3F* hRecEle_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_Ele_rec");
-  TH3F* hRecPos_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_Pos_rec");
-  TH3F* hRec_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_rec");
-  TH3F* hRecEle_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_Ele_rec");
-  TH3F* hRecPos_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_Pos_rec");
-  TH3F* hRec_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_rec");
-  TH3F* hRecEle_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_Ele_rec");
-  TH3F* hRecPos_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_Pos_rec");
+  // TH3F* hRec_TrackPtEtaPhi_primary = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_primary_rec");
+  // TH3F* hRecEle_TrackPtEtaPhi_primary = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_primary_Ele_rec");
+  // TH3F* hRecPos_TrackPtEtaPhi_primary = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_primary_Pos_rec");
+  // TH3F* hRec_TrackPtEtaPhi_hf = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_hf_rec");
+  // TH3F* hRecEle_TrackPtEtaPhi_hf = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_hf_Ele_rec");
+  // TH3F* hRecPos_TrackPtEtaPhi_hf = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_hf_Pos_rec");
+  // TH3F* hRec_TrackPtEtaPhi_cc = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_charm_rec");
+  // TH3F* hRecEle_TrackPtEtaPhi_cc = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_charm_Ele_rec");
+  // TH3F* hRecPos_TrackPtEtaPhi_cc = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_charm_Pos_rec");
+  // TH3F* hRec_TrackPtEtaPhi_bb = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_beauty_rec");
+  // TH3F* hRecEle_TrackPtEtaPhi_bb = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_beauty_Ele_rec");
+  // TH3F* hRecPos_TrackPtEtaPhi_bb = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_beauty_Pos_rec");
 
-  TH3F* hGen_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_gen");
-  TH3F* hGenEle_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_Ele_gen");
-  TH3F* hGenPos_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_Pos_gen");
-  TH3F* hGen_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_gen");
-  TH3F* hGenEle_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_Ele_gen");
-  TH3F* hGenPos_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_Pos_gen");
-  TH3F* hGen_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_gen");
-  TH3F* hGenEle_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_Ele_gen");
-  TH3F* hGenPos_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_Pos_gen");
-  TH3F* hGen_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_gen");
-  TH3F* hGenEle_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_Ele_gen");
-  TH3F* hGenPos_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_Pos_gen");
+  // TH3F* hGen_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_gen");
+  // TH3F* hGenEle_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_Ele_gen");
+  // TH3F* hGenPos_TrackPtEtaPhi_primary = (TH3F*) fIn->Get("hPt_Eta_Phi_primary_Pos_gen");
+  // TH3F* hGen_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_gen");
+  // TH3F* hGenEle_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_Ele_gen");
+  // TH3F* hGenPos_TrackPtEtaPhi_hf = (TH3F*) fIn->Get("hPt_Eta_Phi_hf_Pos_gen");
+  // TH3F* hGen_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_gen");
+  // TH3F* hGenEle_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_Ele_gen");
+  // TH3F* hGenPos_TrackPtEtaPhi_cc = (TH3F*) fIn->Get("hPt_Eta_Phi_charm_Pos_gen");
+  // TH3F* hGen_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_gen");
+  // TH3F* hGenEle_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_Ele_gen");
+  // TH3F* hGenPos_TrackPtEtaPhi_bb = (TH3F*) fIn->Get("hPt_Eta_Phi_beauty_Pos_gen");
 
   TH3F* hRec_Track_Pt_Eta_Phi_BeforeSmearing = (TH3F*) fIn->Get("hBeforeSmearing_Pt_Eta_Phi_rec");
   TH3F* hRec_Track_Pt_Eta_Phi_AfterSmearing = (TH3F*) fIn->Get("hAfterSmearing_Pt_Eta_Phi_rec");
-  TH3F* hRec_ElePosTrack_Pt_Eta_Phi_AfterKineCuts = (TH3F*) fIn->Get("hTrack_ElePos_Rec_Pt_Eta_Phi");
-  TH3F* hRec_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Ele_Rec_Pt_Eta_Phi");
-  TH3F* hRec_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Pos_Rec_Pt_Eta_Phi");
-  TH3F* hRec_AllTrack_Pt_Eta_Phi = (TH3F*) fIn->Get("hAllTracks_Rec_Pt_Eta_Phi");
-  TH3F* hRec_NegTrack_Pt_Eta_Phi = (TH3F*) fIn->Get("hNegTrack_Rec_Pt_Eta_Phi");
-  TH3F* hRec_PosTrack_Pt_Eta_Phi = (TH3F*) fIn->Get("hPosTrack_Rec_Pt_Eta_Phi");
-  TH3F* hRec_Track_Muon_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Muon_Rec_Pt_Eta_Phi");
-  TH3F* hRec_Track_Pion_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Pion_Rec_Pt_Eta_Phi");
-  TH3F* hRec_Track_Kaon_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Kaon_Rec_Pt_Eta_Phi");
-  TH3F* hRec_Track_Proton_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Proton_Rec_Pt_Eta_Phi");
 
-  TH3F* hGen_ElePosTrack_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_ElePos_Gen_Pt_Eta_Phi");
+  TH3F* hRec_Track_ElePos_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_ElePos_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Ele_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Pos_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_AllTrack_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hAllTracks_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_NegTrack_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hNegTrack_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_PosTrack_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hPosTrack_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_Track_Muon_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Muon_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_Track_Pion_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Pion_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_Track_Kaon_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Kaon_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hRec_Track_Proton_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Proton_Rec_Pt_Eta_Phi_sce%i",pathPIDScenario.Data(),ith_PIDscenario));
+
+  TH3F* hGen_Track_ElePos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_ElePos_Gen_Pt_Eta_Phi");
   TH3F* hGen_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Ele_Gen_Pt_Eta_Phi");
   TH3F* hGen_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Pos_Gen_Pt_Eta_Phi");
 
+  TH3F* hGenSmeared_Track_ElePos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_ElePos_GenSmeared_Pt_Eta_Phi");
+  TH3F* hGenSmeared_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Ele_GenSmeared_Pt_Eta_Phi");
+  TH3F* hGenSmeared_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Pos_GenSmeared_Pt_Eta_Phi");
 
   // TH3F* hRec_Track_Pt_Eta_Phi_EtaCut1 = (TH3F*) fIn->Get("hPt_Eta_Phi_rec_Eta_Cut_1");
   // TH3F* hRec_Track_Pt_Eta_Phi_EtaCut2 = (TH3F*) fIn->Get("hPt_Eta_Phi_rec_Eta_Cut_2");
@@ -269,84 +279,87 @@ if (bPlotPIDhistograms) {
 
   //Pair histograms M,pT
   TH2F* hMPt_ULS_rec = (TH2F*) fIn->Get("hMPt_ULS_rec");
-  TH2F* hMPt_ULS_primary_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_primary");
-  TH2F* hMPt_ULS_HF_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_heavy");
-  TH2F* hMPt_ULS_CC_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_charm");
-  TH2F* hMPt_ULS_BB_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_beauty");
+  // TH2F* hMPt_ULS_primary_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_primary");
+  // TH2F* hMPt_ULS_HF_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_heavy");
+  // TH2F* hMPt_ULS_CC_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_charm");
+  // TH2F* hMPt_ULS_BB_rec = (TH2F*) fIn->Get("hMPt_ULS_rec_beauty");
+  TH2F* hMPt_ULS_rec_MCpidEle = (TH2F*) fIn->Get("hMPt_ULS_rec_MCpidEle");
+
   TH2F* hMPt_LS_rec = (TH2F*) fIn->Get("hMPt_LS_rec");
-  TH2F* hMPt_LS_primary_rec = (TH2F*) fIn->Get("hMPt_LS_rec_primary");
-  TH2F* hMPt_LS_HF_rec = (TH2F*) fIn->Get("hMPt_LS_rec_heavy");
-  TH2F* hMPt_LS_CC_rec = (TH2F*) fIn->Get("hMPt_LS_rec_charm");
-  TH2F* hMPt_LS_BB_rec = (TH2F*) fIn->Get("hMPt_LS_rec_beauty");
+  // TH2F* hMPt_LS_primary_rec = (TH2F*) fIn->Get("hMPt_LS_rec_primary");
+  // TH2F* hMPt_LS_HF_rec = (TH2F*) fIn->Get("hMPt_LS_rec_heavy");
+  // TH2F* hMPt_LS_CC_rec = (TH2F*) fIn->Get("hMPt_LS_rec_charm");
+  // TH2F* hMPt_LS_BB_rec = (TH2F*) fIn->Get("hMPt_LS_rec_beauty");
 
   TH2F* hMPt_ULS_gen = (TH2F*) fIn->Get("hMPt_ULS_gen");
-  TH2F* hMPt_ULS_primary_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_primary");
-  TH2F* hMPt_ULS_HF_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_heavy");
-  TH2F* hMPt_ULS_CC_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_charm");
-  TH2F* hMPt_ULS_BB_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_beauty");
+  // TH2F* hMPt_ULS_primary_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_primary");
+  // TH2F* hMPt_ULS_HF_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_heavy");
+  // TH2F* hMPt_ULS_CC_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_charm");
+  // TH2F* hMPt_ULS_BB_gen = (TH2F*) fIn->Get("hMPt_ULS_gen_beauty");
+
   TH2F* hMPt_LS_gen = (TH2F*) fIn->Get("hMPt_LS_gen");
-  TH2F* hMPt_LS_primary_gen = (TH2F*) fIn->Get("hMPt_LS_gen_primary");
-  TH2F* hMPt_LS_HF_gen = (TH2F*) fIn->Get("hMPt_LS_gen_heavy");
-  TH2F* hMPt_LS_CC_gen = (TH2F*) fIn->Get("hMPt_LS_gen_charm");
-  TH2F* hMPt_LS_BB_gen = (TH2F*) fIn->Get("hMPt_LS_gen_beauty");
+  // TH2F* hMPt_LS_primary_gen = (TH2F*) fIn->Get("hMPt_LS_gen_primary");
+  // TH2F* hMPt_LS_HF_gen = (TH2F*) fIn->Get("hMPt_LS_gen_heavy");
+  // TH2F* hMPt_LS_CC_gen = (TH2F*) fIn->Get("hMPt_LS_gen_charm");
+  // TH2F* hMPt_LS_BB_gen = (TH2F*) fIn->Get("hMPt_LS_gen_beauty");
 
 
   // create projections and profiles
-  TH1F* ptRecTrackPrim  = (TH1F*) hRec_TrackPtEtaPhi_primary->ProjectionX("rec ptTrackPrim");
-  TH1F* ptRecEleTrackPrim  = (TH1F*) hRecEle_TrackPtEtaPhi_primary->ProjectionX("rec e- ptTrackPrim");
-  TH1F* ptRecPosTrackPrim  = (TH1F*) hRecPos_TrackPtEtaPhi_primary->ProjectionX("rec e+ ptTrackPrim");
-  TH1F* etaRecTrackPrim = (TH1F*) hRec_TrackPtEtaPhi_primary->ProjectionY("rec etaTrackPrim");
-  TH1F* etaRecEleTrackPrim = (TH1F*) hRecEle_TrackPtEtaPhi_primary->ProjectionY("rec e- etaTrackPrim");
-  TH1F* etaRecPosTrackPrim = (TH1F*) hRecPos_TrackPtEtaPhi_primary->ProjectionY("rec e+ etaTrackPrim");
-  TH1F* phiRecTrackPrim = (TH1F*) hRec_TrackPtEtaPhi_primary->ProjectionZ("rec phiTrackPrim");
-  TH1F* phiRecEleTrackPrim = (TH1F*) hRecEle_TrackPtEtaPhi_primary->ProjectionZ("rec e- phiTrackPrim");
-  TH1F* phiRecPosTrackPrim = (TH1F*) hRecPos_TrackPtEtaPhi_primary->ProjectionZ("rec e+ phiTrackPrim");
-  TH1F* ptRecTrackCC  = (TH1F*) hRec_TrackPtEtaPhi_cc->ProjectionX("rec ptTrackCC");
-  TH1F* ptRecEleTrackCC  = (TH1F*) hRecEle_TrackPtEtaPhi_cc->ProjectionX("rec e- ptTrackCC");
-  TH1F* ptRecPosTrackCC  = (TH1F*) hRecPos_TrackPtEtaPhi_cc->ProjectionX("rec e+ ptTrackCC");
-  TH1F* etaRecTrackCC = (TH1F*) hRec_TrackPtEtaPhi_cc->ProjectionY("rec etaTrackCC");
-  TH1F* etaRecEleTrackCC = (TH1F*) hRecEle_TrackPtEtaPhi_cc->ProjectionY("rec e- etaTrackCC");
-  TH1F* etaRecPosTrackCC = (TH1F*) hRecPos_TrackPtEtaPhi_cc->ProjectionY("rec e+ etaTrackCC");
-  TH1F* phiRecTrackCC = (TH1F*) hRec_TrackPtEtaPhi_cc->ProjectionZ("rec phiTrackCC");
-  TH1F* phiRecEleTrackCC = (TH1F*) hRecEle_TrackPtEtaPhi_cc->ProjectionZ("rec e- phiTrackCC");
-  TH1F* phiRecPosTrackCC = (TH1F*) hRecPos_TrackPtEtaPhi_cc->ProjectionZ("rec e+ phiTrackCC");
-  TH1F* ptRecTrackBB  = (TH1F*) hRec_TrackPtEtaPhi_bb->ProjectionX("rec ptTrackBB");
-  TH1F* ptRecEleTrackBB  = (TH1F*) hRecEle_TrackPtEtaPhi_bb->ProjectionX("rec e- ptTrackBB");
-  TH1F* ptRecPosTrackBB  = (TH1F*) hRecPos_TrackPtEtaPhi_bb->ProjectionX("rec e+ ptTrackBB");
-  TH1F* etaRecTrackBB = (TH1F*) hRec_TrackPtEtaPhi_bb->ProjectionY("rec etaTrackBB");
-  TH1F* etaRecEleTrackBB = (TH1F*) hRecEle_TrackPtEtaPhi_bb->ProjectionY("rec e- etaTrackBB");
-  TH1F* etaRecPosTrackBB = (TH1F*) hRecPos_TrackPtEtaPhi_bb->ProjectionY("rec e+ etaTrackBB");
-  TH1F* phiRecTrackBB = (TH1F*) hRec_TrackPtEtaPhi_bb->ProjectionZ("rec phiTrackBB");
-  TH1F* phiRecEleTrackBB = (TH1F*) hRecEle_TrackPtEtaPhi_bb->ProjectionZ("rec e- phiTrackBB");
-  TH1F* phiRecPosTrackBB = (TH1F*) hRecPos_TrackPtEtaPhi_bb->ProjectionZ("rec e+ phiTrackBB");
+  // TH1F* ptRecTrackPrim  = (TH1F*) hRec_TrackPtEtaPhi_primary->ProjectionX("rec ptTrackPrim");
+  // TH1F* ptRecEleTrackPrim  = (TH1F*) hRecEle_TrackPtEtaPhi_primary->ProjectionX("rec e- ptTrackPrim");
+  // TH1F* ptRecPosTrackPrim  = (TH1F*) hRecPos_TrackPtEtaPhi_primary->ProjectionX("rec e+ ptTrackPrim");
+  // TH1F* etaRecTrackPrim = (TH1F*) hRec_TrackPtEtaPhi_primary->ProjectionY("rec etaTrackPrim");
+  // TH1F* etaRecEleTrackPrim = (TH1F*) hRecEle_TrackPtEtaPhi_primary->ProjectionY("rec e- etaTrackPrim");
+  // TH1F* etaRecPosTrackPrim = (TH1F*) hRecPos_TrackPtEtaPhi_primary->ProjectionY("rec e+ etaTrackPrim");
+  // TH1F* phiRecTrackPrim = (TH1F*) hRec_TrackPtEtaPhi_primary->ProjectionZ("rec phiTrackPrim");
+  // TH1F* phiRecEleTrackPrim = (TH1F*) hRecEle_TrackPtEtaPhi_primary->ProjectionZ("rec e- phiTrackPrim");
+  // TH1F* phiRecPosTrackPrim = (TH1F*) hRecPos_TrackPtEtaPhi_primary->ProjectionZ("rec e+ phiTrackPrim");
+  // TH1F* ptRecTrackCC  = (TH1F*) hRec_TrackPtEtaPhi_cc->ProjectionX("rec ptTrackCC");
+  // TH1F* ptRecEleTrackCC  = (TH1F*) hRecEle_TrackPtEtaPhi_cc->ProjectionX("rec e- ptTrackCC");
+  // TH1F* ptRecPosTrackCC  = (TH1F*) hRecPos_TrackPtEtaPhi_cc->ProjectionX("rec e+ ptTrackCC");
+  // TH1F* etaRecTrackCC = (TH1F*) hRec_TrackPtEtaPhi_cc->ProjectionY("rec etaTrackCC");
+  // TH1F* etaRecEleTrackCC = (TH1F*) hRecEle_TrackPtEtaPhi_cc->ProjectionY("rec e- etaTrackCC");
+  // TH1F* etaRecPosTrackCC = (TH1F*) hRecPos_TrackPtEtaPhi_cc->ProjectionY("rec e+ etaTrackCC");
+  // TH1F* phiRecTrackCC = (TH1F*) hRec_TrackPtEtaPhi_cc->ProjectionZ("rec phiTrackCC");
+  // TH1F* phiRecEleTrackCC = (TH1F*) hRecEle_TrackPtEtaPhi_cc->ProjectionZ("rec e- phiTrackCC");
+  // TH1F* phiRecPosTrackCC = (TH1F*) hRecPos_TrackPtEtaPhi_cc->ProjectionZ("rec e+ phiTrackCC");
+  // TH1F* ptRecTrackBB  = (TH1F*) hRec_TrackPtEtaPhi_bb->ProjectionX("rec ptTrackBB");
+  // TH1F* ptRecEleTrackBB  = (TH1F*) hRecEle_TrackPtEtaPhi_bb->ProjectionX("rec e- ptTrackBB");
+  // TH1F* ptRecPosTrackBB  = (TH1F*) hRecPos_TrackPtEtaPhi_bb->ProjectionX("rec e+ ptTrackBB");
+  // TH1F* etaRecTrackBB = (TH1F*) hRec_TrackPtEtaPhi_bb->ProjectionY("rec etaTrackBB");
+  // TH1F* etaRecEleTrackBB = (TH1F*) hRecEle_TrackPtEtaPhi_bb->ProjectionY("rec e- etaTrackBB");
+  // TH1F* etaRecPosTrackBB = (TH1F*) hRecPos_TrackPtEtaPhi_bb->ProjectionY("rec e+ etaTrackBB");
+  // TH1F* phiRecTrackBB = (TH1F*) hRec_TrackPtEtaPhi_bb->ProjectionZ("rec phiTrackBB");
+  // TH1F* phiRecEleTrackBB = (TH1F*) hRecEle_TrackPtEtaPhi_bb->ProjectionZ("rec e- phiTrackBB");
+  // TH1F* phiRecPosTrackBB = (TH1F*) hRecPos_TrackPtEtaPhi_bb->ProjectionZ("rec e+ phiTrackBB");
 
-  TH1F* ptGenTrackPrim  = (TH1F*) hGen_TrackPtEtaPhi_primary->ProjectionX("gen ptTrackPrim");
-  TH1F* ptGenEleTrackPrim  = (TH1F*) hGenEle_TrackPtEtaPhi_primary->ProjectionX("gen e- ptTrackPrim");
-  TH1F* ptGenPosTrackPrim  = (TH1F*) hGenPos_TrackPtEtaPhi_primary->ProjectionX("gen e+ ptTrackPrim");
-  TH1F* etaGenTrackPrim = (TH1F*) hGen_TrackPtEtaPhi_primary->ProjectionY("gen etaTrackPrim");
-  TH1F* etaGenEleTrackPrim = (TH1F*) hGenEle_TrackPtEtaPhi_primary->ProjectionY("gen e- etaTrackPrim");
-  TH1F* etaGenPosTrackPrim = (TH1F*) hGenPos_TrackPtEtaPhi_primary->ProjectionY("gen e+ etaTrackPrim");
-  TH1F* phiGenTrackPrim = (TH1F*) hGen_TrackPtEtaPhi_primary->ProjectionZ("gen phiTrackPrim");
-  TH1F* phiGenEleTrackPrim = (TH1F*) hGenEle_TrackPtEtaPhi_primary->ProjectionZ("gen e- phiTrackPrim");
-  TH1F* phiGenPosTrackPrim = (TH1F*) hGenPos_TrackPtEtaPhi_primary->ProjectionZ("gen e+ phiTrackPrim");
-  TH1F* ptGenTrackCC  = (TH1F*) hGen_TrackPtEtaPhi_cc->ProjectionX("gen ptTrackCC");
-  TH1F* ptGenEleTrackCC  = (TH1F*) hGenEle_TrackPtEtaPhi_cc->ProjectionX("gen e- ptTrackCC");
-  TH1F* ptGenPosTrackCC  = (TH1F*) hGenPos_TrackPtEtaPhi_cc->ProjectionX("gen e+ ptTrackCC");
-  TH1F* etaGenTrackCC = (TH1F*) hGen_TrackPtEtaPhi_cc->ProjectionY("gen etaTrackCC");
-  TH1F* etaGenEleTrackCC = (TH1F*) hGenEle_TrackPtEtaPhi_cc->ProjectionY("gen e- etaTrackCC");
-  TH1F* etaGenPosTrackCC = (TH1F*) hGenPos_TrackPtEtaPhi_cc->ProjectionY("gen e+ etaTrackCC");
-  TH1F* phiGenTrackCC = (TH1F*) hGen_TrackPtEtaPhi_cc->ProjectionZ("gen phiTrackCC");
-  TH1F* phiGenEleTrackCC = (TH1F*) hGenEle_TrackPtEtaPhi_cc->ProjectionZ("gen e- phiTrackCC");
-  TH1F* phiGenPosTrackCC = (TH1F*) hGenPos_TrackPtEtaPhi_cc->ProjectionZ("gen e+ phiTrackCC");
-  TH1F* ptGenTrackBB  = (TH1F*) hGen_TrackPtEtaPhi_bb->ProjectionX("gen ptTrackBB");
-  TH1F* ptGenEleTrackBB  = (TH1F*) hGenEle_TrackPtEtaPhi_bb->ProjectionX("gen e- ptTrackBB");
-  TH1F* ptGenPosTrackBB  = (TH1F*) hGenPos_TrackPtEtaPhi_bb->ProjectionX("gen e+ ptTrackBB");
-  TH1F* etaGenTrackBB = (TH1F*) hGen_TrackPtEtaPhi_bb->ProjectionY("gen etaTrackBB");
-  TH1F* etaGenEleTrackBB = (TH1F*) hGenEle_TrackPtEtaPhi_bb->ProjectionY("gen e- etaTrackBB");
-  TH1F* etaGenPosTrackBB = (TH1F*) hGenPos_TrackPtEtaPhi_bb->ProjectionY("gen e+ etaTrackBB");
-  TH1F* phiGenTrackBB = (TH1F*) hGen_TrackPtEtaPhi_bb->ProjectionZ("gen phiTrackBB");
-  TH1F* phiGenEleTrackBB = (TH1F*) hGenEle_TrackPtEtaPhi_bb->ProjectionZ("gen e- phiTrackBB");
-  TH1F* phiGenPosTrackBB = (TH1F*) hGenPos_TrackPtEtaPhi_bb->ProjectionZ("gen e+ phiTrackBB");
+  // TH1F* ptGenTrackPrim  = (TH1F*) hGen_TrackPtEtaPhi_primary->ProjectionX("gen ptTrackPrim");
+  // TH1F* ptGenEleTrackPrim  = (TH1F*) hGenEle_TrackPtEtaPhi_primary->ProjectionX("gen e- ptTrackPrim");
+  // TH1F* ptGenPosTrackPrim  = (TH1F*) hGenPos_TrackPtEtaPhi_primary->ProjectionX("gen e+ ptTrackPrim");
+  // TH1F* etaGenTrackPrim = (TH1F*) hGen_TrackPtEtaPhi_primary->ProjectionY("gen etaTrackPrim");
+  // TH1F* etaGenEleTrackPrim = (TH1F*) hGenEle_TrackPtEtaPhi_primary->ProjectionY("gen e- etaTrackPrim");
+  // TH1F* etaGenPosTrackPrim = (TH1F*) hGenPos_TrackPtEtaPhi_primary->ProjectionY("gen e+ etaTrackPrim");
+  // TH1F* phiGenTrackPrim = (TH1F*) hGen_TrackPtEtaPhi_primary->ProjectionZ("gen phiTrackPrim");
+  // TH1F* phiGenEleTrackPrim = (TH1F*) hGenEle_TrackPtEtaPhi_primary->ProjectionZ("gen e- phiTrackPrim");
+  // TH1F* phiGenPosTrackPrim = (TH1F*) hGenPos_TrackPtEtaPhi_primary->ProjectionZ("gen e+ phiTrackPrim");
+  // TH1F* ptGenTrackCC  = (TH1F*) hGen_TrackPtEtaPhi_cc->ProjectionX("gen ptTrackCC");
+  // TH1F* ptGenEleTrackCC  = (TH1F*) hGenEle_TrackPtEtaPhi_cc->ProjectionX("gen e- ptTrackCC");
+  // TH1F* ptGenPosTrackCC  = (TH1F*) hGenPos_TrackPtEtaPhi_cc->ProjectionX("gen e+ ptTrackCC");
+  // TH1F* etaGenTrackCC = (TH1F*) hGen_TrackPtEtaPhi_cc->ProjectionY("gen etaTrackCC");
+  // TH1F* etaGenEleTrackCC = (TH1F*) hGenEle_TrackPtEtaPhi_cc->ProjectionY("gen e- etaTrackCC");
+  // TH1F* etaGenPosTrackCC = (TH1F*) hGenPos_TrackPtEtaPhi_cc->ProjectionY("gen e+ etaTrackCC");
+  // TH1F* phiGenTrackCC = (TH1F*) hGen_TrackPtEtaPhi_cc->ProjectionZ("gen phiTrackCC");
+  // TH1F* phiGenEleTrackCC = (TH1F*) hGenEle_TrackPtEtaPhi_cc->ProjectionZ("gen e- phiTrackCC");
+  // TH1F* phiGenPosTrackCC = (TH1F*) hGenPos_TrackPtEtaPhi_cc->ProjectionZ("gen e+ phiTrackCC");
+  // TH1F* ptGenTrackBB  = (TH1F*) hGen_TrackPtEtaPhi_bb->ProjectionX("gen ptTrackBB");
+  // TH1F* ptGenEleTrackBB  = (TH1F*) hGenEle_TrackPtEtaPhi_bb->ProjectionX("gen e- ptTrackBB");
+  // TH1F* ptGenPosTrackBB  = (TH1F*) hGenPos_TrackPtEtaPhi_bb->ProjectionX("gen e+ ptTrackBB");
+  // TH1F* etaGenTrackBB = (TH1F*) hGen_TrackPtEtaPhi_bb->ProjectionY("gen etaTrackBB");
+  // TH1F* etaGenEleTrackBB = (TH1F*) hGenEle_TrackPtEtaPhi_bb->ProjectionY("gen e- etaTrackBB");
+  // TH1F* etaGenPosTrackBB = (TH1F*) hGenPos_TrackPtEtaPhi_bb->ProjectionY("gen e+ etaTrackBB");
+  // TH1F* phiGenTrackBB = (TH1F*) hGen_TrackPtEtaPhi_bb->ProjectionZ("gen phiTrackBB");
+  // TH1F* phiGenEleTrackBB = (TH1F*) hGenEle_TrackPtEtaPhi_bb->ProjectionZ("gen e- phiTrackBB");
+  // TH1F* phiGenPosTrackBB = (TH1F*) hGenPos_TrackPtEtaPhi_bb->ProjectionZ("gen e+ phiTrackBB");
 
   TH1F* ptRecTrackBeforeSmearing  = (TH1F*) hRec_Track_Pt_Eta_Phi_BeforeSmearing->ProjectionX("Rec beforeSmearing ptTrack");
   TH1F* etaRecTrackBeforeSmearing = (TH1F*) hRec_Track_Pt_Eta_Phi_BeforeSmearing->ProjectionY("Rec beforeSmearing etaTrack");
@@ -356,9 +369,9 @@ if (bPlotPIDhistograms) {
   TH1F* etaRecTrackAfterSmearing = (TH1F*) hRec_Track_Pt_Eta_Phi_AfterSmearing->ProjectionY("Rec afterSmearing etaTrack");
   TH1F* phiRecTrackAfterSmearing = (TH1F*) hRec_Track_Pt_Eta_Phi_AfterSmearing->ProjectionZ("Rec afterSmearing phiTrack");
 
-  TH1F* ptRecElePosTrackAfterKineCuts  = (TH1F*) hRec_ElePosTrack_Pt_Eta_Phi_AfterKineCuts->ProjectionX("Rec ElePos afterKineCuts ptTrack");
-  TH1F* etaRecElePosTrackAfterKineCuts = (TH1F*) hRec_ElePosTrack_Pt_Eta_Phi_AfterKineCuts->ProjectionY("Rec ElePos afterKineCuts etaTrack");
-  TH1F* phiRecElePosTrackAfterKineCuts = (TH1F*) hRec_ElePosTrack_Pt_Eta_Phi_AfterKineCuts->ProjectionZ("Rec ElePos afterKineCuts phiTrack");
+  TH1F* ptRecTrackElePos  = (TH1F*) hRec_Track_ElePos_Pt_Eta_Phi->ProjectionX("Rec ElePos afterKineCuts ptTrack");
+  TH1F* etaRecTrackElePos = (TH1F*) hRec_Track_ElePos_Pt_Eta_Phi->ProjectionY("Rec ElePos afterKineCuts etaTrack");
+  TH1F* phiRecTrackElePos = (TH1F*) hRec_Track_ElePos_Pt_Eta_Phi->ProjectionZ("Rec ElePos afterKineCuts phiTrack");
 
   TH1F* ptRecTrackEle  = (TH1F*) hRec_Track_Ele_Pt_Eta_Phi->ProjectionX("Rec electrons ptTrack");
   TH1F* etaRecTrackEle = (TH1F*) hRec_Track_Ele_Pt_Eta_Phi->ProjectionY("Rec electrons etaTrack");
@@ -396,9 +409,9 @@ if (bPlotPIDhistograms) {
   TH1F* etaRecProtonTrack = (TH1F*) hRec_Track_Proton_Pt_Eta_Phi->ProjectionY("Rec Proton etaTrack");
   TH1F* phiRecProtonTrack = (TH1F*) hRec_Track_Proton_Pt_Eta_Phi->ProjectionZ("Rec Proton phiTrack");
 
-  TH1F* ptGenElePosTrack  = (TH1F*) hGen_ElePosTrack_Pt_Eta_Phi->ProjectionX("Gen ElePos ptTrack");
-  TH1F* etaGenElePosTrack = (TH1F*) hGen_ElePosTrack_Pt_Eta_Phi->ProjectionY("Gen ElePos etaTrack");
-  TH1F* phiGenElePosTrack = (TH1F*) hGen_ElePosTrack_Pt_Eta_Phi->ProjectionZ("Gen ElePos phiTrack");
+  TH1F* ptGenTrackElePos  = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionX("Gen ElePos ptTrack");
+  TH1F* etaGenTrackElePos = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionY("Gen ElePos etaTrack");
+  TH1F* phiGenTrackElePos = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionZ("Gen ElePos phiTrack");
 
   TH1F* ptGenTrackEle  = (TH1F*) hGen_Track_Ele_Pt_Eta_Phi->ProjectionX("Gen electrons ptTrack");
   TH1F* etaGenTrackEle = (TH1F*) hGen_Track_Ele_Pt_Eta_Phi->ProjectionY("Gen electrons etaTrack");
@@ -407,6 +420,20 @@ if (bPlotPIDhistograms) {
   TH1F* ptGenTrackPos  = (TH1F*) hGen_Track_Pos_Pt_Eta_Phi->ProjectionX("Gen positrons ptTrack");
   TH1F* etaGenTrackPos = (TH1F*) hGen_Track_Pos_Pt_Eta_Phi->ProjectionY("Gen positrons etaTrack");
   TH1F* phiGenTrackPos = (TH1F*) hGen_Track_Pos_Pt_Eta_Phi->ProjectionZ("Gen positrons phiTrack");
+
+  TH1F* ptGenSmearedTrackElePos  = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi->ProjectionX("GenSmeared ElePos ptTrack");
+  TH1F* etaGenSmearedTrackElePos = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi->ProjectionY("GenSmeared ElePos etaTrack");
+  TH1F* phiGenSmearedTrackElePos = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi->ProjectionZ("GenSmeared ElePos phiTrack");
+
+  TH1F* ptGenSmearedTrackEle  = (TH1F*) hGenSmeared_Track_Ele_Pt_Eta_Phi->ProjectionX("GenSmeared electrons ptTrack");
+  TH1F* etaGenSmearedTrackEle = (TH1F*) hGenSmeared_Track_Ele_Pt_Eta_Phi->ProjectionY("GenSmeared electrons etaTrack");
+  TH1F* phiGenSmearedTrackEle = (TH1F*) hGenSmeared_Track_Ele_Pt_Eta_Phi->ProjectionZ("GenSmeared electrons phiTrack");
+
+  TH1F* ptGenSmearedTrackPos  = (TH1F*) hGenSmeared_Track_Pos_Pt_Eta_Phi->ProjectionX("GenSmeared positrons ptTrack");
+  TH1F* etaGenSmearedTrackPos = (TH1F*) hGenSmeared_Track_Pos_Pt_Eta_Phi->ProjectionY("GenSmeared positrons etaTrack");
+  TH1F* phiGenSmearedTrackPos = (TH1F*) hGenSmeared_Track_Pos_Pt_Eta_Phi->ProjectionZ("GenSmeared positrons phiTrack");
+
+  etaGenSmearedTrackPos->GetXaxis()->SetRangeUser(-5.0,5.0);
 
   // TH1F* ptRecTrackEtaCut_1 = (TH1F*) hRec_Track_Pt_Eta_Phi_EtaCut1->ProjectionX("Rec eta1cut pt Track");
   // TH1F* ptRecTrackEtaCut_2 = (TH1F*) hRec_Track_Pt_Eta_Phi_EtaCut2->ProjectionX("Rec eta2cut pt Track");
@@ -441,70 +468,147 @@ if (bPlotPIDhistograms) {
   // TH1F* phiRecTrackEtaCut_9 = (TH1F*) hRec_Track_Pt_Eta_Phi_EtaCut9->ProjectionZ("Rec eta9cut phi Track");
   // TH1F* phiRecTrackEtaCut_10 = (TH1F*) hRec_Track_Pt_Eta_Phi_EtaCut10->ProjectionZ("Rec eta10cut phi Track");
 
-  ptRecTrackPrim->Rebin(2);
-  ptRecEleTrackPrim->Rebin(2);
-  ptRecPosTrackPrim->Rebin(2);
-  etaRecTrackPrim->Rebin(2);
-  etaRecEleTrackPrim->Rebin(2);
-  etaRecPosTrackPrim->Rebin(2);
-  phiRecTrackPrim->Rebin(10);
-  phiRecEleTrackPrim->Rebin(10);
-  phiRecPosTrackPrim->Rebin(10);
-  ptRecTrackCC->Rebin(2);
-  ptRecEleTrackCC->Rebin(2);
-  ptRecPosTrackCC->Rebin(2);
-  etaRecTrackCC->Rebin(2);
-  etaRecEleTrackCC->Rebin(2);
-  etaRecPosTrackCC->Rebin(2);
-  phiRecTrackCC->Rebin(10);
-  phiRecEleTrackCC->Rebin(10);
-  phiRecPosTrackCC->Rebin(10);
-  ptRecTrackBB->Rebin(2);
-  ptRecEleTrackBB->Rebin(2);
-  ptRecPosTrackBB->Rebin(2);
-  etaRecTrackBB->Rebin(2);
-  etaRecEleTrackBB->Rebin(2);
-  etaRecPosTrackBB->Rebin(2);
-  phiRecTrackBB->Rebin(10);
-  phiRecEleTrackBB->Rebin(10);
-  phiRecPosTrackBB->Rebin(10);
-  ptGenTrackPrim->Rebin(2);
-  ptGenEleTrackPrim->Rebin(2);
-  ptGenPosTrackPrim->Rebin(2);
-  etaGenTrackPrim->Rebin(2);
-  etaGenEleTrackPrim->Rebin(2);
-  etaGenPosTrackPrim->Rebin(2);
-  phiGenTrackPrim->Rebin(10);
-  phiGenEleTrackPrim->Rebin(10);
-  phiGenPosTrackPrim->Rebin(10);
-  ptGenTrackCC->Rebin(2);
-  ptGenEleTrackCC->Rebin(2);
-  ptGenPosTrackCC->Rebin(2);
-  etaGenTrackCC->Rebin(2);
-  etaGenEleTrackCC->Rebin(2);
-  etaGenPosTrackCC->Rebin(2);
-  phiGenTrackCC->Rebin(10);
-  phiGenEleTrackCC->Rebin(10);
-  phiGenPosTrackCC->Rebin(10);
-  ptGenTrackBB->Rebin(2);
-  ptGenEleTrackBB->Rebin(2);
-  ptGenPosTrackBB->Rebin(2);
-  etaGenTrackBB->Rebin(2);
-  etaGenEleTrackBB->Rebin(2);
-  etaGenPosTrackBB->Rebin(2);
-  phiGenTrackBB->Rebin(10);
-  phiGenEleTrackBB->Rebin(10);
-  phiGenPosTrackBB->Rebin(10);
+  // Profiles to see M_ee and pT_ee spectras
+    TH1F* proj_recULS_Mee = (TH1F*) hMPt_ULS_rec->ProjectionX("proj_recULS_Mee");
+    TH1F* proj_recULS_Ptee = (TH1F*) hMPt_ULS_rec->ProjectionY("proj_recULS_Ptee");
+    // TH1F* proj_recULS_MeePrim = (TH1F*) hMPt_ULS_primary_rec->ProjectionX("proj_recULS_MeePrim");
+    // TH1F* proj_recULS_PteePrim = (TH1F*) hMPt_ULS_primary_rec->ProjectionY("proj_recULS_PteePrim");
+    // TH1F* proj_recULS_MeeCC = (TH1F*) hMPt_ULS_CC_rec->ProjectionX("proj_recULS_MeeCC");
+    // TH1F* proj_recULS_PteeCC = (TH1F*) hMPt_ULS_CC_rec->ProjectionY("proj_recULS_PteeCC");
+    // TH1F* proj_recULS_MeeBB = (TH1F*) hMPt_ULS_BB_rec->ProjectionX("proj_recULS_MeeBB");
+    // TH1F* proj_recULS_PteeBB = (TH1F*) hMPt_ULS_BB_rec->ProjectionY("proj_recULS_PteeBB");
 
-  ptRecTrackBeforeSmearing->Rebin(2);
-  etaRecTrackBeforeSmearing->Rebin(2);
-  phiRecTrackBeforeSmearing->Rebin(10);
-  ptRecTrackAfterSmearing->Rebin(2);
-  etaRecTrackAfterSmearing->Rebin(2);
-  phiRecTrackAfterSmearing->Rebin(10);
-  ptRecElePosTrackAfterKineCuts->Rebin(2);
-  etaRecElePosTrackAfterKineCuts->Rebin(2);
-  phiRecElePosTrackAfterKineCuts->Rebin(10);
+    // TH1F* proj_recULS_MCpidEle_Mee = (TH1F*) hMPt_ULS_rec_MCpidEle->ProjectionX("proj_recULS_MCpidEle_Mee");
+    // TH1F* proj_recULS_MCpidEle_Ptee = (TH1F*) hMPt_ULS_rec_MCpidEle->ProjectionY("proj_recULS_MCpidEle_Ptee");
+
+    TH1F* proj_recLS_Mee = (TH1F*) hMPt_LS_rec->ProjectionX("proj_recLS_Mee");
+    TH1F* proj_recLS_Ptee = (TH1F*) hMPt_LS_rec->ProjectionY("proj_recLS_Ptee");
+
+    TH1F* proj_genULS_Mee = (TH1F*) hMPt_ULS_gen->ProjectionX("proj_genULS_Mee");
+    TH1F* proj_genULS_Ptee = (TH1F*) hMPt_ULS_gen->ProjectionY("proj_genULS_Ptee");
+
+    TH1F* proj_genLS_Mee = (TH1F*) hMPt_LS_gen->ProjectionX("proj_genLS_Mee");
+    TH1F* proj_genLS_Ptee = (TH1F*) hMPt_LS_gen->ProjectionY("proj_genLS_Ptee");
+    // TH1F* proj_genLS_MeePrim = (TH1F*) hMPt_LS_primary_gen->ProjectionX("proj_genLS_MeePrim");
+    // TH1F* proj_genLS_MeeCC = (TH1F*) hMPt_LS_CC_gen->ProjectionX("proj_genLS_MeeCC");
+    // TH1F* proj_genLS_MeeBB = (TH1F*) hMPt_LS_BB_gen->ProjectionX("proj_genLS_MeeBB");
+    // TH1F* proj_genLS_PteePrim = (TH1F*) hMPt_LS_primary_gen->ProjectionY("proj_genLS_PteePrim");
+    // TH1F* proj_genLS_PteeCC = (TH1F*) hMPt_LS_CC_gen->ProjectionY("proj_genLS_PteeCC");
+    // TH1F* proj_genLS_PteeBB = (TH1F*) hMPt_LS_BB_gen->ProjectionY("proj_genLS_PteeBB");
+
+    proj_recULS_Mee->Sumw2();
+    proj_recULS_Ptee->Sumw2();
+    // proj_recULS_MeePrim->Sumw2();
+    // proj_recULS_PteePrim->Sumw2();
+    // proj_recULS_MeeCC->Sumw2();
+    // proj_recULS_PteeCC->Sumw2();
+    // proj_recULS_MeeBB->Sumw2();
+    // proj_recULS_PteeBB->Sumw2();
+    proj_recLS_Mee->Sumw2();
+    proj_recLS_Ptee->Sumw2();
+    // proj_recULS_MCpidEle_Mee->Sumw2();
+    // proj_recULS_MCpidEle_Ptee->Sumw2();
+
+    proj_genULS_Mee->Sumw2();
+    proj_genULS_Ptee->Sumw2();
+    proj_genLS_Mee->Sumw2();
+    proj_genLS_Ptee->Sumw2();
+    // proj_genLS_MeePrim->Sumw2();
+    // proj_genLS_MeeCC->Sumw2();
+    // proj_genLS_MeeBB->Sumw2();
+    // proj_genLS_PteePrim->Sumw2();
+    // proj_genLS_PteeCC->Sumw2();
+    // proj_genLS_PteeBB->Sumw2();
+
+  // ptRecTrackPrim->Rebin(2);
+  // ptRecEleTrackPrim->Rebin(2);
+  // ptRecPosTrackPrim->Rebin(2);
+  // etaRecTrackPrim->Rebin(2);
+  // etaRecEleTrackPrim->Rebin(2);
+  // etaRecPosTrackPrim->Rebin(2);
+  // phiRecTrackPrim->Rebin(10);
+  // phiRecEleTrackPrim->Rebin(10);
+  // phiRecPosTrackPrim->Rebin(10);
+  // ptRecTrackCC->Rebin(2);
+  // ptRecEleTrackCC->Rebin(2);
+  // ptRecPosTrackCC->Rebin(2);
+  // etaRecTrackCC->Rebin(2);
+  // etaRecEleTrackCC->Rebin(2);
+  // etaRecPosTrackCC->Rebin(2);
+  // phiRecTrackCC->Rebin(10);
+  // phiRecEleTrackCC->Rebin(10);
+  // phiRecPosTrackCC->Rebin(10);
+  // ptRecTrackBB->Rebin(2);
+  // ptRecEleTrackBB->Rebin(2);
+  // ptRecPosTrackBB->Rebin(2);
+  // etaRecTrackBB->Rebin(2);
+  // etaRecEleTrackBB->Rebin(2);
+  // etaRecPosTrackBB->Rebin(2);
+  // phiRecTrackBB->Rebin(10);
+  // phiRecEleTrackBB->Rebin(10);
+  // phiRecPosTrackBB->Rebin(10);
+  // ptGenTrackPrim->Rebin(2);
+  // ptGenEleTrackPrim->Rebin(2);
+  // ptGenPosTrackPrim->Rebin(2);
+  // etaGenTrackPrim->Rebin(2);
+  // etaGenEleTrackPrim->Rebin(2);
+  // etaGenPosTrackPrim->Rebin(2);
+  // phiGenTrackPrim->Rebin(10);
+  // phiGenEleTrackPrim->Rebin(10);
+  // phiGenPosTrackPrim->Rebin(10);
+  // ptGenTrackCC->Rebin(2);
+  // ptGenEleTrackCC->Rebin(2);
+  // ptGenPosTrackCC->Rebin(2);
+  // etaGenTrackCC->Rebin(2);
+  // etaGenEleTrackCC->Rebin(2);
+  // etaGenPosTrackCC->Rebin(2);
+  // phiGenTrackCC->Rebin(10);
+  // phiGenEleTrackCC->Rebin(10);
+  // phiGenPosTrackCC->Rebin(10);
+  // ptGenTrackBB->Rebin(2);
+  // ptGenEleTrackBB->Rebin(2);
+  // ptGenPosTrackBB->Rebin(2);
+  // etaGenTrackBB->Rebin(2);
+  // etaGenEleTrackBB->Rebin(2);
+  // etaGenPosTrackBB->Rebin(2);
+  // phiGenTrackBB->Rebin(10);
+  // phiGenEleTrackBB->Rebin(10);
+  // phiGenPosTrackBB->Rebin(10);
+
+  // ptRecTrackBeforeSmearing->Rebin(2);
+  // etaRecTrackBeforeSmearing->Rebin(2);
+  // phiRecTrackBeforeSmearing->Rebin(10);
+  // ptRecTrackAfterSmearing->Rebin(2);
+  // etaRecTrackAfterSmearing->Rebin(2);
+  // phiRecTrackAfterSmearing->Rebin(10);
+
+
+ TH1F* ptRecTrackElePos_rebin = (TH1F*) ptRecTrackElePos->Rebin(nbinspt_proj,"ptRecTrackElePos_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenTrackElePos_rebin = (TH1F*) ptGenTrackElePos->Rebin(nbinspt_proj,"ptGenTrackElePos_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenSmearedTrackElePos_rebin = (TH1F*) ptGenSmearedTrackElePos->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_rebin",&pt_bin_proj[0]);
+
+ TH1F* ptAllRecTrack_rebin = (TH1F*) ptAllRecTrack->Rebin(nbinspt_proj,"ptAllRecTrack_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecMuonTrack_rebin = (TH1F*) ptRecMuonTrack->Rebin(nbinspt_proj,"ptRecMuonTrack_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecPionTrack_rebin = (TH1F*) ptRecPionTrack->Rebin(nbinspt_proj,"ptRecPionTrack_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecKaonTrack_rebin = (TH1F*) ptRecKaonTrack->Rebin(nbinspt_proj,"ptRecKaonTrack_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecProtonTrack_rebin = (TH1F*) ptRecProtonTrack->Rebin(nbinspt_proj,"ptRecProtonTrack_rebin",&pt_bin_proj[0]);
+
+ TH1F* ptRecNegTrack_rebin = (TH1F*) ptRecNegTrack->Rebin(nbinspt_proj,"ptRecNegTrack_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecPosTrack_rebin = (TH1F*) ptRecPosTrack->Rebin(nbinspt_proj,"ptRecPosTrack_rebin",&pt_bin_proj[0]);
+
+
+
+
+
+ TH1F* ptRecTrackEle_rebin = (TH1F*) ptRecTrackEle->Rebin(nbinspt_proj,"ptRecTrackEle_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenSmearedTrackEle_rebin = (TH1F*) ptGenSmearedTrackEle->Rebin(nbinspt_proj,"ptGenSmearedTrackEle_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecTrackPos_rebin = (TH1F*) ptRecTrackPos->Rebin(nbinspt_proj,"ptRecTrackPos_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenSmearedTrackPos_rebin = (TH1F*) ptGenSmearedTrackPos->Rebin(nbinspt_proj,"ptGenSmearedTrackPos_rebin",&pt_bin_proj[0]);
+
+
+  // ptRecTrackElePos->Rebin(2);
+  // etaRecTrackElePos->Rebin(2);
+  // phiRecTrackElePos->Rebin(10);
 
   // ptRecTrackEle->Rebin(2);
   // etaRecTrackEle->Rebin(2);
@@ -519,21 +623,21 @@ if (bPlotPIDhistograms) {
   // etaRecPosTrack->Rebin(2);
   // phiRecPosTrack->Rebin(10);
 
-  ptAllRecTrack->Rebin(2);
-  etaAllRecTrack->Rebin(2);
-  phiAllRecTrack->Rebin(10);
-  ptRecMuonTrack->Rebin(2);
-  etaRecMuonTrack->Rebin(2);
-  phiRecMuonTrack->Rebin(10);
-  ptRecPionTrack->Rebin(2);
-  etaRecPionTrack->Rebin(2);
-  phiRecPionTrack->Rebin(10);
-  ptRecKaonTrack->Rebin(2);
-  etaRecKaonTrack->Rebin(2);
-  phiRecKaonTrack->Rebin(10);
-  ptRecProtonTrack->Rebin(2);
-  etaRecProtonTrack->Rebin(2);
-  phiRecProtonTrack->Rebin(10);
+  // ptAllRecTrack->Rebin(2);
+  // etaAllRecTrack->Rebin(2);
+  // phiAllRecTrack->Rebin(10);
+  // ptRecMuonTrack->Rebin(2);
+  // etaRecMuonTrack->Rebin(2);
+  // phiRecMuonTrack->Rebin(10);
+  // ptRecPionTrack->Rebin(2);
+  // etaRecPionTrack->Rebin(2);
+  // phiRecPionTrack->Rebin(10);
+  // ptRecKaonTrack->Rebin(2);
+  // etaRecKaonTrack->Rebin(2);
+  // phiRecKaonTrack->Rebin(10);
+  // ptRecProtonTrack->Rebin(2);
+  // etaRecProtonTrack->Rebin(2);
+  // phiRecProtonTrack->Rebin(10);
 
   // ptGenTrackEle->Rebin(2);
   // etaGenTrackEle->Rebin(2);
@@ -587,147 +691,167 @@ if (bPlotPIDhistograms) {
   TH1F* etaGenPos;
   TH1F* phiGenPos;
 
+  TH1F* ptEffElePosGen;
+  TH1F* ptEffElePosGenSmeared;
   TH1F* ptEffEle;
-  TH1F* ptEffElePrim;
-  TH1F* ptEffEleCC;
-  TH1F* ptEffEleBB;
+  // TH1F* ptEffElePrim;
+  // TH1F* ptEffEleCC;
+  // TH1F* ptEffEleBB;
   TH1F* etaEffEle;
-  TH1F* etaEffElePrim;
-  TH1F* etaEffEleCC;
-  TH1F* etaEffEleBB;
+  // TH1F* etaEffElePrim;
+  // TH1F* etaEffEleCC;
+  // TH1F* etaEffEleBB;
   TH1F* phiEffEle;
-  TH1F* phiEffElePrim;
-  TH1F* phiEffEleCC;
-  TH1F* phiEffEleBB;
+  // TH1F* phiEffElePrim;
+  // TH1F* phiEffEleCC;
+  // TH1F* phiEffEleBB;
   TH1F* ptEffPos;
-  TH1F* ptEffPosPrim;
-  TH1F* ptEffPosCC;
-  TH1F* ptEffPosBB;
+  // TH1F* ptEffPosPrim;
+  // TH1F* ptEffPosCC;
+  // TH1F* ptEffPosBB;
   TH1F* etaEffPos;
-  TH1F* etaEffPosPrim;
-  TH1F* etaEffPosCC;
-  TH1F* etaEffPosBB;
+  // TH1F* etaEffPosPrim;
+  // TH1F* etaEffPosCC;
+  // TH1F* etaEffPosBB;
   TH1F* phiEffPos;
-  TH1F* phiEffPosPrim;
-  TH1F* phiEffPosCC;
-  TH1F* phiEffPosBB;
+  // TH1F* phiEffPosPrim;
+  // TH1F* phiEffPosCC;
+  // TH1F* phiEffPosBB;
+
+  TH1F* ptPairEffULS;
+  TH1F* massPairEffULS;
 
   if(bPlotEfficiency){
-    ptEffElePrim = (TH1F*) ptRecEleTrackPrim->Clone();
-    ptEffEleCC = (TH1F*) ptRecEleTrackCC->Clone();
-    ptEffEleBB = (TH1F*) ptRecEleTrackBB->Clone();
-    etaEffElePrim = (TH1F*) etaRecEleTrackPrim->Clone();
-    etaEffEleCC = (TH1F*) etaRecEleTrackCC->Clone();
-    etaEffEleBB = (TH1F*) etaRecEleTrackBB->Clone();
-    phiEffElePrim = (TH1F*) phiRecEleTrackPrim->Clone();
-    phiEffEleCC = (TH1F*) phiRecEleTrackCC->Clone();
-    phiEffEleBB = (TH1F*) phiRecEleTrackBB->Clone();
-    ptEffPosPrim = (TH1F*) ptRecPosTrackPrim->Clone();
-    ptEffPosCC = (TH1F*) ptRecPosTrackCC->Clone();
-    ptEffPosBB = (TH1F*) ptRecPosTrackBB->Clone();
-    etaEffPosPrim = (TH1F*) etaRecPosTrackPrim->Clone();
-    etaEffPosCC = (TH1F*) etaRecPosTrackCC->Clone();
-    etaEffPosBB = (TH1F*) etaRecPosTrackBB->Clone();
-    phiEffPosPrim = (TH1F*) phiRecPosTrackPrim->Clone();
-    phiEffPosCC = (TH1F*) phiRecPosTrackCC->Clone();
-    phiEffPosBB = (TH1F*) phiRecPosTrackBB->Clone();
+    //track efficiencies
+    // ptEffElePrim = (TH1F*) ptRecEleTrackPrim->Clone();
+    // ptEffEleCC = (TH1F*) ptRecEleTrackCC->Clone();
+    // ptEffEleBB = (TH1F*) ptRecEleTrackBB->Clone();
+    // etaEffElePrim = (TH1F*) etaRecEleTrackPrim->Clone();
+    // etaEffEleCC = (TH1F*) etaRecEleTrackCC->Clone();
+    // etaEffEleBB = (TH1F*) etaRecEleTrackBB->Clone();
+    // phiEffElePrim = (TH1F*) phiRecEleTrackPrim->Clone();
+    // phiEffEleCC = (TH1F*) phiRecEleTrackCC->Clone();
+    // phiEffEleBB = (TH1F*) phiRecEleTrackBB->Clone();
+    // ptEffPosPrim = (TH1F*) ptRecPosTrackPrim->Clone();
+    // ptEffPosCC = (TH1F*) ptRecPosTrackCC->Clone();
+    // ptEffPosBB = (TH1F*) ptRecPosTrackBB->Clone();
+    // etaEffPosPrim = (TH1F*) etaRecPosTrackPrim->Clone();
+    // etaEffPosCC = (TH1F*) etaRecPosTrackCC->Clone();
+    // etaEffPosBB = (TH1F*) etaRecPosTrackBB->Clone();
+    // phiEffPosPrim = (TH1F*) phiRecPosTrackPrim->Clone();
+    // phiEffPosCC = (TH1F*) phiRecPosTrackCC->Clone();
+    // phiEffPosBB = (TH1F*) phiRecPosTrackBB->Clone();
 
-    ptEffElePrim->Sumw2();
-    ptEffEleCC->Sumw2();
-    ptEffEleBB->Sumw2();
-    etaEffElePrim->Sumw2();
-    etaEffEleCC->Sumw2();
-    etaEffEleBB->Sumw2();
-    phiEffElePrim->Sumw2();
-    phiEffEleCC->Sumw2();
-    phiEffEleBB->Sumw2();
-    ptEffPosPrim->Sumw2();
-    ptEffPosCC->Sumw2();
-    ptEffPosBB->Sumw2();
-    etaEffPosPrim->Sumw2();
-    etaEffPosCC->Sumw2();
-    etaEffPosBB->Sumw2();
-    phiEffPosPrim->Sumw2();
-    phiEffPosCC->Sumw2();
-    phiEffPosBB->Sumw2();
+    // ptEffElePrim->Sumw2();
+    // ptEffEleCC->Sumw2();
+    // ptEffEleBB->Sumw2();
+    // etaEffElePrim->Sumw2();
+    // etaEffEleCC->Sumw2();
+    // etaEffEleBB->Sumw2();
+    // phiEffElePrim->Sumw2();
+    // phiEffEleCC->Sumw2();
+    // phiEffEleBB->Sumw2();
+    // ptEffPosPrim->Sumw2();
+    // ptEffPosCC->Sumw2();
+    // ptEffPosBB->Sumw2();
+    // etaEffPosPrim->Sumw2();
+    // etaEffPosCC->Sumw2();
+    // etaEffPosBB->Sumw2();
+    // phiEffPosPrim->Sumw2();
+    // phiEffPosCC->Sumw2();
+    // phiEffPosBB->Sumw2();
 
-    ptEffElePrim->Divide(ptEffElePrim,ptGenEleTrackPrim,1,1,"B");
-    ptEffEleCC->Divide(ptEffEleCC,ptGenEleTrackCC,1,1,"B");
-    ptEffEleBB->Divide(ptEffEleBB,ptGenEleTrackBB,1,1,"B");
-    etaEffElePrim->Divide(etaEffElePrim,etaGenEleTrackPrim,1,1,"B");
-    etaEffEleCC->Divide(etaEffEleCC,etaGenEleTrackCC,1,1,"B");
-    etaEffEleBB->Divide(etaEffEleBB,etaGenEleTrackBB,1,1,"B");
-    phiEffElePrim->Divide(phiEffElePrim,phiGenEleTrackPrim,1,1,"B");
-    phiEffEleCC->Divide(phiEffEleCC,phiGenEleTrackCC,1,1,"B");
-    phiEffEleBB->Divide(phiEffEleBB,phiGenEleTrackBB,1,1,"B");
-    ptEffPosPrim->Divide(ptEffPosPrim,ptGenPosTrackPrim,1,1,"B");
-    ptEffPosCC->Divide(ptEffPosCC,ptGenPosTrackCC,1,1,"B");
-    ptEffPosBB->Divide(ptEffPosBB,ptGenPosTrackBB,1,1,"B");
-    etaEffPosPrim->Divide(etaEffPosPrim,etaGenPosTrackPrim,1,1,"B");
-    etaEffPosCC->Divide(etaEffPosCC,etaGenPosTrackCC,1,1,"B");
-    etaEffPosBB->Divide(etaEffPosBB,etaGenPosTrackBB,1,1,"B");
-    phiEffPosPrim->Divide(phiEffPosPrim,phiGenPosTrackPrim,1,1,"B");
-    phiEffPosCC->Divide(phiEffPosCC,phiGenPosTrackCC,1,1,"B");
-    phiEffPosBB->Divide(phiEffPosBB,phiGenPosTrackBB,1,1,"B");
+    // ptEffElePrim->Divide(ptEffElePrim,ptGenEleTrackPrim,1,1,"B");
+    // ptEffEleCC->Divide(ptEffEleCC,ptGenEleTrackCC,1,1,"B");
+    // ptEffEleBB->Divide(ptEffEleBB,ptGenEleTrackBB,1,1,"B");
+    // etaEffElePrim->Divide(etaEffElePrim,etaGenEleTrackPrim,1,1,"B");
+    // etaEffEleCC->Divide(etaEffEleCC,etaGenEleTrackCC,1,1,"B");
+    // etaEffEleBB->Divide(etaEffEleBB,etaGenEleTrackBB,1,1,"B");
+    // phiEffElePrim->Divide(phiEffElePrim,phiGenEleTrackPrim,1,1,"B");
+    // phiEffEleCC->Divide(phiEffEleCC,phiGenEleTrackCC,1,1,"B");
+    // phiEffEleBB->Divide(phiEffEleBB,phiGenEleTrackBB,1,1,"B");
+    // ptEffPosPrim->Divide(ptEffPosPrim,ptGenPosTrackPrim,1,1,"B");
+    // ptEffPosCC->Divide(ptEffPosCC,ptGenPosTrackCC,1,1,"B");
+    // ptEffPosBB->Divide(ptEffPosBB,ptGenPosTrackBB,1,1,"B");
+    // etaEffPosPrim->Divide(etaEffPosPrim,etaGenPosTrackPrim,1,1,"B");
+    // etaEffPosCC->Divide(etaEffPosCC,etaGenPosTrackCC,1,1,"B");
+    // etaEffPosBB->Divide(etaEffPosBB,etaGenPosTrackBB,1,1,"B");
+    // phiEffPosPrim->Divide(phiEffPosPrim,phiGenPosTrackPrim,1,1,"B");
+    // phiEffPosCC->Divide(phiEffPosCC,phiGenPosTrackCC,1,1,"B");
+    // phiEffPosBB->Divide(phiEffPosBB,phiGenPosTrackBB,1,1,"B");
 
-    ptGenEle = (TH1F*) ptGenEleTrackPrim->Clone();
-    ptGenEle->Sumw2();
-    ptGenEle->Add(ptGenEleTrackCC, 1);
-    ptGenEle->Add(ptGenEleTrackBB, 1);
-    etaGenEle = (TH1F*) etaGenEleTrackPrim->Clone();
-    etaGenEle->Sumw2();
-    etaGenEle->Add(etaGenEleTrackCC, 1);
-    etaGenEle->Add(etaGenEleTrackBB, 1);
-    phiGenEle = (TH1F*) phiGenEleTrackPrim->Clone();
-    phiGenEle->Sumw2();
-    phiGenEle->Add(phiGenEleTrackCC, 1);
-    phiGenEle->Add(phiGenEleTrackBB, 1);
-    ptGenPos = (TH1F*) ptGenPosTrackPrim->Clone();
-    ptGenPos->Sumw2();
-    ptGenPos->Add(ptGenPosTrackCC, 1);
-    ptGenPos->Add(ptGenPosTrackBB, 1);
-    etaGenPos = (TH1F*) etaGenPosTrackPrim->Clone();
-    etaGenPos->Sumw2();
-    etaGenPos->Add(etaGenPosTrackCC, 1);
-    etaGenPos->Add(etaGenPosTrackBB, 1);
-    phiGenPos = (TH1F*) phiGenPosTrackPrim->Clone();
-    phiGenPos->Sumw2();
-    phiGenPos->Add(phiGenPosTrackCC, 1);
-    phiGenPos->Add(phiGenPosTrackBB, 1);
+    // ptGenEle = (TH1F*) ptGenEleTrackPrim->Clone();
+    // ptGenEle->Sumw2();
+    // ptGenEle->Add(ptGenEleTrackCC, 1);
+    // ptGenEle->Add(ptGenEleTrackBB, 1);
+    // etaGenEle = (TH1F*) etaGenEleTrackPrim->Clone();
+    // etaGenEle->Sumw2();
+    // etaGenEle->Add(etaGenEleTrackCC, 1);
+    // etaGenEle->Add(etaGenEleTrackBB, 1);
+    // phiGenEle = (TH1F*) phiGenEleTrackPrim->Clone();
+    // phiGenEle->Sumw2();
+    // phiGenEle->Add(phiGenEleTrackCC, 1);
+    // phiGenEle->Add(phiGenEleTrackBB, 1);
+    // ptGenPos = (TH1F*) ptGenPosTrackPrim->Clone();
+    // ptGenPos->Sumw2();
+    // ptGenPos->Add(ptGenPosTrackCC, 1);
+    // ptGenPos->Add(ptGenPosTrackBB, 1);
+    // etaGenPos = (TH1F*) etaGenPosTrackPrim->Clone();
+    // etaGenPos->Sumw2();
+    // etaGenPos->Add(etaGenPosTrackCC, 1);
+    // etaGenPos->Add(etaGenPosTrackBB, 1);
+    // phiGenPos = (TH1F*) phiGenPosTrackPrim->Clone();
+    // phiGenPos->Sumw2();
+    // phiGenPos->Add(phiGenPosTrackCC, 1);
+    // phiGenPos->Add(phiGenPosTrackBB, 1);
 
 
-    // ptEffEle = (TH1F*) ptRecEleTrackPrim->Clone("eff_pT_singleElectrons");
-    // ptEffEle->Add(ptRecEleTrackCC, 1);
-    // ptEffEle->Add(ptRecEleTrackBB, 1);
-    ptEffEle = (TH1F*) ptRecTrackEle->Clone("eff_pT_singleElectrons");
+    ptEffElePosGen = (TH1F*) ptRecTrackElePos_rebin->Clone("eff_pT_singleElectrons_Gen");
+    ptEffElePosGen->Sumw2();
+    ptEffElePosGen->Divide(ptEffElePosGen,ptGenTrackElePos_rebin,1,1,"B");
+    ptEffElePosGenSmeared = (TH1F*) ptRecTrackElePos_rebin->Clone("eff_pT_singleElectrons_GenSmeared");
+    ptEffElePosGenSmeared->Sumw2();
+    ptEffElePosGenSmeared->Divide(ptEffElePosGenSmeared,ptGenSmearedTrackElePos_rebin,1,1,"B");
+
+
+    ptEffEle = (TH1F*) ptRecTrackEle_rebin->Clone("eff_pT_singleElectrons");
     ptEffEle->Sumw2();
-    ptEffEle->Divide(ptEffEle,ptGenTrackEle,1,1,"B");
-    etaEffEle = (TH1F*) etaRecEleTrackPrim->Clone();
+    ptEffEle->Divide(ptEffEle,ptGenSmearedTrackEle_rebin,1,1,"B");
+    // ptEffEle->Divide(ptEffEle,ptGenTrackEle,1,1,"B");
+    etaEffEle = (TH1F*) etaRecTrackEle->Clone("eff_eta_singleElectrons");
     etaEffEle->Sumw2();
-    etaEffEle->Add(etaRecEleTrackCC, 1);
-    etaEffEle->Add(etaRecEleTrackBB, 1);
-    etaEffEle->Divide(etaEffEle,etaGenEle,1,1,"B");
-    phiEffEle = (TH1F*) phiRecEleTrackPrim->Clone();
+    etaEffEle->Divide(etaEffEle,etaGenSmearedTrackEle,1,1,"B");
+    // etaEffEle->Divide(etaEffEle,etaGenTrackEle,1,1,"B");
+    phiEffEle = (TH1F*) phiRecTrackEle->Clone("eff_phi_singleElectrons");
     phiEffEle->Sumw2();
-    phiEffEle->Add(phiRecEleTrackCC, 1);
-    phiEffEle->Add(phiRecEleTrackBB, 1);
-    phiEffEle->Divide(phiEffEle,phiGenEle,1,1,"B");
+    phiEffEle->Divide(phiEffEle,phiGenSmearedTrackEle,1,1,"B");
+    // phiEffEle->Divide(phiEffEle,phiGenTrackEle,1,1,"B");
     // ptEffPos = (TH1F*) ptRecPosTrackPrim->Clone("eff_pT_singlePositrons");
     // ptEffPos->Add(ptRecPosTrackCC, 1);
     // ptEffPos->Add(ptRecPosTrackBB, 1);
-    ptEffPos = (TH1F*) ptRecTrackPos->Clone("eff_pT_singlePositrons");
+    ptEffPos = (TH1F*) ptRecTrackPos_rebin->Clone("eff_pT_singlePositrons");
     ptEffPos->Sumw2();
-    ptEffPos->Divide(ptEffPos,ptGenTrackPos,1,1,"B");
-    etaEffPos = (TH1F*) etaRecPosTrackPrim->Clone();
+    ptEffPos->Divide(ptEffPos,ptGenSmearedTrackPos_rebin,1,1,"B");
+    // ptEffPos->Divide(ptEffPos,ptGenTrackPos,1,1,"B");
+    etaEffPos = (TH1F*) etaRecTrackPos->Clone("eff_eta_singlePositrons");
     etaEffPos->Sumw2();
-    etaEffPos->Add(etaRecPosTrackCC, 1);
-    etaEffPos->Add(etaRecPosTrackBB, 1);
-    etaEffPos->Divide(etaEffPos,etaGenPos,1,1,"B");
-    phiEffPos = (TH1F*) phiRecPosTrackPrim->Clone();
+    etaEffPos->Divide(etaEffPos,etaGenSmearedTrackPos,1,1,"B");
+    // etaEffPos->Divide(etaEffPos,etaGenTrackPos,1,1,"B");
+    phiEffPos = (TH1F*) phiRecTrackPos->Clone("eff_phi_singlePositrons");
     phiEffPos->Sumw2();
-    phiEffPos->Add(phiRecPosTrackCC, 1);
-    phiEffPos->Add(phiRecPosTrackBB, 1);
-    phiEffPos->Divide(phiEffPos,phiGenPos,1,1,"B");
+    phiEffPos->Divide(phiEffPos,phiGenSmearedTrackPos,1,1,"B");
+    // phiEffPos->Divide(phiEffPos,phiGenTrackPos,1,1,"B");
+
+
+   // pair efficiencies
+   // // ptPairEffULS = (TH1F*) proj_recULS_Ptee->Clone();
+   // ptPairEffULS = (TH1F*) proj_recULS_MCpidEle_Ptee->Clone();
+   // // massPairEffULS = (TH1F*) proj_recULS_Mee->Clone();
+   // massPairEffULS = (TH1F*) proj_recULS_MCpidEle_Mee->Clone();
+   // ptPairEffULS->Sumw2();
+   // massPairEffULS->Sumw2();
+   // ptPairEffULS->Divide(ptPairEffULS,proj_genULS_Ptee,1,1,"B");
+   // massPairEffULS->Divide(massPairEffULS,proj_genULS_Mee,1,1,"B");
   }
 
   TH1F* hPurityRecPtNeg;
@@ -762,7 +886,7 @@ if (bPlotPIDhistograms) {
   TH1F* hProtonContaminationRecPhi;
 
 if (bPlotTrackContamination) {
-  hTotalRecTrackPt = (TH1F*)  ptAllRecTrack->Clone();
+  hTotalRecTrackPt = (TH1F*)  ptAllRecTrack_rebin->Clone();
   hTotalRecTrackEta = (TH1F*) etaAllRecTrack->Clone();
   hTotalRecTrackPhi = (TH1F*) phiAllRecTrack->Clone();
   hPurityRecPtNeg = (TH1F*)  ptRecNegTrack->Clone();
@@ -787,25 +911,25 @@ if (bPlotTrackContamination) {
   hPurityRecEtaPos->Divide(etaRecTrackPos,etaRecPosTrack,1,1,"B");
   hPurityRecPhiPos->Divide(phiRecTrackPos,phiRecPosTrack,1,1,"B");
 
-  hTotalPureContaminationRecPt = (TH1F*)  ptAllRecTrack->Clone();
+  hTotalPureContaminationRecPt = (TH1F*)  ptAllRecTrack_rebin->Clone();
   hTotalPureContaminationRecEta = (TH1F*) etaAllRecTrack->Clone();
   hTotalPureContaminationRecPhi = (TH1F*) phiAllRecTrack->Clone();
-  hPureContaminationRecPtNeg = (TH1F*)  ptRecNegTrack->Clone();
+  hPureContaminationRecPtNeg = (TH1F*)  ptRecNegTrack_rebin->Clone();
   hPureContaminationRecEtaNeg = (TH1F*) etaRecNegTrack->Clone();
   hPureContaminationRecPhiNeg = (TH1F*) phiRecNegTrack->Clone();
-  hPureContaminationRecPtPos = (TH1F*)  ptRecPosTrack->Clone();
+  hPureContaminationRecPtPos = (TH1F*)  ptRecPosTrack_rebin->Clone();
   hPureContaminationRecEtaPos = (TH1F*) etaRecPosTrack->Clone();
   hPureContaminationRecPhiPos = (TH1F*) phiRecPosTrack->Clone();
-  hMuonContaminationRecPt = (TH1F*)    ptRecMuonTrack->Clone();
+  hMuonContaminationRecPt = (TH1F*)    ptRecMuonTrack_rebin->Clone();
   hMuonContaminationRecEta = (TH1F*)   etaRecMuonTrack->Clone();
   hMuonContaminationRecPhi = (TH1F*)   phiRecMuonTrack->Clone();
-  hPionContaminationRecPt = (TH1F*)    ptRecPionTrack->Clone();
+  hPionContaminationRecPt = (TH1F*)    ptRecPionTrack_rebin->Clone();
   hPionContaminationRecEta = (TH1F*)   etaRecPionTrack->Clone();
   hPionContaminationRecPhi = (TH1F*)   phiRecPionTrack->Clone();
-  hKaonContaminationRecPt = (TH1F*)    ptRecKaonTrack->Clone();
+  hKaonContaminationRecPt = (TH1F*)    ptRecKaonTrack_rebin->Clone();
   hKaonContaminationRecEta = (TH1F*)   etaRecKaonTrack->Clone();
   hKaonContaminationRecPhi = (TH1F*)   phiRecKaonTrack->Clone();
-  hProtonContaminationRecPt = (TH1F*)  ptRecProtonTrack->Clone();
+  hProtonContaminationRecPt = (TH1F*)  ptRecProtonTrack_rebin->Clone();
   hProtonContaminationRecEta = (TH1F*) etaRecProtonTrack->Clone();
   hProtonContaminationRecPhi = (TH1F*) phiRecProtonTrack->Clone();
   hPureContaminationRecPtNeg->Sumw2();
@@ -829,21 +953,21 @@ if (bPlotTrackContamination) {
   hTotalPureContaminationRecPt->Sumw2();
   hTotalPureContaminationRecEta->Sumw2();
   hTotalPureContaminationRecPhi->Sumw2();
-  hTotalPureContaminationRecPt->Add(ptRecElePosTrackAfterKineCuts,-1);
-  hTotalPureContaminationRecEta->Add(etaRecElePosTrackAfterKineCuts,-1);
-  hTotalPureContaminationRecPhi->Add(phiRecElePosTrackAfterKineCuts,-1);
-  hPureContaminationRecPtNeg->Add(ptRecTrackEle,-1);
+  hTotalPureContaminationRecPt->Add(ptRecTrackElePos_rebin,-1);
+  hTotalPureContaminationRecEta->Add(etaRecTrackElePos,-1);
+  hTotalPureContaminationRecPhi->Add(phiRecTrackElePos,-1);
+  hPureContaminationRecPtNeg->Add(ptRecTrackEle_rebin,-1);
   hPureContaminationRecEtaNeg->Add(etaRecTrackEle,-1);
   hPureContaminationRecPhiNeg->Add(phiRecTrackEle,-1);
-  hPureContaminationRecPtPos->Add(ptRecTrackPos,-1);
+  hPureContaminationRecPtPos->Add(ptRecTrackPos_rebin,-1);
   hPureContaminationRecEtaPos->Add(etaRecTrackPos,-1);
   hPureContaminationRecPhiPos->Add(phiRecTrackPos,-1);
   hPureContaminationRecPtNeg->Divide(hPureContaminationRecPtNeg,hTotalRecTrackPt,1,1,"B");
   hPureContaminationRecEtaNeg->Divide(hPureContaminationRecEtaNeg,hTotalRecTrackEta,1,1,"B");
   hPureContaminationRecPhiNeg->Divide(hPureContaminationRecPhiNeg,hTotalRecTrackPhi,1,1,"B");
-  hPureContaminationRecPtPos->Divide(hPureContaminationRecPtPos,hTotalRecTrackPt,1,1,"B");
   hPureContaminationRecEtaPos->Divide(hPureContaminationRecEtaPos,hTotalRecTrackEta,1,1,"B");
   hPureContaminationRecPhiPos->Divide(hPureContaminationRecPhiPos,hTotalRecTrackPhi,1,1,"B");
+  hPureContaminationRecPtPos->Divide(hPureContaminationRecPtPos,hTotalRecTrackPt,1,1,"B");
   hMuonContaminationRecPt->Divide(hMuonContaminationRecPt, hTotalRecTrackPt,1,1,"B");
   hMuonContaminationRecEta->Divide(hMuonContaminationRecEta, hTotalRecTrackEta,1,1,"B");
   hMuonContaminationRecPhi->Divide(hMuonContaminationRecPhi, hTotalRecTrackPhi,1,1,"B");
@@ -851,8 +975,8 @@ if (bPlotTrackContamination) {
   hPionContaminationRecEta->Divide(hPionContaminationRecEta, hTotalRecTrackEta,1,1,"B");
   hPionContaminationRecPhi->Divide(hPionContaminationRecPhi, hTotalRecTrackPhi,1,1,"B");
   hKaonContaminationRecPt->Divide(hKaonContaminationRecPt, hTotalRecTrackPt,1,1,"B");
-  hKaonContaminationRecEta->Divide(hKaonContaminationRecEta, hTotalRecTrackEta,1,1,"B");
   hKaonContaminationRecPhi->Divide(hKaonContaminationRecPhi, hTotalRecTrackPhi,1,1,"B");
+  hKaonContaminationRecEta->Divide(hKaonContaminationRecEta, hTotalRecTrackEta,1,1,"B");
   hProtonContaminationRecPt->Divide(hProtonContaminationRecPt, hTotalRecTrackPt,1,1,"B");
   hProtonContaminationRecEta->Divide(hProtonContaminationRecEta, hTotalRecTrackEta,1,1,"B");
   hProtonContaminationRecPhi->Divide(hProtonContaminationRecPhi, hTotalRecTrackPhi,1,1,"B");
@@ -860,44 +984,6 @@ if (bPlotTrackContamination) {
   hTotalPureContaminationRecEta->Divide(hTotalPureContaminationRecEta,hTotalRecTrackEta,1,1,"B");
   hTotalPureContaminationRecPhi->Divide(hTotalPureContaminationRecPhi,hTotalRecTrackPhi,1,1,"B");
 }
-
-// Profiles to see M_ee and pT_ee spectras
-  TH1F* proj_recULS_Mee = (TH1F*) hMPt_ULS_rec->ProjectionX("proj_recULS_Mee");
-  TH1F* proj_recULS_Ptee = (TH1F*) hMPt_ULS_rec->ProjectionY("proj_recULS_Ptee");
-  TH1F* proj_recULS_MeePrim = (TH1F*) hMPt_ULS_primary_rec->ProjectionX("proj_recULS_MeePrim");
-  TH1F* proj_recULS_PteePrim = (TH1F*) hMPt_ULS_primary_rec->ProjectionY("proj_recULS_PteePrim");
-  TH1F* proj_recULS_MeeCC = (TH1F*) hMPt_ULS_CC_rec->ProjectionX("proj_recULS_MeeCC");
-  TH1F* proj_recULS_PteeCC = (TH1F*) hMPt_ULS_CC_rec->ProjectionY("proj_recULS_PteeCC");
-  TH1F* proj_recULS_MeeBB = (TH1F*) hMPt_ULS_BB_rec->ProjectionX("proj_recULS_MeeBB");
-  TH1F* proj_recULS_PteeBB = (TH1F*) hMPt_ULS_BB_rec->ProjectionY("proj_recULS_PteeBB");
-
-  TH1F* proj_recLS_Mee = (TH1F*) hMPt_LS_rec->ProjectionX("proj_recLS_Mee");
-  TH1F* proj_recLS_Ptee = (TH1F*) hMPt_LS_rec->ProjectionY("proj_recLS_Ptee");
-
-  // create projections and profiles
-  TH1F* proj_genLS_MeePrim = (TH1F*) hMPt_LS_primary_gen->ProjectionX("proj_genLS_MeePrim");
-  TH1F* proj_genLS_MeeCC = (TH1F*) hMPt_LS_CC_gen->ProjectionX("proj_genLS_MeeCC");
-  TH1F* proj_genLS_MeeBB = (TH1F*) hMPt_LS_BB_gen->ProjectionX("proj_genLS_MeeBB");
-  TH1F* proj_genLS_PteePrim = (TH1F*) hMPt_LS_primary_gen->ProjectionY("proj_genLS_PteePrim");
-  TH1F* proj_genLS_PteeCC = (TH1F*) hMPt_LS_CC_gen->ProjectionY("proj_genLS_PteeCC");
-  TH1F* proj_genLS_PteeBB = (TH1F*) hMPt_LS_BB_gen->ProjectionY("proj_genLS_PteeBB");
-
-  proj_recULS_Mee->Sumw2();
-  proj_recULS_Ptee->Sumw2();
-  proj_recULS_MeePrim->Sumw2();
-  proj_recULS_PteePrim->Sumw2();
-  proj_recULS_MeeCC->Sumw2();
-  proj_recULS_PteeCC->Sumw2();
-  proj_recULS_MeeBB->Sumw2();
-  proj_recULS_PteeBB->Sumw2();
-  proj_recLS_Mee->Sumw2();
-  proj_recLS_Ptee->Sumw2();
-  proj_genLS_MeePrim->Sumw2();
-  proj_genLS_MeeCC->Sumw2();
-  proj_genLS_MeeBB->Sumw2();
-  proj_genLS_PteePrim->Sumw2();
-  proj_genLS_PteeCC->Sumw2();
-  proj_genLS_PteeBB->Sumw2();
 
 
 if (bPlotTrackContamination) {
@@ -953,6 +1039,11 @@ if (bPlotTrackContamination) {
   // hPureContaminationRecPhiPos->SetMarkerSize(0.9);
 }
 
+  makeHistNice(ptGenTrackElePos,kGreen+3);
+  makeHistNice(ptGenSmearedTrackElePos,kOrange+1);
+  ptGenTrackElePos->SetMarkerStyle(24);
+  ptGenSmearedTrackElePos->SetMarkerStyle(26);
+
   makeHistNice(ptRecTrackEle,kGreen+3);
   makeHistNice(etaRecTrackEle,kGreen+3);
   makeHistNice(phiRecTrackEle,kGreen+3);
@@ -965,58 +1056,58 @@ if (bPlotTrackContamination) {
   makeHistNice(ptGenTrackPos,kRed+1);
   makeHistNice(etaGenTrackPos,kRed+1);
   makeHistNice(phiGenTrackPos,kRed+1);
-  ptRecTrackEle->SetMarkerStyle(24);
-  etaRecTrackEle->SetMarkerStyle(24);
-  phiRecTrackEle->SetMarkerStyle(24);
-  ptRecTrackPos->SetMarkerStyle(24);
-  etaRecTrackPos->SetMarkerStyle(24);
-  phiRecTrackPos->SetMarkerStyle(24);
+  ptGenTrackEle->SetMarkerStyle(24);
+  etaGenTrackEle->SetMarkerStyle(24);
+  phiGenTrackEle->SetMarkerStyle(24);
+  ptGenTrackPos->SetMarkerStyle(24);
+  etaGenTrackPos->SetMarkerStyle(24);
+  phiGenTrackPos->SetMarkerStyle(24);
 
-  make3HistNice(ptRecTrackPrim,kBlue+1);
-  make3HistNice(etaRecTrackPrim,kBlue+1);
-  make3HistNice(phiRecTrackPrim,kBlue+1);
-  make3HistNice(ptRecTrackCC,kRed+2);
-  make3HistNice(etaRecTrackCC,kRed+2);
-  make3HistNice(phiRecTrackCC,kRed+2);
-  make3HistNice(ptRecTrackBB,kMagenta+1);
-  make3HistNice(etaRecTrackBB,kMagenta+1);
-  make3HistNice(phiRecTrackBB,kMagenta+1);
-
-  make3HistNice(ptGenTrackPrim,kBlue+1);
-  make3HistNice(etaGenTrackPrim,kBlue+1);
-  make3HistNice(phiGenTrackPrim,kBlue+1);
-  make3HistNice(ptGenTrackCC,kRed+2);
-  make3HistNice(etaGenTrackCC,kRed+2);
-  make3HistNice(phiGenTrackCC,kRed+2);
-  make3HistNice(ptGenTrackBB,kMagenta+1);
-  make3HistNice(etaGenTrackBB,kMagenta+1);
-  make3HistNice(phiGenTrackBB,kMagenta+1);
-
-  make3HistNice(etaGenEleTrackPrim,kBlue+1);
-  make3HistNice(etaGenEleTrackCC,kRed+2);
-  make3HistNice(etaGenEleTrackBB,kMagenta+1);
-  make3HistNice(etaGenPosTrackPrim,kBlue+1);
-  make3HistNice(etaGenPosTrackCC,kRed+2);
-  make3HistNice(etaGenPosTrackBB,kMagenta+1);
-  make3HistNice(etaRecEleTrackPrim,kBlue+1);
-  make3HistNice(etaRecEleTrackCC,kRed+2);
-  make3HistNice(etaRecEleTrackBB,kMagenta+1);
-  make3HistNice(etaRecPosTrackPrim,kBlue+1);
-  make3HistNice(etaRecPosTrackCC,kRed+2);
-  make3HistNice(etaRecPosTrackBB,kMagenta+1);
-  etaGenEleTrackPrim->SetMarkerStyle(22);
-  etaGenEleTrackCC->SetMarkerStyle(22);
-  etaGenEleTrackBB->SetMarkerStyle(22);
-  etaRecEleTrackPrim->SetMarkerStyle(22);
-  etaRecEleTrackCC->SetMarkerStyle(22);
-  etaRecEleTrackBB->SetMarkerStyle(22);
-  etaGenPosTrackPrim->SetMarkerStyle(24);
-  etaGenPosTrackCC->SetMarkerStyle(24);
-  etaGenPosTrackBB->SetMarkerStyle(24);
-  etaRecPosTrackPrim->SetMarkerStyle(24);
-  etaRecPosTrackCC->SetMarkerStyle(24);
-  etaRecPosTrackBB->SetMarkerStyle(24);
-  etaGenEleTrackPrim->SetMarkerSize(0.4);
+  // make3HistNice(ptRecTrackPrim,kBlue+1);
+  // make3HistNice(etaRecTrackPrim,kBlue+1);
+  // make3HistNice(phiRecTrackPrim,kBlue+1);
+  // make3HistNice(ptRecTrackCC,kRed+2);
+  // make3HistNice(etaRecTrackCC,kRed+2);
+  // make3HistNice(phiRecTrackCC,kRed+2);
+  // make3HistNice(ptRecTrackBB,kMagenta+1);
+  // make3HistNice(etaRecTrackBB,kMagenta+1);
+  // make3HistNice(phiRecTrackBB,kMagenta+1);
+  //
+  // make3HistNice(ptGenTrackPrim,kBlue+1);
+  // make3HistNice(etaGenTrackPrim,kBlue+1);
+  // make3HistNice(phiGenTrackPrim,kBlue+1);
+  // make3HistNice(ptGenTrackCC,kRed+2);
+  // make3HistNice(etaGenTrackCC,kRed+2);
+  // make3HistNice(phiGenTrackCC,kRed+2);
+  // make3HistNice(ptGenTrackBB,kMagenta+1);
+  // make3HistNice(etaGenTrackBB,kMagenta+1);
+  // make3HistNice(phiGenTrackBB,kMagenta+1);
+  //
+  // make3HistNice(etaGenEleTrackPrim,kBlue+1);
+  // make3HistNice(etaGenEleTrackCC,kRed+2);
+  // make3HistNice(etaGenEleTrackBB,kMagenta+1);
+  // make3HistNice(etaGenPosTrackPrim,kBlue+1);
+  // make3HistNice(etaGenPosTrackCC,kRed+2);
+  // make3HistNice(etaGenPosTrackBB,kMagenta+1);
+  // make3HistNice(etaRecEleTrackPrim,kBlue+1);
+  // make3HistNice(etaRecEleTrackCC,kRed+2);
+  // make3HistNice(etaRecEleTrackBB,kMagenta+1);
+  // make3HistNice(etaRecPosTrackPrim,kBlue+1);
+  // make3HistNice(etaRecPosTrackCC,kRed+2);
+  // make3HistNice(etaRecPosTrackBB,kMagenta+1);
+  // etaGenEleTrackPrim->SetMarkerStyle(22);
+  // etaGenEleTrackCC->SetMarkerStyle(22);
+  // etaGenEleTrackBB->SetMarkerStyle(22);
+  // etaRecEleTrackPrim->SetMarkerStyle(22);
+  // etaRecEleTrackCC->SetMarkerStyle(22);
+  // etaRecEleTrackBB->SetMarkerStyle(22);
+  // etaGenPosTrackPrim->SetMarkerStyle(24);
+  // etaGenPosTrackCC->SetMarkerStyle(24);
+  // etaGenPosTrackBB->SetMarkerStyle(24);
+  // etaRecPosTrackPrim->SetMarkerStyle(24);
+  // etaRecPosTrackCC->SetMarkerStyle(24);
+  // etaRecPosTrackBB->SetMarkerStyle(24);
+  // etaGenEleTrackPrim->SetMarkerSize(0.4);
 
 
   make3HistNice(ptRecTrackBeforeSmearing,kGreen+1);
@@ -1025,9 +1116,9 @@ if (bPlotTrackContamination) {
   make3HistNice(ptRecTrackAfterSmearing,kRed+1);
   make3HistNice(etaRecTrackAfterSmearing,kRed+1);
   make3HistNice(phiRecTrackAfterSmearing,kRed+1);
-  make3HistNice(ptRecElePosTrackAfterKineCuts,kBlue+1);
-  make3HistNice(etaRecElePosTrackAfterKineCuts,kBlue+1);
-  make3HistNice(phiRecElePosTrackAfterKineCuts,kBlue+1);
+  make3HistNice(ptRecTrackElePos,kBlue+1);
+  make3HistNice(etaRecTrackElePos,kBlue+1);
+  make3HistNice(phiRecTrackElePos,kBlue+1);
 
   // make3HistNice(ptRecTrackEtaCut_1,kOrange-5);
   // make3HistNice(ptRecTrackEtaCut_2,kOrange-4);
@@ -1063,7 +1154,7 @@ if (bPlotTrackContamination) {
   // make3HistNice(phiRecTrackEtaCut_10,kOrange+4);
 
 
-  makeHistNiceTH2(hMPt_ULS_primary_rec,kBlue+1);
+  // makeHistNiceTH2(hMPt_ULS_primary_rec,kBlue+1);
 
   if (bPlotEfficiency) {
     makeHistNice(ptEffEle, kBlue+1);
@@ -1072,45 +1163,48 @@ if (bPlotTrackContamination) {
     makeHistNice(ptEffPos, kRed+2);
     makeHistNice(etaEffPos, kRed+2);
     makeHistNice(phiEffPos, kRed+2);
-    makeHistNice(ptEffElePrim,kBlue+1);
-    makeHistNice(ptEffEleCC,kRed+2);
-    makeHistNice(ptEffEleBB,kMagenta+1);
-    makeHistNice(etaEffElePrim,kBlue+1);
-    makeHistNice(etaEffEleCC,kRed+2);
-    makeHistNice(etaEffEleBB,kMagenta+1);
-    makeHistNice(phiEffElePrim,kBlue+1);
-    makeHistNice(phiEffEleCC,kRed+2);
-    makeHistNice(phiEffEleBB,kMagenta+1);
-    makeHistNice(ptEffPosPrim,kBlue+1);
-    makeHistNice(ptEffPosCC,kRed+2);
-    makeHistNice(ptEffPosBB,kMagenta+1);
-    makeHistNice(etaEffPosPrim,kBlue+1);
-    makeHistNice(etaEffPosCC,kRed+2);
-    makeHistNice(etaEffPosBB,kMagenta+1);
-    makeHistNice(phiEffPosPrim,kBlue+1);
-    makeHistNice(phiEffPosCC,kRed+2);
-    makeHistNice(phiEffPosBB,kMagenta+1);
+    // makeHistNice(ptEffElePrim,kBlue+1);
+    // makeHistNice(ptEffEleCC,kRed+2);
+    // makeHistNice(ptEffEleBB,kMagenta+1);
+    // makeHistNice(etaEffElePrim,kBlue+1);
+    // makeHistNice(etaEffEleCC,kRed+2);
+    // makeHistNice(etaEffEleBB,kMagenta+1);
+    // makeHistNice(phiEffElePrim,kBlue+1);
+    // makeHistNice(phiEffEleCC,kRed+2);
+    // makeHistNice(phiEffEleBB,kMagenta+1);
+    // makeHistNice(ptEffPosPrim,kBlue+1);
+    // makeHistNice(ptEffPosCC,kRed+2);
+    // makeHistNice(ptEffPosBB,kMagenta+1);
+    // makeHistNice(etaEffPosPrim,kBlue+1);
+    // makeHistNice(etaEffPosCC,kRed+2);
+    // makeHistNice(etaEffPosBB,kMagenta+1);
+    // makeHistNice(phiEffPosPrim,kBlue+1);
+    // makeHistNice(phiEffPosCC,kRed+2);
+    // makeHistNice(phiEffPosBB,kMagenta+1);
+
+    makeHistNice(ptEffElePosGen,kBlue+1);
+    makeHistNice(ptEffElePosGenSmeared,kRed+2);
   }
 
   makeHistNice(proj_recULS_Mee,kBlack);
   makeHistNice(proj_recULS_Ptee,kBlack);
-  makeHistNice(proj_recULS_MeePrim,kBlue+1);
-  makeHistNice(proj_recULS_PteePrim,kBlue+1);
-  makeHistNice(proj_recULS_MeeCC,kRed+2);
-  makeHistNice(proj_recULS_PteeCC,kRed+2);
-  makeHistNice(proj_recULS_MeeBB,kMagenta+1);
-  makeHistNice(proj_recULS_PteeBB,kMagenta+1);
+  // makeHistNice(proj_recULS_MeePrim,kBlue+1);
+  // makeHistNice(proj_recULS_PteePrim,kBlue+1);
+  // makeHistNice(proj_recULS_MeeCC,kRed+2);
+  // makeHistNice(proj_recULS_PteeCC,kRed+2);
+  // makeHistNice(proj_recULS_MeeBB,kMagenta+1);
+  // makeHistNice(proj_recULS_PteeBB,kMagenta+1);
 
   makeHistNice(proj_recLS_Mee,kRed+2);
   makeHistNice(proj_recLS_Ptee,kRed+2);
 
 
-  makeHistNice(proj_genLS_MeePrim,kBlue+1);
-  makeHistNice(proj_genLS_PteePrim,kBlue+1);
-  makeHistNice(proj_genLS_MeeCC,kRed+2);
-  makeHistNice(proj_genLS_PteeCC,kRed+2);
-  makeHistNice(proj_genLS_MeeBB,kMagenta+1);
-  makeHistNice(proj_genLS_PteeBB,kMagenta+1);
+  // makeHistNice(proj_genLS_MeePrim,kBlue+1);
+  // makeHistNice(proj_genLS_PteePrim,kBlue+1);
+  // makeHistNice(proj_genLS_MeeCC,kRed+2);
+  // makeHistNice(proj_genLS_PteeCC,kRed+2);
+  // makeHistNice(proj_genLS_MeeBB,kMagenta+1);
+  // makeHistNice(proj_genLS_PteeBB,kMagenta+1);
 
 
   double legPosTrack[4] = {0.55,0.78,0.95,0.93};
@@ -1121,25 +1215,31 @@ if (bPlotTrackContamination) {
   double legPosCont[4] = {0.2,0.68,0.55,0.93};
   double legPosNSigmaPID[4] = {0.75,0.80,0.95,0.93};
   //make some legends
-  auto legTrack1 = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
-  legTrack1->SetBorderSize(0);
-  legTrack1->SetFillStyle(0);
-  legTrack1->AddEntry(ptEffElePrim,"LF #rightarrow e","p");
-  legTrack1->AddEntry(ptEffEleCC,"charm #rightarrow e","p");
-  legTrack1->AddEntry(ptEffEleBB,"beauty #rightarrow e","p");
-
-  auto legLFCCBB = new TLegend(legPosTrack2[0]+0.05,legPosTrack2[1],legPosTrack2[2]+0.05,legPosTrack2[3]);
-  legLFCCBB->SetBorderSize(0);
-  legLFCCBB->SetFillStyle(0);
-  legLFCCBB->AddEntry(ptEffElePrim,"LF #rightarrow e","p");
-  legLFCCBB->AddEntry(ptEffEleCC,"charm #rightarrow e","p");
-  legLFCCBB->AddEntry(ptEffEleBB,"beauty #rightarrow e","p");
+  // auto legTrack1 = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
+  // legTrack1->SetBorderSize(0);
+  // legTrack1->SetFillStyle(0);
+  // legTrack1->AddEntry(ptEffElePrim,"LF #rightarrow e","p");
+  // legTrack1->AddEntry(ptEffEleCC,"charm #rightarrow e","p");
+  // legTrack1->AddEntry(ptEffEleBB,"beauty #rightarrow e","p");
+  //
+  // auto legLFCCBB = new TLegend(legPosTrack2[0]+0.05,legPosTrack2[1],legPosTrack2[2]+0.05,legPosTrack2[3]);
+  // legLFCCBB->SetBorderSize(0);
+  // legLFCCBB->SetFillStyle(0);
+  // legLFCCBB->AddEntry(ptEffElePrim,"LF #rightarrow e","p");
+  // legLFCCBB->AddEntry(ptEffEleCC,"charm #rightarrow e","p");
+  // legLFCCBB->AddEntry(ptEffEleBB,"beauty #rightarrow e","p");
 
   auto legTrackPosEle_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legTrackPosEle_top->SetBorderSize(0);
   legTrackPosEle_top->SetFillStyle(0);
   legTrackPosEle_top->AddEntry(ptEffEle,"electrons","p");
   legTrackPosEle_top->AddEntry(ptEffPos,"positrons","p");
+
+  auto legEff_GenGenSmear = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
+  legEff_GenGenSmear->SetBorderSize(0);
+  legEff_GenGenSmear->SetFillStyle(0);
+  legEff_GenGenSmear->AddEntry(ptEffElePosGen,"rec/gen","p");
+  legEff_GenGenSmear->AddEntry(ptEffElePosGenSmeared,"rec/gen smeared","p");
 
   auto legTrackEle_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legTrackEle_top->SetBorderSize(0);
@@ -1162,6 +1262,18 @@ if (bPlotTrackContamination) {
   legGenRecEle_top->SetFillStyle(0);
   legGenRecEle_top->AddEntry(ptGenTrackEle,"gen electrons","p");
   legGenRecEle_top->AddEntry(ptRecTrackEle,"rec electrons","p");
+
+  auto legGenGenSmearRecElePos_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
+  legGenGenSmearRecElePos_top->SetBorderSize(0);
+  legGenGenSmearRecElePos_top->SetFillStyle(0);
+  legGenGenSmearRecElePos_top->AddEntry(ptGenTrackElePos,"gen tracks","p");
+  legGenGenSmearRecElePos_top->AddEntry(ptGenSmearedTrackElePos,"gen smeared tracks","p");
+  legGenGenSmearRecElePos_top->AddEntry(ptRecTrackElePos,"rec tracks","p");
+
+  // auto legEffULSPair = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
+  // legEffULSPair->SetBorderSize(0);
+  // legEffULSPair->SetFillStyle(0);
+  // legEffULSPair->AddEntry(ptPairEffULS,"ULS pair efficiency","p");
 
   TLegend* legContamination;
   legContamination = new TLegend(legPosCont[0],legPosCont[1],legPosCont[2],legPosCont[3]);
@@ -1197,7 +1309,7 @@ if (bPlotTrackContamination) {
   legSmearLabel->SetFillStyle(0);
   legSmearLabel->AddEntry(ptRecTrackBeforeSmearing,"before Smearing","p");
   legSmearLabel->AddEntry(ptRecTrackAfterSmearing,"after Smearing","p");
-  legSmearLabel->AddEntry(ptRecElePosTrackAfterKineCuts,"after Smearing & kin Cuts","p");
+  legSmearLabel->AddEntry(ptRecTrackElePos,"after Smearing & kin Cuts","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_1," |#eta| < 1.0","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_2," |#eta| < 2.0","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_4," |#eta| < 4.0","p");
@@ -1221,101 +1333,101 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   // legProfile->AddEntry("CC","charm #rightarrow e","fp");
   // legProfile->AddEntry("BB","beauty #rightarrow e","fp");
 
-  auto legKine = new TLegend(legPosKine[0],legPosKine[1],legPosKine[2],legPosKine[3]);
-  legKine->SetBorderSize(0);
-  legKine->SetFillStyle(0);
-  legKine->AddEntry(phiRecTrackPrim,"LF #rightarrow e","l");
-  legKine->AddEntry(phiRecTrackCC,"charm #rightarrow e","l");
-  legKine->AddEntry(phiRecTrackBB,"beauty #rightarrow e","l");
+  // auto legKine = new TLegend(legPosKine[0],legPosKine[1],legPosKine[2],legPosKine[3]);
+  // legKine->SetBorderSize(0);
+  // legKine->SetFillStyle(0);
+  // legKine->AddEntry(phiRecTrackPrim,"LF #rightarrow e","l");
+  // legKine->AddEntry(phiRecTrackCC,"charm #rightarrow e","l");
+  // legKine->AddEntry(phiRecTrackBB,"beauty #rightarrow e","l");
 
-  auto legKineElePos = new TLegend(legPosKine[0],legPosKine[1],legPosKine[2],legPosKine[3]);
-  legKineElePos->SetBorderSize(0);
-  legKineElePos->SetFillStyle(0);
-  legKineElePos->AddEntry(phiRecTrackPrim,"LF #rightarrow e","p");
-  legKineElePos->AddEntry(phiRecTrackCC,"charm #rightarrow e","p");
-  legKineElePos->AddEntry(phiRecTrackBB,"beauty #rightarrow e","p");
-  // legKineElePos->AddEntry(etaRecEleTrackPrim,"e^{-}","p");
-  // legKineElePos->AddEntry(etaRecPosTrackPrim,"e^{+}","p");
+  // auto legKineElePos = new TLegend(legPosKine[0],legPosKine[1],legPosKine[2],legPosKine[3]);
+  // legKineElePos->SetBorderSize(0);
+  // legKineElePos->SetFillStyle(0);
+  // legKineElePos->AddEntry(phiRecTrackPrim,"LF #rightarrow e","p");
+  // legKineElePos->AddEntry(phiRecTrackCC,"charm #rightarrow e","p");
+  // legKineElePos->AddEntry(phiRecTrackBB,"beauty #rightarrow e","p");
+  // // legKineElePos->AddEntry(etaRecEleTrackPrim,"e^{-}","p");
+  // // legKineElePos->AddEntry(etaRecPosTrackPrim,"e^{+}","p");
 
-  auto legPair = new TLegend(legPosPair[0],legPosPair[1],legPosPair[2],legPosPair[3]);
-  legPair->SetBorderSize(0);
-  legPair->SetFillStyle(0);
-  legPair->AddEntry(ptRecTrackPrim,"LF #rightarrow ee","pe");
-  legPair->AddEntry(ptRecTrackCC,"c#bar{c} #rightarrow ee","pe");
-  legPair->AddEntry(ptRecTrackBB,"b#bar{b} #rightarrow ee","pe");
-
-
-  auto cKine = new TCanvas("cKine","cKine",900,400);
-  cKine->Divide(3,1);
-  for (size_t i = 1; i < 4; i++) {
-    /* code */
-    cKine->cd(i)->SetTopMargin(0.03);
-    cKine->cd(i)->SetRightMargin(0.03);
-  }
-  cKine->cd(1)->SetLogy();
-  ptRecTrackPrim->GetXaxis()->SetRangeUser(0.,8);
-  ptRecTrackPrim->Draw("pe1");
-  ptRecTrackCC->Draw("pe1 same");
-  ptRecTrackBB->Draw("pe1 same");
-  legKineElePos->Draw("same");
-  cKine->cd(2);
-  // etaRecTrackPrim->SetMaximum(0.03);
-  etaRecTrackPrim->GetXaxis()->SetRangeUser(-2.0,2.0);
-  etaRecTrackPrim->Draw("axis");
-  etaRecTrackCC->Draw("pe1 same");
-  // etaRecEleTrackCC->Draw("pe1 same");
-  // etaRecPosTrackCC->Draw("pe1 same");
-  etaRecTrackBB->Draw("pe1 same");
-  // etaRecEleTrackBB->Draw("pe1 same");
-  // etaRecPosTrackBB->Draw("pe1 same");
-  etaRecTrackPrim->Draw("pe1 same");
-  // etaRecEleTrackPrim->Draw("pe1 same");
-  // etaRecPosTrackPrim->Draw("pe1 same");
-  cKine->cd(3);
-  phiRecTrackPrim->SetMinimum(0.);
-  // phiRecTrackPrim->SetMaximum(0.016);
-  phiRecTrackPrim->Draw("axis");
-  phiRecTrackCC->Draw("pe1 same");
-  phiRecTrackBB->Draw("pe1 same");
-  phiRecTrackPrim->Draw("pe1 same");
-  cKine->SaveAs("./plots/RecPtEtaPhi.png");
+  // auto legPair = new TLegend(legPosPair[0],legPosPair[1],legPosPair[2],legPosPair[3]);
+  // legPair->SetBorderSize(0);
+  // legPair->SetFillStyle(0);
+  // legPair->AddEntry(ptRecTrackPrim,"LF #rightarrow ee","pe");
+  // legPair->AddEntry(ptRecTrackCC,"c#bar{c} #rightarrow ee","pe");
+  // legPair->AddEntry(ptRecTrackBB,"b#bar{b} #rightarrow ee","pe");
 
 
-  auto cKineGen = new TCanvas("cKineGen","cKineGen",900,400);
+  // auto cKine = new TCanvas("cKine","cKine",900,400);
+  // cKine->Divide(3,1);
+  // for (size_t i = 1; i < 4; i++) {
+  //   /* code */
+  //   cKine->cd(i)->SetTopMargin(0.03);
+  //   cKine->cd(i)->SetRightMargin(0.03);
+  // }
+  // cKine->cd(1)->SetLogy();
+  // ptRecTrackPrim->GetXaxis()->SetRangeUser(0.,8);
+  // ptRecTrackPrim->Draw("pe1");
+  // ptRecTrackCC->Draw("pe1 same");
+  // ptRecTrackBB->Draw("pe1 same");
+  // legKineElePos->Draw("same");
+  // cKine->cd(2);
+  // // etaRecTrackPrim->SetMaximum(0.03);
+  // etaRecTrackPrim->GetXaxis()->SetRangeUser(-2.0,2.0);
+  // etaRecTrackPrim->Draw("axis");
+  // etaRecTrackCC->Draw("pe1 same");
+  // // etaRecEleTrackCC->Draw("pe1 same");
+  // // etaRecPosTrackCC->Draw("pe1 same");
+  // etaRecTrackBB->Draw("pe1 same");
+  // // etaRecEleTrackBB->Draw("pe1 same");
+  // // etaRecPosTrackBB->Draw("pe1 same");
+  // etaRecTrackPrim->Draw("pe1 same");
+  // // etaRecEleTrackPrim->Draw("pe1 same");
+  // // etaRecPosTrackPrim->Draw("pe1 same");
+  // cKine->cd(3);
+  // phiRecTrackPrim->SetMinimum(0.);
+  // // phiRecTrackPrim->SetMaximum(0.016);
+  // phiRecTrackPrim->Draw("axis");
+  // phiRecTrackCC->Draw("pe1 same");
+  // phiRecTrackBB->Draw("pe1 same");
+  // phiRecTrackPrim->Draw("pe1 same");
+  // cKine->SaveAs("./plots/RecPtEtaPhi.png");
 
-  cKineGen->Divide(3,1);
-  for (size_t i = 1; i < 4; i++) {
-    /* code */
-    cKineGen->cd(i)->SetTopMargin(0.03);
-    cKineGen->cd(i)->SetRightMargin(0.03);
-  }
-  cKineGen->cd(1)->SetLogy();
-  ptGenTrackPrim->GetXaxis()->SetRangeUser(0.,8);
-  ptGenTrackPrim->Draw("pe1");
-  ptGenTrackCC->Draw("pe1 same");
-  ptGenTrackBB->Draw("pe1 same");
-  legKineElePos->Draw("same");
-  cKineGen->cd(2);
-  // etaGenTrackPrim->SetMaximum(0.03);
-  etaGenTrackPrim->GetXaxis()->SetRangeUser(-2.0,2.0);
-  etaGenTrackPrim->Draw("axis");
-  etaGenTrackCC->Draw("pe1 same");
-  // etaGenEleTrackCC->Draw("pe1 same");
-  // etaGenPosTrackCC->Draw("pe1 same");
-  etaGenTrackBB->Draw("pe1 same");
-  // etaGenEleTrackBB->Draw("pe1 same");
-  // etaGenPosTrackBB->Draw("pe1 same");
-  etaGenTrackPrim->Draw("pe1 same");
-  // etaGenEleTrackPrim->Draw("pe1 same");
-  // etaGenPosTrackPrim->Draw("pe1 same");
-  cKineGen->cd(3);
-  phiGenTrackPrim->SetMinimum(0.);
-  // phiGenTrackPrim->SetMaximum(0.016);
-  phiGenTrackPrim->Draw("axis");
-  phiGenTrackCC->Draw("pe1 same");
-  phiGenTrackBB->Draw("pe1 same");
-  phiGenTrackPrim->Draw("pe1 same");
-  cKineGen->SaveAs("./plots/GenPtEtaPhi.png");
+
+  // auto cKineGen = new TCanvas("cKineGen","cKineGen",900,400);
+  //
+  // cKineGen->Divide(3,1);
+  // for (size_t i = 1; i < 4; i++) {
+  //   /* code */
+  //   cKineGen->cd(i)->SetTopMargin(0.03);
+  //   cKineGen->cd(i)->SetRightMargin(0.03);
+  // }
+  // cKineGen->cd(1)->SetLogy();
+  // ptGenTrackPrim->GetXaxis()->SetRangeUser(0.,8);
+  // ptGenTrackPrim->Draw("pe1");
+  // ptGenTrackCC->Draw("pe1 same");
+  // ptGenTrackBB->Draw("pe1 same");
+  // legKineElePos->Draw("same");
+  // cKineGen->cd(2);
+  // // etaGenTrackPrim->SetMaximum(0.03);
+  // etaGenTrackPrim->GetXaxis()->SetRangeUser(-2.0,2.0);
+  // etaGenTrackPrim->Draw("axis");
+  // etaGenTrackCC->Draw("pe1 same");
+  // // etaGenEleTrackCC->Draw("pe1 same");
+  // // etaGenPosTrackCC->Draw("pe1 same");
+  // etaGenTrackBB->Draw("pe1 same");
+  // // etaGenEleTrackBB->Draw("pe1 same");
+  // // etaGenPosTrackBB->Draw("pe1 same");
+  // etaGenTrackPrim->Draw("pe1 same");
+  // // etaGenEleTrackPrim->Draw("pe1 same");
+  // // etaGenPosTrackPrim->Draw("pe1 same");
+  // cKineGen->cd(3);
+  // phiGenTrackPrim->SetMinimum(0.);
+  // // phiGenTrackPrim->SetMaximum(0.016);
+  // phiGenTrackPrim->Draw("axis");
+  // phiGenTrackCC->Draw("pe1 same");
+  // phiGenTrackBB->Draw("pe1 same");
+  // phiGenTrackPrim->Draw("pe1 same");
+  // cKineGen->SaveAs("./plots/GenPtEtaPhi.png");
 
   if (bPlotEfficiency) {
     auto cEffElePt = new TCanvas("cEffElePt","cEffElePt",800,800);
@@ -1349,6 +1461,22 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     legTrackPosEle_top->Draw("same");
     textBField->Draw("same");
     cEffElePosPt->SaveAs("./plots/Eff_ElePos_Pt.png");
+
+    auto cEffAddedElePosPt = new TCanvas("cEffAddedElePosPt","cEffAddedElePosPt",800,800);
+    // cEffAddedElePosPt->SetLogy();
+    cEffAddedElePosPt->SetTopMargin(0.03);
+    cEffAddedElePosPt->SetRightMargin(0.03);
+    cEffAddedElePosPt->SetLeftMargin(0.13);
+    ptEffElePosGen->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
+    ptEffElePosGen->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum(),ptEffElePosGenSmeared->GetMaximum()}));
+    ptEffElePosGen->SetMinimum(0.);
+    ptEffElePosGen->Draw("hist p e1 ");
+    ptEffElePosGenSmeared->Draw("hist p e1 same");
+    legEff_GenGenSmear->Draw("same");
+    textBField->Draw("same");
+    cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_GenGenSmear.png");
 
     auto cEffEleEta = new TCanvas("cEffEleEta","cEffEleEta",800,800);
     // cEffEleEta->SetLogy();
@@ -1419,78 +1547,78 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     cEffPosElePtEtaPhi->SaveAs("./plots/Eff_ElePos_PtEtaPhi.png");
 
 
-    auto cEffElePtEtaPhi = new TCanvas("cEffElePtEtaPhi","cEffElePtEtaPhi",900,400);
-    cEffElePtEtaPhi->Divide(3,1);
-    for (size_t i = 1; i < 4; i++) {
-      cEffElePtEtaPhi->cd(i)->SetTopMargin(0.03);
-      cEffElePtEtaPhi->cd(i)->SetRightMargin(0.03);
-    }
-    cEffElePtEtaPhi->cd(1);
-    ptEffElePrim->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffElePrim->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-    ptEffElePrim->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptEffElePrim->SetMaximum(1.1*std::max({ptEffElePrim->GetMaximum(),ptEffEleCC->GetMaximum(),ptEffEleBB->GetMaximum()}));
-    ptEffElePrim->SetMinimum(0.);
-    ptEffElePrim->Draw("hist p ");
-    ptEffEleCC->Draw("hist p same");
-    ptEffEleBB->Draw("hist p same");
-    legTrack1->Draw("same");
-    cEffElePtEtaPhi->cd(2);
-    etaEffElePrim->GetYaxis()->SetTitle("#eta^{rec}/#eta^{gen}");
-    etaEffElePrim->GetXaxis()->SetTitle("#eta");
-    etaEffElePrim->GetXaxis()->SetRangeUser(-2.0,2.0);
-    etaEffElePrim->SetMaximum(1.1*std::max({etaEffElePrim->GetMaximum(),etaEffEleCC->GetMaximum(),etaEffEleBB->GetMaximum()}));
-    etaEffElePrim->SetMinimum(0.);
-    etaEffElePrim->Draw("hist p");
-    etaEffEleCC->Draw("hist p same");
-    etaEffEleBB->Draw("hist p same");
-    cEffElePtEtaPhi->cd(3);
-    phiEffElePrim->GetYaxis()->SetTitle("#varphi^{rec}/#varphi^{gen}");
-    phiEffElePrim->GetXaxis()->SetTitle("#varphi (rad)");
-    phiEffElePrim->SetMaximum(1.1*std::max({phiEffElePrim->GetMaximum(),phiEffEleCC->GetMaximum(),phiEffEleBB->GetMaximum()}));
-    phiEffElePrim->SetMinimum(0.);
-    phiEffElePrim->GetXaxis()->SetRangeUser(-7.0,7.0);
-    phiEffElePrim->Draw("hist p ");
-    phiEffEleCC->Draw("hist p same");
-    phiEffEleBB->Draw("hist p same");
-    cEffElePtEtaPhi->SaveAs("./plots/EffElePtEtaPhi.png");
+    // auto cEffElePtEtaPhi = new TCanvas("cEffElePtEtaPhi","cEffElePtEtaPhi",900,400);
+    // cEffElePtEtaPhi->Divide(3,1);
+    // for (size_t i = 1; i < 4; i++) {
+    //   cEffElePtEtaPhi->cd(i)->SetTopMargin(0.03);
+    //   cEffElePtEtaPhi->cd(i)->SetRightMargin(0.03);
+    // }
+    // cEffElePtEtaPhi->cd(1);
+    // ptEffElePrim->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
+    // ptEffElePrim->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    // ptEffElePrim->GetXaxis()->SetRangeUser(0.0,4.0);
+    // ptEffElePrim->SetMaximum(1.1*std::max({ptEffElePrim->GetMaximum(),ptEffEleCC->GetMaximum(),ptEffEleBB->GetMaximum()}));
+    // ptEffElePrim->SetMinimum(0.);
+    // ptEffElePrim->Draw("hist p ");
+    // ptEffEleCC->Draw("hist p same");
+    // ptEffEleBB->Draw("hist p same");
+    // legTrack1->Draw("same");
+    // cEffElePtEtaPhi->cd(2);
+    // etaEffElePrim->GetYaxis()->SetTitle("#eta^{rec}/#eta^{gen}");
+    // etaEffElePrim->GetXaxis()->SetTitle("#eta");
+    // etaEffElePrim->GetXaxis()->SetRangeUser(-2.0,2.0);
+    // etaEffElePrim->SetMaximum(1.1*std::max({etaEffElePrim->GetMaximum(),etaEffEleCC->GetMaximum(),etaEffEleBB->GetMaximum()}));
+    // etaEffElePrim->SetMinimum(0.);
+    // etaEffElePrim->Draw("hist p");
+    // etaEffEleCC->Draw("hist p same");
+    // etaEffEleBB->Draw("hist p same");
+    // cEffElePtEtaPhi->cd(3);
+    // phiEffElePrim->GetYaxis()->SetTitle("#varphi^{rec}/#varphi^{gen}");
+    // phiEffElePrim->GetXaxis()->SetTitle("#varphi (rad)");
+    // phiEffElePrim->SetMaximum(1.1*std::max({phiEffElePrim->GetMaximum(),phiEffEleCC->GetMaximum(),phiEffEleBB->GetMaximum()}));
+    // phiEffElePrim->SetMinimum(0.);
+    // phiEffElePrim->GetXaxis()->SetRangeUser(-7.0,7.0);
+    // phiEffElePrim->Draw("hist p ");
+    // phiEffEleCC->Draw("hist p same");
+    // phiEffEleBB->Draw("hist p same");
+    // cEffElePtEtaPhi->SaveAs("./plots/EffElePtEtaPhi.png");
 
 
-    auto cEffPosPtEtaPhi = new TCanvas("cEffPosPtEtaPhi","cEffPosPtEtaPhi",900,400);
-    cEffPosPtEtaPhi->Divide(3,1);
-    for (size_t i = 1; i < 4; i++) {
-      cEffPosPtEtaPhi->cd(i)->SetTopMargin(0.03);
-      cEffPosPtEtaPhi->cd(i)->SetRightMargin(0.03);
-    }
-    cEffPosPtEtaPhi->cd(1);
-    ptEffPosPrim->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffPosPrim->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-    ptEffPosPrim->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptEffPosPrim->SetMaximum(1.1*std::max({ptEffPosPrim->GetMaximum(),ptEffPosCC->GetMaximum(),ptEffPosBB->GetMaximum()}));
-    ptEffPosPrim->SetMinimum(0.);
-    ptEffPosPrim->Draw("hist p ");
-    ptEffPosCC->Draw("hist p same");
-    ptEffPosBB->Draw("hist p same");
-    legTrack1->Draw("same");
-    cEffPosPtEtaPhi->cd(2);
-    etaEffPosPrim->GetYaxis()->SetTitle("#eta^{rec}/#eta^{gen}");
-    etaEffPosPrim->GetXaxis()->SetTitle("#eta");
-    etaEffPosPrim->GetXaxis()->SetRangeUser(-2.0,2.0);
-    etaEffPosPrim->SetMaximum(1.1*std::max({etaEffPosPrim->GetMaximum(),etaEffPosCC->GetMaximum(),etaEffPosBB->GetMaximum()}));
-    etaEffPosPrim->SetMinimum(0.);
-    etaEffPosPrim->Draw("hist p");
-    etaEffPosCC->Draw("hist p same");
-    etaEffPosBB->Draw("hist p same");
-    cEffPosPtEtaPhi->cd(3);
-    phiEffPosPrim->GetYaxis()->SetTitle("#varphi^{rec}/#varphi^{gen}");
-    phiEffPosPrim->GetXaxis()->SetTitle("#varphi (rad)");
-    phiEffPosPrim->SetMaximum(1.1*std::max({phiEffPosPrim->GetMaximum(),phiEffPosCC->GetMaximum(),phiEffPosBB->GetMaximum()}));
-    phiEffPosPrim->SetMinimum(0.);
-    phiEffPosPrim->GetXaxis()->SetRangeUser(-7.0,7.0);
-    phiEffPosPrim->Draw("hist p ");
-    phiEffPosCC->Draw("hist p same");
-    phiEffPosBB->Draw("hist p same");
-    cEffPosPtEtaPhi->SaveAs("./plots/EffPosPtEtaPhi.png");
+    // auto cEffPosPtEtaPhi = new TCanvas("cEffPosPtEtaPhi","cEffPosPtEtaPhi",900,400);
+    // cEffPosPtEtaPhi->Divide(3,1);
+    // for (size_t i = 1; i < 4; i++) {
+    //   cEffPosPtEtaPhi->cd(i)->SetTopMargin(0.03);
+    //   cEffPosPtEtaPhi->cd(i)->SetRightMargin(0.03);
+    // }
+    // cEffPosPtEtaPhi->cd(1);
+    // ptEffPosPrim->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
+    // ptEffPosPrim->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    // ptEffPosPrim->GetXaxis()->SetRangeUser(0.0,4.0);
+    // ptEffPosPrim->SetMaximum(1.1*std::max({ptEffPosPrim->GetMaximum(),ptEffPosCC->GetMaximum(),ptEffPosBB->GetMaximum()}));
+    // ptEffPosPrim->SetMinimum(0.);
+    // ptEffPosPrim->Draw("hist p ");
+    // ptEffPosCC->Draw("hist p same");
+    // ptEffPosBB->Draw("hist p same");
+    // legTrack1->Draw("same");
+    // cEffPosPtEtaPhi->cd(2);
+    // etaEffPosPrim->GetYaxis()->SetTitle("#eta^{rec}/#eta^{gen}");
+    // etaEffPosPrim->GetXaxis()->SetTitle("#eta");
+    // etaEffPosPrim->GetXaxis()->SetRangeUser(-2.0,2.0);
+    // etaEffPosPrim->SetMaximum(1.1*std::max({etaEffPosPrim->GetMaximum(),etaEffPosCC->GetMaximum(),etaEffPosBB->GetMaximum()}));
+    // etaEffPosPrim->SetMinimum(0.);
+    // etaEffPosPrim->Draw("hist p");
+    // etaEffPosCC->Draw("hist p same");
+    // etaEffPosBB->Draw("hist p same");
+    // cEffPosPtEtaPhi->cd(3);
+    // phiEffPosPrim->GetYaxis()->SetTitle("#varphi^{rec}/#varphi^{gen}");
+    // phiEffPosPrim->GetXaxis()->SetTitle("#varphi (rad)");
+    // phiEffPosPrim->SetMaximum(1.1*std::max({phiEffPosPrim->GetMaximum(),phiEffPosCC->GetMaximum(),phiEffPosBB->GetMaximum()}));
+    // phiEffPosPrim->SetMinimum(0.);
+    // phiEffPosPrim->GetXaxis()->SetRangeUser(-7.0,7.0);
+    // phiEffPosPrim->Draw("hist p ");
+    // phiEffPosCC->Draw("hist p same");
+    // phiEffPosBB->Draw("hist p same");
+    // cEffPosPtEtaPhi->SaveAs("./plots/EffPosPtEtaPhi.png");
 
 
 
@@ -1542,6 +1670,20 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     legTrackPos_top->Draw("same");
     cEffPosPhi->SaveAs("./plots/EffPosPhi.png");
 
+    auto cGenGenSmearRecElePosPt = new TCanvas("cGenGenSmearRecElePosPt","cGenGenSmearRecElePosPt",800,800);
+    cGenGenSmearRecElePosPt->SetLogy();
+    cGenGenSmearRecElePosPt->SetTopMargin(0.03);
+    cGenGenSmearRecElePosPt->SetRightMargin(0.03);
+    cGenGenSmearRecElePosPt->SetLeftMargin(0.13);
+    ptGenTrackElePos->GetYaxis()->SetTitle("N^{gen} Tracks");
+    ptGenTrackElePos->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackElePos->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptGenTrackElePos->SetMaximum(1.1*std::max({ptGenTrackEle->GetMaximum(),ptRecTrackEle->GetMaximum()}));
+    ptGenTrackElePos->Draw("hist p e1");
+    ptGenSmearedTrackElePos->Draw("hist p e1 same");
+    ptRecTrackElePos->Draw("hist p e1 same");
+    legGenGenSmearRecElePos_top->Draw("same");
+    cGenGenSmearRecElePosPt->SaveAs("./plots/GenGenSmearRecElePos_Pt.png");
 
 
     auto cGenRecElePt = new TCanvas("cGenRecElePt","cGenRecElePt",800,800);
@@ -1575,6 +1717,24 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
 
     Int_t ptGenTrackEleEntries = ptGenTrackEle->Integral();
     Int_t ptRecTrackEleEntries = ptRecTrackEle->Integral();
+
+
+
+    // // pair efficiencies
+    // auto cPairEffULSPt = new TCanvas("cPairEffULSPt","cPairEffULSPt",800,800);
+    // // cPairEffULSPt->SetLogy();
+    // cPairEffULSPt->SetTopMargin(0.03);
+    // cPairEffULSPt->SetRightMargin(0.03);
+    // cPairEffULSPt->SetLeftMargin(0.13);
+    // ptPairEffULS->GetYaxis()->SetTitle("p_{T,ee}^{rec}/p_{T,ee}^{gen}");
+    // ptPairEffULS->GetXaxis()->SetTitle("p_{T,ee} (GeV/c)");
+    // ptPairEffULS->GetXaxis()->SetRangeUser(0.0,4.0);
+    // ptPairEffULS->Draw("hist p e1 ");
+    // legEffULSPair->Draw("same");
+    // cPairEffULSPt->SaveAs("./plots/Eff_ULSPair_Pt.png");
+
+
+
   }
 
   auto cBeforeAfterSmearing = new TCanvas("cBeforeAfterSmearing","cBeforeAfterSmearing",900,400);
@@ -1588,7 +1748,7 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   cBeforeAfterSmearing->cd(1)->SetLogy();
   ptRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(0.,8);
   // ptRecTrackBeforeSmearing->SetMinimum(0.01);
-  ptRecTrackBeforeSmearing->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing->GetMaximum(),ptRecTrackAfterSmearing->GetMaximum(),ptRecElePosTrackAfterKineCuts->GetMaximum()}));
+  ptRecTrackBeforeSmearing->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing->GetMaximum(),ptRecTrackAfterSmearing->GetMaximum(),ptRecTrackElePos->GetMaximum()}));
   ptRecTrackBeforeSmearing->Draw("pe1");
   ptRecTrackAfterSmearing->Draw("pe1 same");
   // ptRecTrackEtaCut_10->Draw("pe1 same");
@@ -1601,12 +1761,12 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   // ptRecTrackEtaCut_3->Draw("pe1 same");
   // ptRecTrackEtaCut_2->Draw("pe1 same");
   // ptRecTrackEtaCut_1->Draw("pe1 same");
-  ptRecElePosTrackAfterKineCuts->Draw("pe1 same");
+  ptRecTrackElePos->Draw("pe1 same");
   legSmearLabel->Draw("same");
   cBeforeAfterSmearing->cd(2);
   etaRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(-2.0,2.0);
   etaRecTrackBeforeSmearing->SetMinimum(0.);
-  etaRecTrackBeforeSmearing->SetMaximum(1.1*std::max({etaRecTrackBeforeSmearing->GetMaximum(),etaRecTrackAfterSmearing->GetMaximum(),etaRecElePosTrackAfterKineCuts->GetMaximum()}));
+  etaRecTrackBeforeSmearing->SetMaximum(1.1*std::max({etaRecTrackBeforeSmearing->GetMaximum(),etaRecTrackAfterSmearing->GetMaximum(),etaRecTrackElePos->GetMaximum()}));
   etaRecTrackBeforeSmearing->Draw("axis");
   etaRecTrackBeforeSmearing->Draw("pe1 same");
   etaRecTrackAfterSmearing->Draw("pe1 same");
@@ -1620,10 +1780,10 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   // etaRecTrackEtaCut_3->Draw("pe1 same");
   // etaRecTrackEtaCut_2->Draw("pe1 same");
   // etaRecTrackEtaCut_1->Draw("pe1 same");
-  etaRecElePosTrackAfterKineCuts->Draw("pe1 same");
+  etaRecTrackElePos->Draw("pe1 same");
   cBeforeAfterSmearing->cd(3);
   phiRecTrackBeforeSmearing->SetMinimum(0.);
-  phiRecTrackBeforeSmearing->SetMaximum(1.1*std::max({phiRecTrackBeforeSmearing->GetMaximum(),phiRecTrackAfterSmearing->GetMaximum(),phiRecElePosTrackAfterKineCuts->GetMaximum()}));
+  phiRecTrackBeforeSmearing->SetMaximum(1.1*std::max({phiRecTrackBeforeSmearing->GetMaximum(),phiRecTrackAfterSmearing->GetMaximum(),phiRecTrackElePos->GetMaximum()}));
   phiRecTrackBeforeSmearing->Draw("axis");
   phiRecTrackBeforeSmearing->Draw("pe1 same");
   phiRecTrackAfterSmearing->Draw("pe1 same");
@@ -1637,7 +1797,7 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   // phiRecTrackEtaCut_3->Draw("pe1 same");
   // phiRecTrackEtaCut_2->Draw("pe1 same");
   // phiRecTrackEtaCut_1->Draw("pe1 same");
-  phiRecElePosTrackAfterKineCuts->Draw("pe1 same");
+  phiRecTrackElePos->Draw("pe1 same");
   cBeforeAfterSmearing->SaveAs("./plots/RecPtEtaPhiBeforeAfterSmearing.png");
 
 
@@ -1939,30 +2099,30 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   if (bPlotPairHistograms) {
     if (bPlotULS) {
       //ULS as TH2 and projections of mee and ptee
-      auto cMee_primCCBB = new TCanvas("cMee","cMee",800,800);
-      cMee_primCCBB->SetLogy();
-      cMee_primCCBB->SetTopMargin(0.03);
-      cMee_primCCBB->SetRightMargin(0.03);
-      cMee_primCCBB->SetLeftMargin(0.13);
-      proj_recULS_MeePrim->GetYaxis()->SetTitle("counts");
-      proj_recULS_MeePrim->Draw("hist p e1");
-      proj_recULS_MeeCC->Draw("same hist p e1");
-      proj_recULS_MeeBB->Draw("same hist p e1");
-      legPair->Draw("same");
-      cMee_primCCBB->SaveAs("./plots/Mee_primCCBB.png");
+      // auto cMee_primCCBB = new TCanvas("cMee","cMee",800,800);
+      // cMee_primCCBB->SetLogy();
+      // cMee_primCCBB->SetTopMargin(0.03);
+      // cMee_primCCBB->SetRightMargin(0.03);
+      // cMee_primCCBB->SetLeftMargin(0.13);
+      // proj_recULS_MeePrim->GetYaxis()->SetTitle("counts");
+      // proj_recULS_MeePrim->Draw("hist p e1");
+      // proj_recULS_MeeCC->Draw("same hist p e1");
+      // proj_recULS_MeeBB->Draw("same hist p e1");
+      // legPair->Draw("same");
+      // cMee_primCCBB->SaveAs("./plots/Mee_primCCBB.png");
 
-      auto cPtee_primCCBB = new TCanvas("cPtee","cPtee",800,800);
-      cPtee_primCCBB->SetLogy();
-      cPtee_primCCBB->SetTopMargin(0.03);
-      cPtee_primCCBB->SetRightMargin(0.03);
-      cPtee_primCCBB->SetLeftMargin(0.13);
-      proj_recULS_PteePrim->GetYaxis()->SetTitle("counts");
-      proj_recULS_PteePrim->SetMaximum(0.8);
-      proj_recULS_PteePrim->Draw("hist p e1");
-      proj_recULS_PteeCC->Draw("same hist p e1");
-      proj_recULS_PteeBB->Draw("same hist p e1");
-      legPair->Draw("same");
-      cPtee_primCCBB->SaveAs("./plots/Ptee_primCCBB.png");
+      // auto cPtee_primCCBB = new TCanvas("cPtee","cPtee",800,800);
+      // cPtee_primCCBB->SetLogy();
+      // cPtee_primCCBB->SetTopMargin(0.03);
+      // cPtee_primCCBB->SetRightMargin(0.03);
+      // cPtee_primCCBB->SetLeftMargin(0.13);
+      // proj_recULS_PteePrim->GetYaxis()->SetTitle("counts");
+      // proj_recULS_PteePrim->SetMaximum(0.8);
+      // proj_recULS_PteePrim->Draw("hist p e1");
+      // proj_recULS_PteeCC->Draw("same hist p e1");
+      // proj_recULS_PteeBB->Draw("same hist p e1");
+      // legPair->Draw("same");
+      // cPtee_primCCBB->SaveAs("./plots/Ptee_primCCBB.png");
 
       auto cprojMeePtee = new TCanvas("cprojMeePtee","cprojMeePtee",1600,800);
       cprojMeePtee->Divide(2,1);
@@ -2118,42 +2278,51 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
 
     if (bPlotLS) {
       //LS++ + LS--
-      auto cLS_Mee_primCCBB = new TCanvas("cLS_Mee_primCCBB","cLS_Mee_primCCBB",800,800);
-      cLS_Mee_primCCBB->SetLogy();
-      cLS_Mee_primCCBB->SetTopMargin(0.03);
-      cLS_Mee_primCCBB->SetRightMargin(0.03);
-      cLS_Mee_primCCBB->SetLeftMargin(0.13);
-      proj_genLS_MeePrim->GetYaxis()->SetTitle("counts");
-      proj_genLS_MeePrim->Draw("hist p e1");
-      proj_genLS_MeeCC->Draw("same hist p e1");
-      proj_genLS_MeeBB->Draw("same hist p e1");
-      legPair->Draw("same");
-      cLS_Mee_primCCBB->SaveAs("./plots/bgkLS_Mee_primCCBB.png");
+      // auto cLS_Mee_primCCBB = new TCanvas("cLS_Mee_primCCBB","cLS_Mee_primCCBB",800,800);
+      // cLS_Mee_primCCBB->SetLogy();
+      // cLS_Mee_primCCBB->SetTopMargin(0.03);
+      // cLS_Mee_primCCBB->SetRightMargin(0.03);
+      // cLS_Mee_primCCBB->SetLeftMargin(0.13);
+      // proj_genLS_MeePrim->GetYaxis()->SetTitle("counts");
+      // proj_genLS_MeePrim->Draw("hist p e1");
+      // proj_genLS_MeeCC->Draw("same hist p e1");
+      // proj_genLS_MeeBB->Draw("same hist p e1");
+      // legPair->Draw("same");
+      // cLS_Mee_primCCBB->SaveAs("./plots/bgkLS_Mee_primCCBB.png");
 
-      auto cLS_Ptee_primCCBB = new TCanvas("cLS_Ptee_primCCBB","cLS_Ptee_primCCBB",800,800);
-      cLS_Ptee_primCCBB->SetLogy();
-      cLS_Ptee_primCCBB->SetTopMargin(0.03);
-      cLS_Ptee_primCCBB->SetRightMargin(0.03);
-      cLS_Ptee_primCCBB->SetLeftMargin(0.13);
-      proj_genLS_PteePrim->GetYaxis()->SetTitle("counts");
-      proj_genLS_PteePrim->SetMaximum(0.8);
-      proj_genLS_PteePrim->Draw("hist p e1");
-      proj_genLS_PteeCC->Draw("same hist p e1");
-      proj_genLS_PteeBB->Draw("same hist p e1");
-      legPair->Draw("same");
-      cLS_Ptee_primCCBB->SaveAs("./plots/bgkLS_Ptee_primCCBB.png");
+      // auto cLS_Ptee_primCCBB = new TCanvas("cLS_Ptee_primCCBB","cLS_Ptee_primCCBB",800,800);
+      // cLS_Ptee_primCCBB->SetLogy();
+      // cLS_Ptee_primCCBB->SetTopMargin(0.03);
+      // cLS_Ptee_primCCBB->SetRightMargin(0.03);
+      // cLS_Ptee_primCCBB->SetLeftMargin(0.13);
+      // proj_genLS_PteePrim->GetYaxis()->SetTitle("counts");
+      // proj_genLS_PteePrim->SetMaximum(0.8);
+      // proj_genLS_PteePrim->Draw("hist p e1");
+      // proj_genLS_PteeCC->Draw("same hist p e1");
+      // proj_genLS_PteeBB->Draw("same hist p e1");
+      // legPair->Draw("same");
+      // cLS_Ptee_primCCBB->SaveAs("./plots/bgkLS_Ptee_primCCBB.png");
     }
   }
 
 
   if (bPlotEfficiency) {
-    TFile *fOut = TFile::Open("./data/efficiencySingleElectrons.root","RECREATE");
-    ptEffEle->SetTitle("eff_singleElectrons");
-    ptEffPos->SetTitle("eff_singlePositrons");
-    ptEffEle->GetXaxis()->SetRangeUser(0.0,20.0);
-    ptEffPos->GetXaxis()->SetRangeUser(0.0,20.0);
+    TString nameEffRootFile = inputFile.Data();
+    nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
+    nameEffRootFile.ReplaceAll(".root", "");
+    TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
+    ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
+    ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
+    ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
     ptEffEle->Write();
     ptEffPos->Write();
+    ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
+    ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
+    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffElePosGen->Write();
+    ptEffElePosGenSmeared->Write();
     fOut->Close();
   }
 }

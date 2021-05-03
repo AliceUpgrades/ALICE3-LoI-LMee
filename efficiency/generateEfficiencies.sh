@@ -8,6 +8,7 @@ runDelphes() {
     sleep 2
     echo "Main:numberOfEvents $2" >> pythia8.$5.$1.cfg
     echo "Random:seed = `expr 1001 \* $1`" >> pythia8.$5.$1.cfg
+    echo "Random:setSeed on" >> pythia8.$5.$1.cfg
   elif [[ $5 == "pp" ]]
   then
    cp ../pythia/pythia8.$5.default.cfg pythia8.$5.$1.cfg
@@ -38,28 +39,35 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=7        # number of max parallel runs
-NRUNS=1        # number of runs
+NJOBS=6        # number of max parallel runs
+NRUNS=10        # number of runs
 
-NEVENTS=100    # number of events in a run
+NEVENTS=10    # number of events in a run
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
-# SYSTEM="PbPb"         # collisionSystem
-SYSTEM="pp"         # collisionSystem
+SYSTEM="PbPb"         # collisionSystem
+# SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="Werner"     # detector setup
 # BFIELD=2       # magnetic field  [kG]
 BFIELD=5       # magnetic field  [kG]
 
 #how many events are generated
-ALLEVENTSINEL=$(expr $NEVENTS \* $NRUNS)
-ALLEVENTSCC=$(expr $NEVENTSCC \* $NRUNS)
-ALLEVENTSBB=$(expr $NEVENTSBB \* $NRUNS)
 echo " --- generating with scenario $SCENARIO setup"
-echo " --- $ALLEVENTSINEL inelastic events"
-echo " --- $ALLEVENTSCC charm events"
-echo " --- $ALLEVENTSBB beauty events"
+if [[ $SYSTEM = "pp" ]]
+  then
+  ALLEVENTSINEL=$(expr $NEVENTS \* $NRUNS)
+  ALLEVENTSCC=$(expr $NEVENTSCC \* $NRUNS)
+  ALLEVENTSBB=$(expr $NEVENTSBB \* $NRUNS)
+  echo " --- $ALLEVENTSINEL inelastic events"
+  echo " --- $ALLEVENTSCC charm events"
+  echo " --- $ALLEVENTSBB beauty events"
+elif [[ $SYSTEM = "PbPb" ]]
+ then
+ ALLEVENTS=$(expr $NEVENTS \* $NRUNS)
+ echo " --- $ALLEVENTS PbPb events"
+fi
 # copy stuff into running directory
 
 echo " --- selected SYSTEM:   $SYSTEM"
@@ -110,9 +118,7 @@ then
   cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.pi.5kG.100cm.default.dat lutCovm.pi.dat
   cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.ka.5kG.100cm.default.dat lutCovm.ka.dat
   cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.pr.5kG.100cm.default.dat lutCovm.pr.dat
-else cp ./macros/anaPlots.cxx anaPlots.cxx &&
- root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\", $SCENARIO)" &&
-
+else
   echo "!!! check SCENARIO and BFIELD variables"
 fi
 
@@ -120,6 +126,16 @@ fi
 sed -i -e "s/set Bz .*$/set Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
 
+# adapt pt cuts corresponding to selected B-field
+if [[ $BFIELD -eq 2 ]]
+then
+  PTACC=4 # pt = 40 MeV/c acceptance cut for low B field
+elif [[ $BFIELD -eq 5 ]]
+then
+  PTACC=8 # pt = 40 MeV/c acceptance cut for low B field
+fi
+sed -i -e "s/double PtCut .*$/double PtCut = ${PTACC}e\-2;/" anaEEstudy.cxx
+echo " --- using Pt Acceptance cut:  0.0${PTACC}GeV/c"
 
 #load the right LUTs in the anaEEstudy.cxx
 
