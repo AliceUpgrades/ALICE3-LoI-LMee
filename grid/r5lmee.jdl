@@ -1,0 +1,46 @@
+# simulate and analyse Delphes on the fly
+
+Executable = "/alice/cern.ch/user/h/hscheid/test/Delphes//generateDelphes.sh";
+Validationcommand = "/alice/cern.ch/user/h/hscheid/test/Delphes/validation.sh";
+Arguments = "1000 PbPb";
+Packages = {
+	"VO_ALICE@DelphesO2::v20210409-1"
+};
+
+JDLVariables = {
+	"Packages",
+	"OutputDir"
+};
+
+Type = "Job";
+User = "hscheid";
+Jobtag = {
+	"comment: DelphesO2 Simulation + dielectron analysis jdl"
+};
+EMail = "s.scheid@cern.ch";
+TTL = "86400";
+Price = 1;
+Workdirectorysize = {
+	"12000MB"
+};
+
+Split = "production:1-100";
+SplitArguments = "";
+
+
+InputFile = {
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.el.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.mu.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.pi.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.ka.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.pr.werner.rmin100.5kG.dat",
+	"LF:/alice/cern.ch/user/h/hscheid/test/pythia//pythia8_PbPb.cfg",
+  "LF:/alice/cern.ch/user/h/hscheid/test/Delphes//bkg.cxx"
+};
+
+OutputArchive = {
+    "log_archive.zip:stdout,stderr,*.log,*.sh@",
+    "root_archive.zip:background.root@"
+};
+
+OutputDir = "/alice/cern.ch/user/h/hscheid/test/Delphes//output/#alien_counter_03i#";
