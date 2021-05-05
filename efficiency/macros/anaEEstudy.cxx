@@ -18,9 +18,10 @@ R__LOAD_LIBRARY(libDelphesO2)
 
 
 
-bool bSmear   = true;
-bool bUseTOF  = true;
-bool bUseRICH = true;
+bool bSmear    = true;
+bool bUsePreSh = true;
+bool bUseTOF   = true;
+bool bUseRICH  = true;
 double Bz = 0.2;            // becomes overwritten by the generateEfficiencies.sh skript
 double eMass = 0.000511;
 
@@ -46,6 +47,9 @@ double tof_sigma0 = 0.20; // [ns]
 // TOF ele pt acceptance
 double tof_EleAccep_pt_cut = 0.6;  // [GeV/c]
 
+double tof_mismatch = 0.01;
+std::string tof_mismatch_fname;
+
 
 // RICH
 double rich_radius = 100.;
@@ -58,15 +62,18 @@ double rich_PionRejection_pt_cut = 1.0; // [GeV/c]
 
 
 // PID Scenarios
-bool useTOFPID[]         = {kTRUE,  kTRUE, kTRUE, kTRUE};
-bool useRICHPID[]        = {kFALSE, kTRUE, kTRUE, kTRUE};
+bool useTOFPID[]         = {kTRUE,  kTRUE,  kTRUE};
+bool useRICHPID[]        = {kFALSE, kTRUE,  kTRUE};
+bool usePreShPID[]       = {kFALSE, kFALSE, kTRUE};
 // TOF cuts on tracks
-double nSigmaTOFEle[]    = {3.0,    3.0,   3.0,   3.0};
-double nSigmaTOFPi[]     = {3.0,    3.0,   3.0,   3.0};
+double nSigmaTOFEle[]    = {3.0,    3.0,    3.0};
+double nSigmaTOFPi[]     = {3.0,    3.0,    3.0};
 // RICH cuts on tracks
-double nSigmaRICHEle[]   = {3.0,    3.0,   3.0,   3.0};
-double nSigmaRICHPi[]    = {3.0,    3.0,   3.5,   4.0};
-
+double nSigmaRICHEle[]   = {3.0,    3.0,    3.0};
+double nSigmaRICHPi[]    = {3.0,    4.0,    4.0};
+//Preshower nsigma DCA cuts on tracks
+double nSigmaPreShD0[]   = {3.0,    3.0,    3.0};
+double nSigmaPreShDZ[]   = {3.0,    3.0,    3.0};
 
 
 // void makeHistNice(TH1* h, int color){
@@ -558,48 +565,8 @@ void anaEEstudy(
   smearer.loadTable(321, "./lutCovm.ka.dat");
   smearer.loadTable(2212, "./lutCovm.pr.dat");
 
-  // smearer.loadTable(11, "./LUTs/lut.werner.rmin100.2kG/lutCovm.el.werner.rmin100.2kG.dat");
-  // smearer.loadTable(13, "./LUTs/lut.werner.rmin100.2kG/lutCovm.mu.werner.rmin100.2kG.dat");
-  // smearer.loadTable(211, "./LUTs/lut.werner.rmin100.2kG/lutCovm.pi.werner.rmin100.2kG.dat");
-  // smearer.loadTable(321, "./LUTs/lut.werner.rmin100.2kG/lutCovm.ka.werner.rmin100.2kG.dat");
-  // smearer.loadTable(2212, "./LUTs/lut.werner.rmin100.2kG/lutCovm.pr.werner.rmin100.2kG.dat");
-
-  // smearer.loadTable(11, "./LUTs/lut.werner.rmin100.5kG/lutCovm.el.werner.rmin100.5kG.dat");
-  // smearer.loadTable(13, "./LUTs/lut.werner.rmin100.5kG/lutCovm.mu.werner.rmin100.5kG.dat");
-  // smearer.loadTable(211, "./LUTs/lut.werner.rmin100.5kG/lutCovm.pi.werner.rmin100.5kG.dat");
-  // smearer.loadTable(321, "./LUTs/lut.werner.rmin100.5kG/lutCovm.ka.werner.rmin100.5kG.dat");
-  // smearer.loadTable(2212, "./LUTs/lut.werner.rmin100.5kG/lutCovm.pr.werner.rmin100.5kG.dat");
-
-  // smearer.loadTable(11, "./LUTs/lutCovm.5kG.100cm.default/lutCovm.el.5kG.100cm.default.dat");
-  // smearer.loadTable(13, "./LUTs/lutCovm.5kG.100cm.default/lutCovm.mu.5kG.100cm.default.dat");
-  // smearer.loadTable(211, "./LUTs/lutCovm.5kG.100cm.default/lutCovm.pi.5kG.100cm.default.dat");
-  // smearer.loadTable(321, "./LUTs/lutCovm.5kG.100cm.default/lutCovm.ka.5kG.100cm.default.dat");
-  // smearer.loadTable(2212, "./LUTs/lutCovm.5kG.100cm.default/lutCovm.pr.5kG.100cm.default.dat");
-
-  // smearer.loadTable(11, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.el.2kG.100cm.default.dat");
-  // smearer.loadTable(13, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.mu.2kG.100cm.default.dat");
-  // smearer.loadTable(211, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.pi.2kG.100cm.default.dat");
-  // smearer.loadTable(321, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.ka.2kG.100cm.default.dat");
-  // smearer.loadTable(2212, "./LUTs/lutCovm.2kG.100cm.default/lutCovm.pr.2kG.100cm.default.dat");
-
   smearer.useEfficiency(true);
 
-  // if (Bz == 0.2) {
-  //   smearer.loadTable(11, "./lutCovm.el.2kG.20cm.scenario1.dat");
-  //   smearer.loadTable(13, "./lutCovm.mu.2kG.20cm.scenario1.dat");
-  //   smearer.loadTable(211, "./lutCovm.pi.2kG.20cm.scenario1.dat");
-  //   smearer.loadTable(321, "./lutCovm.ka.2kG.20cm.scenario1.dat");
-  //   smearer.loadTable(2212, "./lutCovm.pr.2kG.20cm.scenario1.dat");
-  // } else if (Bz == 0.5) {
-  //   smearer.loadTable(11, "./lutCovm.el.5kG.20cm.scenario1.dat");
-  //   smearer.loadTable(13, "./lutCovm.mu.5kG.20cm.scenario1.dat");
-  //   smearer.loadTable(211, "./lutCovm.pi.5kG.20cm.scenario1.dat");
-  //   smearer.loadTable(321, "./lutCovm.ka.5kG.20cm.scenario1.dat");
-  //   smearer.loadTable(2212, "./lutCovm.pr.5kG.20cm.scenario1.dat");
-  // } else {
-  //   std::cout << " --- invalid Bz field: " << Bz << std::endl;
-  //   return;
-  // }
 
 
   int nPIDscenarios = sizeof(nSigmaTOFEle) / sizeof(nSigmaTOFEle[0]);
@@ -668,35 +635,34 @@ void anaEEstudy(
   // for (int j = 0; j < nPIDscenarios; ++j) hPt_Eta_Phi_beauty_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
 
 
-  std::vector<TList*> vecTListPIDscenarios;
+  TList* lPIDscenario[nPIDscenarios];
   for (int iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
-    TList* lPIDscenario = new TList();
-    lPIDscenario->SetName(Form("PIDscenario_%i", iPIDscenario+1));
-    lPIDscenario->SetOwner();
-    lPIDscenario->Add(hTrack_ElePos_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hNegTrack_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hPosTrack_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hAllTracks_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hTrack_Ele_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hTrack_Pos_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hTrack_Muon_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hTrack_Pion_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hTrack_Kaon_Rec_Pt_Eta_Phi[iPIDscenario]);
-    lPIDscenario->Add(hTrack_Proton_Rec_Pt_Eta_Phi[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_primary_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_primary_Ele_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_primary_Pos_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_hf_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_hf_Ele_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_hf_Pos_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_charm_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_charm_Ele_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_charm_Pos_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_beauty_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_beauty_Ele_rec[iPIDscenario]);
-    // lPIDscenario->Add(hPt_Eta_Phi_beauty_Pos_rec[iPIDscenario]);
+    lPIDscenario[iPIDscenario] = new TList();
+    lPIDscenario[iPIDscenario]->SetName(Form("PIDscenario_%i", iPIDscenario+1));
+    lPIDscenario[iPIDscenario]->SetOwner();
+    lPIDscenario[iPIDscenario]->Add(hTrack_ElePos_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hNegTrack_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hPosTrack_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hAllTracks_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hTrack_Ele_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hTrack_Pos_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hTrack_Muon_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hTrack_Pion_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hTrack_Kaon_Rec_Pt_Eta_Phi[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hTrack_Proton_Rec_Pt_Eta_Phi[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_primary_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_primary_Ele_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_primary_Pos_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_hf_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_hf_Ele_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_hf_Pos_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_charm_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_charm_Ele_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_charm_Pos_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_beauty_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_beauty_Ele_rec[iPIDscenario]);
+    // lPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_beauty_Pos_rec[iPIDscenario]);
     // listRecTracks->Add(lPIDscenario);
-    vecTListPIDscenarios.push_back(lPIDscenario);
   }
 
                                                                                 std::cout << __LINE__ << " ... COUT LINE ..." << std::endl;
@@ -721,8 +687,6 @@ void anaEEstudy(
   // auto hPt_Eta_Phi_beauty_Ele_gen = new TH3F("hPt_Eta_Phi_beauty_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   // auto hPt_Eta_Phi_beauty_Pos_gen = new TH3F("hPt_Eta_Phi_beauty_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
 
-                                                                                std::cout << __LINE__ << " ... COUT LINE ..." << std::endl;
-  auto hradiustrack = new TH1F("hradiustrack",";R",1000,0,10000);
 
   auto hPrimaryM = new TH1F("hPrimaryM",";MotherPDG",1000,0.5,1000.5);
   auto hPrimaryGM = new TH1F("hPrimaryGM",";MotherPDG",1000,0.5,1000.5);
@@ -824,6 +788,58 @@ void anaEEstudy(
   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -65., 25.);
   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -40., 25.);
   for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+
+  // Preshower histograms
+  // logx binning
+  const Int_t nbins = 80;
+  double xmin = 1.e-2;
+  double xmax = 1.e2;
+  double logxmin = std::log10(xmin);
+  double logxmax = std::log10(xmax);
+  double binwidth = (logxmax - logxmin) / nbins;
+  double xbins[nbins + 1];
+  for (Int_t i = 0; i <= nbins; ++i)
+    xbins[i] = std::pow(10., logxmin + i * binwidth);
+
+  TH2 *hHit = new TH2F("hHit", ";#eta;#it{p}_{T} (GeV/#it{c})", 200, -4., 4., nbins, xbins);
+  auto hMismatchTemplateOut = new TH1F("hMismatchTemplate", "", 3000., -5., 25.);
+  // Preshower efficiency input histograms
+  TH1* hPreshowerEff[5];
+  auto filePreshowerEff = TFile::Open("preshowerEff.root");
+  hPreshowerEff[0] = (TH1*)filePreshowerEff->Get("preshowerEffElectrons");
+  hPreshowerEff[1] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
+  hPreshowerEff[2] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
+  hPreshowerEff[3] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
+  hPreshowerEff[4] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
+
+  // Preshower QA output histograms
+  TH1F* hPreShElectronPt[nPIDscenarios];
+  TH1F* hPreShPionPt[nPIDscenarios];
+  for (int j = 0; j < nPIDscenarios; ++j) hPreShElectronPt[j] = new TH1F(Form("PreshowerElectronPt_sce%i",j+1), ";#it{p_{T}} (GeV/#it{c});", nbins, xbins);
+  for (int j = 0; j < nPIDscenarios; ++j) hPreShPionPt[j]     = new TH1F(Form("PreshowerPionPt_sce%i",j+1), ";#it{p_{T}} (GeV/#it{c});", nbins, xbins);
+
+  for (int iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
+    lPIDscenario[iPIDscenario]->Add(hPreShElectronPt[iPIDscenario]);
+    lPIDscenario[iPIDscenario]->Add(hPreShPionPt[iPIDscenario]);
+  }
+
+  // read mismatch template if requested
+  TH1 *hMismatchTemplateIn = nullptr;
+  if (!tof_mismatch_fname.empty()) {
+    auto fmismatch = TFile::Open(tof_mismatch_fname.c_str());
+    hMismatchTemplateIn = (TH1 *)fmismatch->Get("hMismatchTemplate");
+    hMismatchTemplateIn->SetDirectory(0);
+    fmismatch->Close();
+  }
+  // PID map
+  std::map<int, int> pidmap = { {11, 0}, {13, 1}, {211, 2}, {321, 3}, {2212, 4} };
+
+
+  std::vector<TList*> vecTListPIDscenarios;
+  for (size_t iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
+    vecTListPIDscenarios.push_back(lPIDscenario[iPIDscenario]);
+  }
+
 
   std::vector<Track *> vecElectron[nPIDscenarios],vecPositron[nPIDscenarios];
   std::vector<Track *> vecNegTracks[nPIDscenarios],vecPosTracks[nPIDscenarios];
@@ -936,17 +952,32 @@ void anaEEstudy(
       // kinatic cuts on tracks
       if (!kineCuts(track)) continue;
 
-      bool acceptedByPID[nPIDscenarios];
-      std::fill_n(acceptedByPID, nPIDscenarios, kFALSE);
-      // std::cout << " *** number of PID scenarios = " << nPIDscenarios << std::endl;
+
+
+      // fill output mismatch template (Preshower)
+      auto L = std::sqrt(track->XOuter * track->XOuter +
+			                   track->YOuter * track->YOuter +
+			                   track->ZOuter * track->ZOuter);
+      hMismatchTemplateOut->Fill(track->TOuter * 1.e9 - L / 299.79246);
+
+      // do some random mismatch
+      if (hMismatchTemplateIn && gRandom->Uniform() < tof_mismatch) {
+        track->TOuter = (hMismatchTemplateIn->GetRandom() + L / 299.79246) * 1.e-9;
+      }
+
+
+
       for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
         //setting variables for i-th PID scenario
         bool   i_useTOFPID = useTOFPID[iPID_scenario];
         bool   i_useRICHPID = useRICHPID[iPID_scenario];
+        bool   i_usePreShPID = usePreShPID[iPID_scenario];
         double i_SigmaTOFEle = nSigmaTOFEle[iPID_scenario];
         double i_SigmaTOFPi = nSigmaTOFPi[iPID_scenario];
         double i_SigmaRICHEle = nSigmaRICHEle[iPID_scenario];
         double i_SigmaRICHPi = nSigmaRICHPi[iPID_scenario];
+        double i_SigmaPreShD0 = nSigmaPreShD0[iPID_scenario];
+        double i_SigmaPreShDZ = nSigmaPreShDZ[iPID_scenario];
 
 
         // std::cout << " *** iScenario = " << iPID_scenario << ", useTOFPID = " << i_useTOFPID << std::endl;
@@ -963,17 +994,26 @@ void anaEEstudy(
         // using RICH electron inclusion and pion rejection
         bool TOFpid = false;
         bool RICHpid = false;
-        if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_pt_cut)) {
-          // if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-          // if(fabs( (PIDnsigmaTOF[2]) < nSigmaTOFPi)) TOFpid = false; // is within 3 sigma of the pion band (TOF)
-          if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+        // Preshower PID
+        if (i_usePreShPID && (fabs(track->D0 / track->ErrorD0) > i_SigmaPreShD0) ) continue; // select primaries based on 3 sigma DCA cuts
+        if (i_usePreShPID && (fabs(track->DZ / track->ErrorDZ) > i_SigmaPreShDZ) ) continue; // select primaries based on 3 sigma DCA cuts
+
+        //TOF PID
+        if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_p_cut)) {
+          if (p > tof_PionRej_p_cut) {
+            if((fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID)) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+          }
+          else {
+            if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+          }
+
           if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
         }
+
+        //RICH PID
         if(i_useRICHPID && richdetector.hasRICH(*track)) {
-          // if(fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
-          // if(fabs( (PIDnsigmaRICH[2]) < nSigmaRICHPi) && (p > rich_PionRejection_pt_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
           if(fabs(PIDnsigmaRICH[0]) < i_SigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
-          if(fabs( (PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_pt_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
+          if(fabs( (PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_p_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
         }
 
         if (!(RICHpid || TOFpid)) continue; // check if TOF or RICH signal is true.
@@ -1012,6 +1052,17 @@ void anaEEstudy(
         // else if (abs(particle->PID) == 211)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);
         // else if (abs(particle->PID) == 321)  for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);
         // else if (abs(particle->PID) == 2212) for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]);
+
+
+        // check if track is identified as an electron by the Preshower
+        auto pdg  = std::abs(track->PID);
+        auto pbin = hPreshowerEff[pidmap[pdg]]->FindBin(p);
+        auto eff  = hPreshowerEff[pidmap[pdg]]->GetBinContent(pbin);
+        if (gRandom->Uniform() < eff){
+          // and fill some QA histograms for Preshower PID
+          if(!pidmap[pdg]) hPreShElectronPt[iPID_scenario]->Fill(track->PT);
+          else hPreShPionPt[iPID_scenario]->Fill(track->PT);
+        }
 
 
         // fill track vector
@@ -1070,6 +1121,8 @@ void anaEEstudy(
 
       }
 
+      // fill hit histogram with true (eta,pt)
+      hHit->Fill(particle->Eta, particle->PT);
 
 
     }
@@ -1244,7 +1297,6 @@ void anaEEstudy(
   hTrack_ElePos_GenSmeared_Pt_Eta_Phi->Write();
   hTrack_Ele_GenSmeared_Pt_Eta_Phi->Write();
   hTrack_Pos_GenSmeared_Pt_Eta_Phi->Write();
-  hradiustrack->Write();
   hPrimaryM->Write();
   hPrimaryGM->Write();
   hCharmMm->Write();
@@ -1370,6 +1422,8 @@ void anaEEstudy(
   for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueKaon[i]->Write();
   for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueProton[i]->Write();
 
+  hHit->Write();
+  hMismatchTemplateOut->Write();
 
   // fout->cd("reconstructed/");
 
