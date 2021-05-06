@@ -5,8 +5,8 @@ runDelphes() {
   ### copy pythia8 configuration and adjust it
   sleep 2 # be save that the file is copied before modifing it. this can get corrupt it when latency is high
 
-  DelphesPythia8 propagate.tcl pythia8.cfg delphes.root  &> delphes.log &&
-  root -q -l "bkg.cxx(\"delphes.root\", \"background.root\")" &> bkg.log
+  DelphesPythia8 propagate.tcl pythia8.cfg delphes.root &&
+  root -q -l "bkg.cxx(\"delphes.root\", \"background.root\")"
 }
 
 NEVENTS=$1     # number of events in a run
