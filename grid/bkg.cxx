@@ -250,10 +250,33 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     auto hPdg_mother = new TH1F("hPdg_mother",";pdg code mother",601,-0.5,600.5);
 
     // Pair histograms
-    auto hM_Pt_DCA_sameMother = new TH3F("hM_Pt_DCA_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.,200,0.,20.);
-    auto hM_Pt_DCA_ULS = new TH3F("hM_Pt_DCA_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
-    auto hM_Pt_DCA_LSplus = new TH3F("hM_Pt_DCA_LSplus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
-    auto hM_Pt_DCA_LSminus = new TH3F("hM_Pt_DCA_LSminus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.,200,0.,20.);
+    // Binning
+     // ptee
+     const int n_ptee_bin_c = 202;
+     Double_t ptee_bin_c[n_ptee_bin_c+1] = {};
+     for(int i=0  ;i<4   ;i++) {
+       ptee_bin_c[i] = 0.025 * (i-  0) +  0.0;//from 0 to 0.075 GeV/c, every 0.025 GeV/c
+     }
+     for(int i=4 ;i<=202  ;i++) {
+       ptee_bin_c[i] = 0.05  * (i- 4) +  0.1;//from 0.1 to 10 GeV/c, evety 0.05 GeV/c
+     }
+     // mee
+     Double_t mee_bin_c[401];
+     int n_mee_bin_c = 400;
+     for(int k = 0 ; k < 401; k++){
+       mee_bin_c[k] = k*0.01; // 4./400.
+     }
+     // DCA
+     Double_t dca_bin_c[201];
+     int n_dca_bin_c = 200;
+     for(int k = 0 ; k < 201; k++){
+       dca_bin_c[k] = k*0.1; // 4./400.
+     }
+
+    auto hM_Pt_DCA_sameMother = new TH3F("hM_Pt_DCA_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    auto hM_Pt_DCA_ULS        = new TH3F("hM_Pt_DCA_ULS"       ,";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    auto hM_Pt_DCA_LSplus     = new TH3F("hM_Pt_DCA_LSplus"    ,";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    auto hM_Pt_DCA_LSminus    = new TH3F("hM_Pt_DCA_LSminus"   ,";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
 
     // auto hM_Pt_sameMother = new TH2F("hM_Pt_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.);
     // auto hM_Pt_ULS = new TH2F("hM_Pt_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
