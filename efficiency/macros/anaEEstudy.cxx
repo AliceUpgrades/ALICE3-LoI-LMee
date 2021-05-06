@@ -994,9 +994,12 @@ void anaEEstudy(
         // using RICH electron inclusion and pion rejection
         bool TOFpid = false;
         bool RICHpid = false;
+        bool PreShpid = false;
         // Preshower PID
-        if (i_usePreShPID && (fabs(track->D0 / track->ErrorD0) > i_SigmaPreShD0) ) continue; // select primaries based on 3 sigma DCA cuts
-        if (i_usePreShPID && (fabs(track->DZ / track->ErrorDZ) > i_SigmaPreShDZ) ) continue; // select primaries based on 3 sigma DCA cuts
+        if (i_usePreShPID &&
+            !(fabs(track->D0 / track->ErrorD0) > i_SigmaPreShD0) &&
+            !(fabs(track->DZ / track->ErrorDZ) > i_SigmaPreShDZ)
+          ) PreShpid = true; // select primaries based on 3 sigma DCA cuts
 
         //TOF PID
         if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_p_cut)) {
@@ -1016,7 +1019,7 @@ void anaEEstudy(
           if(fabs( (PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_p_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
         }
 
-        if (!(RICHpid || TOFpid)) continue; // check if TOF or RICH signal is true.
+        if (!(RICHpid || TOFpid) && !PreShpid) continue; // check if TOF or RICH signal is true.
         // ################## end of PID selection ##################
         // std::cout << "particle is accepted -> set acceptedByPID kTURE" << std::endl;
         acceptedByPID[iPID_scenario] = kTRUE;

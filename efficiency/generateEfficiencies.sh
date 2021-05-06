@@ -46,9 +46,9 @@ runDelphes() {
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
 NJOBS=6        # number of max parallel runs
-NRUNS=10        # number of runs
+NRUNS=20        # number of runs
 
-NEVENTS=10    # number of events in a run
+NEVENTS=100    # number of events in a run
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 

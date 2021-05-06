@@ -9,7 +9,8 @@ bool bPlotPairHistograms = kFALSE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
-int ith_PIDscenario = 2;
+int ith_PIDscenario = 1;
+TString strPIDscenario[] = {"TOF only", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
