@@ -10,7 +10,7 @@ bool bPlotPairHistograms = kFALSE;
   bool bPlotLS = kTRUE;
 
 int ith_PIDscenario = 1;
-TString strPIDscenario[] = {"TOF only", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
+TString strPIDscenario[] = {"TOF only", "TOF+RICH (3#sigma_{#pi} rej)", "TOF+RICH (3.5#sigma_{#pi} rej)", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -1320,9 +1320,12 @@ if (bPlotTrackContamination) {
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_10," |#eta| < 10.0","p");
 
 
-TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
-
-
+  TLatex *textBField         = new TLatex(0.7, 0.75 , Form("B = %gT",BField));
+  TLatex *textPIDScenario    = new TLatex(0.7, 0.7 , Form("%s",strPIDscenario[ith_PIDscenario-1].Data()));
+  textBField->SetNDC(kTRUE);
+  textPIDScenario->SetNDC(kTRUE);
+  textBField->SetTextSize(0.04);
+  textPIDScenario->SetTextSize(0.02);
 
 
 
@@ -1934,6 +1937,13 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     hProtonContaminationRecPhi->Draw("same hist p e1");
     hTotalPureContaminationRecPhi->Draw("same hist p e1");
     cContaminationPtEtaPhi->SaveAs("./plots/PID_Contamiantion.png");
+
+    TLatex *textBField_conta         = new TLatex(0.7, 0.85 , Form("B = %gT",BField));
+    TLatex *textPIDScenario_conta    = new TLatex(0.7, 0.9 , Form("%s",strPIDscenario[ith_PIDscenario-1].Data()));
+    textBField_conta->SetNDC(kTRUE);
+    textPIDScenario_conta->SetNDC(kTRUE);
+    textBField_conta->SetTextSize(0.04);
+    textPIDScenario_conta->SetTextSize(0.02);
 
     auto cContaminationPt = new TCanvas("cContaminationPt","cContaminationPt",800,800);
     cContaminationPt->SetTopMargin(0.03);

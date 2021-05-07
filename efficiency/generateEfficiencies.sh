@@ -9,8 +9,8 @@ runDelphes() {
     echo "Main:numberOfEvents $2" >> pythia8.$5.$1.cfg
     echo "Random:seed = `expr 1001 \* $1`" >> pythia8.$5.$1.cfg
     echo "Random:setSeed on" >> pythia8.$5.$1.cfg
-    echo "Beams:allowVertexSpread on " >> pythia8.$5.$1.cfg
-    echo "Beams:sigmaTime 60." >> pythia8.$5.$1.cfg
+    # echo "Beams:allowVertexSpread on " >> pythia8.$5.$1.cfg
+    # echo "Beams:sigmaTime 60." >> pythia8.$5.$1.cfg
   elif [[ $5 == "pp" ]]
   then
    cp ../pythia/pythia8.$5.default.cfg pythia8.$5.$1.cfg
@@ -27,10 +27,10 @@ runDelphes() {
    echo "Random:seed = `expr 1001 \* $1`" >> pythia8.$5.$1.cfg
    # echo "Random:seed = `expr 3002 \* $1`" >> pythia8.$5.cc.$1.cfg
    echo "Random:seed = `expr 5003 \* $1`" >> pythia8.$5.bb.$1.cfg
-   echo "Beams:allowVertexSpread on " >> pythia8.$5.$1.cfg
-   echo "Beams:allowVertexSpread on " >> pythia8.$5.bb.$1.cfg
-   echo "Beams:sigmaTime 60." >> pythia8.$5.$1.cfg
-   echo "Beams:sigmaTime 60." >> pythia8.$5.bb.$1.cfg
+   # echo "Beams:allowVertexSpread on " >> pythia8.$5.$1.cfg
+   # echo "Beams:allowVertexSpread on " >> pythia8.$5.bb.$1.cfg
+   # echo "Beams:sigmaTime 60." >> pythia8.$5.$1.cfg
+   # echo "Beams:sigmaTime 60." >> pythia8.$5.bb.$1.cfg
  else
    echo " !!! collisions System not available."
  fi
@@ -45,10 +45,10 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=6        # number of max parallel runs
-NRUNS=20        # number of runs
+NJOBS=7        # number of max parallel runs
+NRUNS=10        # number of runs
 
-NEVENTS=100    # number of events in a run
+NEVENTS=10    # number of events in a run
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
@@ -131,17 +131,7 @@ then
   cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.mu.2kG.100cm.default.dat lutCovm.mu.dat
   cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.pi.2kG.100cm.default.dat lutCovm.pi.dat
   cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.ka.2kG.100cm.default.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.2kG.100cm.default/lu      # time resolution [ns]
-      # vertex time spread [ns]
-    # barrel radius      [cm] (right now equal to TOF)
-    # barrel half length [cm] (right now equal to TOF)
-   # TOF max pseudorapidity
-        # tail on left    [q]
-        # tail on right   [q]
-       # TOF radius      [cm]
-       # TOF half length [cm]
-      # RICH radius      [cm]
-      # RICH half length [cm]tCovm.pr.2kG.100cm.default.dat lutCovm.pr.dat
+  cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.pr.2kG.100cm.default.dat lutCovm.pr.dat
 elif [[ $SCENARIO = "default" ]] && [[ $BFIELD -eq 5 ]]
 then
   cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.el.5kG.100cm.default.dat lutCovm.el.dat
@@ -230,11 +220,11 @@ for I in $(seq 1 $NRUNS); do
     (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I crashed") &
 
 done
-echo " Finished running Delphes "
 
 
-### merge runs when all done
 wait
+echo " Finished running Delphes "
+### merge runs when all done
 hadd -f anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
 cp ./macros/anaPlots.cxx anaPlots.cxx &&
@@ -245,7 +235,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 rm lutCovm*
 rm propagate.tcl
 rm *.root
-rm *.log
+# rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
 rm preparePreshowerEff.C
