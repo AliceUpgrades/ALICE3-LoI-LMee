@@ -4,43 +4,46 @@ runDelphes() {
   ### copy pythia8 configuration and adjust it
   if [[ $5 == "PbPb" ]]
   then
-    cp ../pythia/pythia8.$5.cfg pythia8.$5.$1.cfg
+    cp ../pythia/pythia8_$5.cfg pythia8_$5.$1.cfg
     sleep 2
-    echo "Main:numberOfEvents $2" >> pythia8.$5.$1.cfg
-    echo "Random:seed = `expr 1001 \* $1`" >> pythia8.$5.$1.cfg
-    echo "Random:setSeed on" >> pythia8.$5.$1.cfg
-    # echo "Beams:allowVertexSpread on " >> pythia8.$5.$1.cfg
-    # echo "Beams:sigmaTime 60." >> pythia8.$5.$1.cfg
+    echo "Main:numberOfEvents $2" >> pythia8_$5.$1.cfg
+    echo "Random:seed = `expr 1001 \* $1`" >> pythia8_$5.$1.cfg
+    echo "Random:setSeed on" >> pythia8_$5.$1.cfg
+    # echo "Beams:allowVertexSpread on " >> pythia8_$5.$1.cfg
+    # echo "Beams:sigmaTime 60." >> pythia8_$5.$1.cfg
   elif [[ $5 == "pp" ]]
   then
-   cp ../pythia/pythia8.$5.default.cfg pythia8.$5.$1.cfg
-  # cp ../pythia/pythia8.$5.cc.cfg pythia8.$5.cc.$1.cfg
-   cp ../pythia/pythia8.$5.bb.cfg pythia8.$5.bb.$1.cfg
+   cp ../pythia/pythia8_${5}_default.cfg pythia8_$5.$1.cfg
+  # cp ../pythia/pythia8_${5}_cc.cfg pythia8_${5}_cc.$1.cfg
+   cp ../pythia/pythia8_${5}_bb.cfg pythia8_${5}_bb.$1.cfg
    sleep 2
    # write function to be more readable
-   echo "Main:numberOfEvents $2" >> pythia8.$5.$1.cfg
-   # echo "Main:numberOfEvents $3" >> pythia8.$5.cc.$1.cfg
-   echo "Main:numberOfEvents $4" >> pythia8.$5.bb.$1.cfg
-   # echo "Random:seed = $1$1$1" >> pythia8.$5.$1.cfg
-   # echo "Random:seed = $1$1$1" >> pythia8.$5.cc.$1.cfg
-   # echo "Random:seed = $1$1$1" >> pythia8.$5.bb.$1.cfg
-   echo "Random:seed = `expr 1001 \* $1`" >> pythia8.$5.$1.cfg
-   # echo "Random:seed = `expr 3002 \* $1`" >> pythia8.$5.cc.$1.cfg
-   echo "Random:seed = `expr 5003 \* $1`" >> pythia8.$5.bb.$1.cfg
-   # echo "Beams:allowVertexSpread on " >> pythia8.$5.$1.cfg
-   # echo "Beams:allowVertexSpread on " >> pythia8.$5.bb.$1.cfg
-   # echo "Beams:sigmaTime 60." >> pythia8.$5.$1.cfg
-   # echo "Beams:sigmaTime 60." >> pythia8.$5.bb.$1.cfg
+   echo "Main:numberOfEvents $2" >> pythia8_$5.$1.cfg
+   # echo "Main:numberOfEvents $3" >> pythia8_${5}_cc.$1.cfg
+   echo "Main:numberOfEvents $4" >> pythia8_${5}_bb.$1.cfg
+   # echo "Random:seed = $1$1$1" >> pythia8_$5.$1.cfg
+   # echo "Random:seed = $1$1$1" >> pythia8_$5.cc.$1.cfg
+   # echo "Random:seed = $1$1$1" >> pythia8_$5.bb.$1.cfg
+   echo "Random:setSeed on" >> pythia8_$5.$1.cfg
+   # echo "Random:setSeed on" >> pythia8_${5}_cc.$1.cfg
+   echo "Random:setSeed on" >> pythia8_${5}_bb.$1.cfg
+   echo "Random:seed = `expr 1001 \* $1`" >> pythia8_$5.$1.cfg
+   # echo "Random:seed = `expr 3002 \* $1`" >> pythia8_${5}_cc.$1.cfg
+   echo "Random:seed = `expr 5003 \* $1`" >> pythia8_${5}_bb.$1.cfg
+   # echo "Beams:allowVertexSpread on " >> pythia8_$5.$1.cfg
+   # echo "Beams:allowVertexSpread on " >> pythia8_$5.bb.$1.cfg
+   # echo "Beams:sigmaTime 60." >> pythia8_$5.$1.cfg
+   # echo "Beams:sigmaTime 60." >> pythia8_$5.bb.$1.cfg
  else
    echo " !!! collisions System not available."
  fi
 
 
 
-  # DelphesPythia8 propagate.tcl pythia8.$5.$1.cfg delphes.default.$1.root  &> delphes.default.$1.log &&
-  # DelphesPythia8 propagate.tcl pythia8.$5.cc.$1.cfg delphes.cc.$1.root  &> delphes.cc.$1.log &&
-  # DelphesPythia8 propagate.tcl pythia8.$5.bb.$1.cfg delphes.bb.$1.root  &> delphes.bb.$1.log &&
-  DelphesPythia8 propagate.tcl pythia8.$5.$1.cfg delphes.$5.$1.root  &> delphes.$5.$1.log &&
+  # DelphesPythia8 propagate.tcl pythia8_$5.$1.cfg delphes.default.$1.root  &> delphes.default.$1.log &&
+  # DelphesPythia8 propagate.tcl pythia8_$5.cc.$1.cfg delphes.cc.$1.root  &> delphes.cc.$1.log &&
+  # DelphesPythia8 propagate.tcl pythia8_$5.bb.$1.cfg delphes.bb.$1.root  &> delphes.bb.$1.log &&
+  DelphesPythia8 propagate.tcl pythia8_$5.$1.cfg delphes.$5.$1.root  &> delphes.$5.$1.log &&
   hadd -f delphes.$1.root delphes.*.$1.root && rm delphes.*.$1.root &&
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
@@ -235,7 +238,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 rm lutCovm*
 rm propagate.tcl
 rm *.root
-# rm *.log
+rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
 rm preparePreshowerEff.C
