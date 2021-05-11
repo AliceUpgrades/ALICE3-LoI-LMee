@@ -48,7 +48,7 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=7        # number of max parallel runs
+NJOBS=8        # number of max parallel runs
 NRUNS=10        # number of runs
 
 NEVENTS=10    # number of events in a run
@@ -58,7 +58,7 @@ NEVENTSBB=1000  # number of events in the beauty sample
 SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
-SCENARIO="Werner"     # detector setup
+SCENARIO="werner"     # detector setup
 # BFIELD=2       # magnetic field  [kG]
 BFIELD=5       # magnetic field  [kG]
 
@@ -97,16 +97,12 @@ fi
 echo " --- selected SYSTEM:   $SYSTEM"
 
 # card
-if [[ $BFIELD -eq 2 ]]
-then
-  cp ../delphes/cards/propagate.2kG.tails.tcl propagate.tcl
-  echo " --- selected B-Field:  0.${BFIELD}T"
-elif [[ $BFIELD -eq 5 ]]
-then
-  cp ../delphes/cards/propagate.5kG.tails.tcl propagate.tcl
-  echo " --- selected B-Field:  0.${BFIELD}T"
-else echo " !!! BFIELD not available, check vstd::coutaribale"
-fi
+cp ../delphes/cards/propagate.${BFIELD}kG.tails.tcl propagate.tcl
+echo " --- selected B-Field:  0.${BFIELD}T"
+
+# resolution files
+cp ../resolutionfiles/resolution_test_${BFIELD}kG.root resolution.root
+echo " --- selected resolution file: resolution_test_${BFIELD}kG.root"
 
 echo " --- selected SCENARIO: $SCENARIO"
 
@@ -114,34 +110,20 @@ echo " --- selected SCENARIO: $SCENARIO"
 cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 
 # LUTS
-if [[ $SCENARIO = "Werner" ]] && [[ $BFIELD -eq 2 ]]
+if [[ $SCENARIO = "werner" ]]
 then
-  cp ../LUTs/lutCovm.werner.rmin100.2kG/lutCovm.el.werner.rmin100.2kG.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.werner.rmin100.2kG/lutCovm.mu.werner.rmin100.2kG.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.werner.rmin100.2kG/lutCovm.pi.werner.rmin100.2kG.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.werner.rmin100.2kG/lutCovm.ka.werner.rmin100.2kG.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.werner.rmin100.2kG/lutCovm.pr.werner.rmin100.2kG.dat lutCovm.pr.dat
-elif [[ $SCENARIO = "Werner" ]] && [[ $BFIELD -eq 5 ]]
+  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.el.werner.rmin100.${BFIELD}kG.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.mu.werner.rmin100.${BFIELD}kG.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.pi.werner.rmin100.${BFIELD}kG.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.ka.werner.rmin100.${BFIELD}kG.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.pr.werner.rmin100.${BFIELD}kG.dat lutCovm.pr.dat
+elif [[ $SCENARIO = "default" ]]
 then
-  cp ../LUTs/lutCovm.werner.rmin100.5kG/lutCovm.el.werner.rmin100.5kG.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.werner.rmin100.5kG/lutCovm.mu.werner.rmin100.5kG.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.werner.rmin100.5kG/lutCovm.pi.werner.rmin100.5kG.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.werner.rmin100.5kG/lutCovm.ka.werner.rmin100.5kG.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.werner.rmin100.5kG/lutCovm.pr.werner.rmin100.5kG.dat lutCovm.pr.dat
-elif [[ $SCENARIO = "default" ]] && [[ $BFIELD -eq 2 ]]
-then
-  cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.el.2kG.100cm.default.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.mu.2kG.100cm.default.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.pi.2kG.100cm.default.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.ka.2kG.100cm.default.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.2kG.100cm.default/lutCovm.pr.2kG.100cm.default.dat lutCovm.pr.dat
-elif [[ $SCENARIO = "default" ]] && [[ $BFIELD -eq 5 ]]
-then
-  cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.el.5kG.100cm.default.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.mu.5kG.100cm.default.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.pi.5kG.100cm.default.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.ka.5kG.100cm.default.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.5kG.100cm.default/lutCovm.pr.5kG.100cm.default.dat lutCovm.pr.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.el.${BFIELD}kG.100cm.default.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.mu.${BFIELD}kG.100cm.default.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.pi.${BFIELD}kG.100cm.default.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.ka.${BFIELD}kG.100cm.default.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.pr.${BFIELD}kG.100cm.default.dat lutCovm.pr.dat
 else
   echo "!!! check SCENARIO and BFIELD variables"
 fi

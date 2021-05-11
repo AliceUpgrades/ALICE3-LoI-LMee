@@ -133,6 +133,16 @@ bool kineCuts(GenParticle *pa){
   return (pt && eta);
 }
 
+// kinematic cuts for generated smeared particles
+bool kineCuts(TLorentzVector LV){
+  // check pt and eta for particle
+  // evaluate as true if criterion is passed
+  bool pt = LV.Pt() > PtCut;
+  bool eta = abs(LV.Eta()) < EtaCut;
+  // all have to be true
+  return (pt && eta);
+}
+
 bool hasHeavyAncestor(GenParticle *particle, TClonesArray *particles)
 {
   auto imother = particle->M1;
@@ -521,8 +531,7 @@ void anaEEstudy(
   auto particles = treeReader->UseBranch("Particle");
 
   // Smearing for generated tracks
-  if (Bz==0.5) smearingfile = "../resolutionfiles/resolution_test_5kG.root";
-  else if (Bz==0.2) smearingfile = "../resolutionfiles/resolution_test_2kG.root";
+  if (Bz==0.5) smearingfile = "resolution.root";
   TFile *fRes = TFile::Open(smearingfile.Data());
   // ReadResoFile(fRes);
 
@@ -665,7 +674,7 @@ void anaEEstudy(
   }
 
 
-
+  TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hTrack_Ele_Gen_Pt_Eta_Phi = new TH3F("hTrack_Ele_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hTrack_Pos_Gen_Pt_Eta_Phi = new TH3F("hTrack_Pos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
@@ -697,6 +706,8 @@ void anaEEstudy(
 
   auto hBeforeSmearing_Pt_Eta_Phi_rec = new TH3F("hBeforeSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   auto hAfterSmearing_Pt_Eta_Phi_rec = new TH3F("hAfterSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  auto hAfterKineCuts_Pt_Eta_Phi_rec = new TH3F("hAfterKineCuts_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+
   // auto hPt_Eta_Phi_rec_Eta_Cut_1 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_1", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
   // auto hPt_Eta_Phi_rec_Eta_Cut_2 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_2", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
   // auto hPt_Eta_Phi_rec_Eta_Cut_3 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_3", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
@@ -831,7 +842,7 @@ void anaEEstudy(
 
   std::vector<Track *> vecElectron[nPIDscenarios],vecPositron[nPIDscenarios];
   std::vector<Track *> vecNegTracks[nPIDscenarios],vecPosTracks[nPIDscenarios];
-  std::vector<GenParticle *> vecElectronGen,vecPositronGen;
+  std::vector<GenParticle *> vecElectronGen,vecPositronGen, vecElectronGenSmeared,vecPositronGenSmeared;
   std::vector<Track *> vecNegTracks_onlyTOFpid[nPIDscenarios], vecPosTracks_onlyTOFpid[nPIDscenarios];
   std::vector<Track *> vecPIDtracks, vecTOFtracks;
 
@@ -927,6 +938,7 @@ void anaEEstudy(
 
       if(abs(particle->PID) == 11 ) hAfterSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec);
 
+
       auto p = track->P;
       auto beta = toflayer.getBeta(*track);
       auto measAngle = (richdetector.getMeasuredAngle(*track)).first;
@@ -936,6 +948,10 @@ void anaEEstudy(
       // fill cherenkovAngle-p after semaring
       hCherenkovAngleP_afterSmearing->Fill(p,measAngle);
 
+      // kinatic cuts on tracks
+      if (!kineCuts(track)) continue;
+
+      if(abs(particle->PID) == 11 ) hAfterKineCuts_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec);
 
       // look only at electrons
       // if(abs(particle->PID) != 11 ) continue;
@@ -964,8 +980,7 @@ void anaEEstudy(
       else if (abs(particle->PID) == 2212) for (int i = 0; i < 5; ++i) {hNsigmaP_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]); hDeltaAngleP_RICH_trueProton[i]->Fill(p, PIDdeltaangleRICH[i]);}
 
 
-      // kinatic cuts on tracks
-      if (!kineCuts(track)) continue;
+
 
       // cout << endl;
       // if ((track->PT < 0.1) && (track->PT > 0.08))  cout << " 2nd loop after kine cuts ith track: " << itrack << ", with pT = " << track->PT << endl;
@@ -1049,7 +1064,7 @@ void anaEEstudy(
         else std::cout << "Particle not identified!    Particle PID: " << abs(particle->PID) << std::endl;
 
 
-        if(iPID_scenario == 1){
+        if(iPID_scenario == 3){
           // fill nsigma after PID cuts     (after PID selection has been applied)
           for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_TOF[i]->Fill(p, PIDnsigmaTOF[i]);
           for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH[i]->Fill(p, PIDnsigmaRICH[i]);
@@ -1156,20 +1171,24 @@ void anaEEstudy(
 
       double phiGen = TVector2::Phi_0_2pi(particle->Phi);
 
-      // kinatic cuts on particles
-      if (!kineCuts(particle)) continue;
 
         // look only at electrons
       if(abs(particle->PID) != 11 ) continue;
 
       // Smeared generated particles
-     LV.SetPtEtaPhiM(particle->PT,particle->Eta,phiGen,eMass);
-     Double_t charge = -particle->PID;
-     LV_smeared = ApplySmearing(fArrResoPt,fArrResoEta,fArrResoPhi_Pos,fArrResoPhi_Neg,LV,charge);
-     if(charge > 0.) hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
-     if(charge < 0.) hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
-     hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta());
-     if(LV.Pt() > 0.) hSmearing_For_Eff_pt->Fill(particle->PT, (LV.Pt() - LV_smeared.Pt())/LV.Pt());
+      LV.SetPtEtaPhiM(particle->PT,particle->Eta,phiGen,eMass);
+      Double_t charge = -particle->PID;
+      LV_smeared = ApplySmearing(fArrResoPt,fArrResoEta,fArrResoPhi_Pos,fArrResoPhi_Neg,LV,charge);
+      if(charge > 0.) hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
+      if(charge < 0.) hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
+      hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta());
+      if(LV.Pt() > 0.) hSmearing_For_Eff_pt->Fill(particle->PT, (LV.Pt() - LV_smeared.Pt())/LV.Pt());
+
+
+                                      hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
+
+      // kinatic cuts on particles
+      if (!kineCuts(particle)) continue;
 
       if (particle->PID == 11 ) vecElectronGen.push_back(particle);       // vector filled with generated electrons
       else if (particle->PID == -11 ) vecPositronGen.push_back(particle); // vector filled with generated positrons
@@ -1178,9 +1197,16 @@ void anaEEstudy(
       if (particle->PID == 11)        hTrack_Ele_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated electrons
       else if (particle->PID == -11)  hTrack_Pos_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated positrons
 
-                                      hTrack_ElePos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),LV_smeared.Phi()); // Pt Eta Phi of generated smeared electrons + positrons
-      if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),LV_smeared.Phi());    // Pt Eta Phi of generated smeared electrons
-      else if (particle->PID == -11)  hTrack_Pos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),LV_smeared.Phi());    // Pt Eta Phi of generated smeared positrons
+      // applying kinematic cuts on smeared LV vector
+      if (!kineCuts(LV_smeared)) continue;
+      double phiGenSmear = TVector2::Phi_0_2pi(LV_smeared.Phi());
+
+                                      hTrack_ElePos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear); // Pt Eta Phi of generated smeared electrons + positrons
+      if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear);    // Pt Eta Phi of generated smeared electrons
+      else if (particle->PID == -11)  hTrack_Pos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear);    // Pt Eta Phi of generated smeared positrons
+
+      if (particle->PID == 11 )       vecElectronGenSmeared.push_back(particle);        // vector filled with generated smeared electrons
+      else if (particle->PID == -11 ) vecPositronGenSmeared.push_back(particle);        // vector filled with generated smeared positrons
 
       // fill histograms
       // separate electrons & positrons originating from different light flavour (priamary), charm (cc) and buty (bb) decays
@@ -1292,6 +1318,7 @@ void anaEEstudy(
   // hTrack_Pion_Rec_Pt_Eta_Phi->Write();
   // hTrack_Kaon_Rec_Pt_Eta_Phi->Write();
   // hTrack_Proton_Rec_Pt_Eta_Phi->Write();
+  hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Write();
   hTrack_ElePos_Gen_Pt_Eta_Phi->Write();
   hTrack_Ele_Gen_Pt_Eta_Phi->Write();
   hTrack_Pos_Gen_Pt_Eta_Phi->Write();
@@ -1307,6 +1334,7 @@ void anaEEstudy(
   hBeautyGM->Write();
   hBeforeSmearing_Pt_Eta_Phi_rec->Write();
   hAfterSmearing_Pt_Eta_Phi_rec->Write();
+  hAfterKineCuts_Pt_Eta_Phi_rec->Write();
   // hPt_Eta_Phi_primary_rec->Write();
   // hPt_Eta_Phi_primary_Ele_rec->Write();
   // hPt_Eta_Phi_primary_Pos_rec->Write();
