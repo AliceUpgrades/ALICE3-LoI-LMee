@@ -94,16 +94,30 @@ double PtCut05[]        = {/*0.2,     0.08,       */  0.03,   0.03,   0.03,    0
 
 
 bool doPID(Track * tr, bool useTOF, bool useRICH, bool usePreSh, double p_tofMaxAcc, double p_tofPionRej, double p_richPionRej, double nSigmaTOFele, double nSigmaTOFpi, double nSigmaRICHele, double nSigmaRICHpi){
+  bool TOFpid = false;
+  bool RICHpid = false;
+  // TOF layer
+  o2::delphes::TOFLayer toflayer;
+  toflayer.setup(tof_radius, tof_length, tof_sigmat,tof_sigma0);
+
+  // RICH detector
+  o2::delphes::RICHdetector richdetector;
+  richdetector.setup(rich_radius, rich_length);
+  richdetector.setIndex(1.03);
+  richdetector.setRadiatorLength(2.);
+  richdetector.setEfficiency(0.4);
+  richdetector.setSigma(7.e-3);
+
   auto p = tr->P;
   //make TOF PID
   std::array<float, 5> PIDdeltatTOF, PIDnsigmaTOF;
-  toflayer.makePID(*track, PIDdeltatTOF, PIDnsigmaTOF);
+  toflayer.makePID(*tr, PIDdeltatTOF, PIDnsigmaTOF);
   //make RICH PID
   std::array<float, 5> PIDdeltaangleRICH, PIDnsigmaRICH;
-  richdetector.makePID(*track, PIDdeltaangleRICH, PIDnsigmaRICH);
+  richdetector.makePID(*tr, PIDdeltaangleRICH, PIDnsigmaRICH);
 
   //apply TOF PID cuts
-  if(useTOF && (toflayer.hasTOF(*tr)) && (p < tofMaxAcc)) {
+  if(useTOF && (toflayer.hasTOF(*tr)) && (p < p_tofMaxAcc)) {
     if (p > p_tofPionRej) {
       if((fabs(PIDnsigmaTOF[0]) < nSigmaTOFele) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID)) TOFpid = true; // is within 3 sigma of the electron band (TOF)
     }
@@ -1466,7 +1480,7 @@ void anaEEstudy(
         // if (!(RICHpid || TOFpid) /*&& !PreShpid*/) continue; // check if TOF or RICH signal is true.
         // // ################## end of PID selection ##################
 
-        if(!doPID(track, i_useTOFPID, i_useRICHPID, usePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi)) continue;
+        if(!doPID(track, i_useTOFPID, i_useRICHPID, bUsePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi)) continue;
 
         // fill histograms
                                     hAllTracks_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec); // Pt Eta Phi of all type of reconstructed particles
