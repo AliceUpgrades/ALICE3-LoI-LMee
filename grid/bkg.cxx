@@ -17,7 +17,7 @@ double rich_radius = 100.; // [cm]
 double rich_length = 200.; // [cm]
 
 // Cinematic cuts on tracks
-double PtCut = 0.04;
+double PtCut = 0.08;
 double EtaCut = 1.1;
 
 void makeHistNice(TH1* h, int color){
@@ -246,6 +246,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     // Track histograms
     auto hPt_trackEle = new TH1F("hPt_trackEle",";p_T (GeV/c)",200,0,20);
     auto hPt_trackPID = new TH1F("hPt_trackPID",";p_T (GeV/c)",200,0,20);
+    auto hEta_chargedTrack = new TH1F("hEta_chargedTrack",";#eta",400,-2,2);
     // check the pid codes of Mothers
     auto hPdg_mother = new TH1F("hPdg_mother",";pdg code mother",601,-0.5,600.5);
 
@@ -308,6 +309,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             // cut away tracks that are way off.
             if (fabs(track->D0) > 0.4) continue; // adopt to just stay in the beampipe?
             if (fabs(track->DZ) > 3.) continue;
+            if (!kineCuts(track) continue);
 
             // check if has TOF
             if (toflayer.hasTOF(*track)) vecTOFtracks.push_back(track);
@@ -320,7 +322,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
 
         }
-
+        if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
         nTracks->Fill(vecPIDtracks.size());
 
         std::array<float, 2> tzero;
@@ -330,6 +332,9 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
         for(auto track : vecPIDtracks)
         {
+          // check fr centrality
+          if((track->PT > 0.08) && (fabs(track->Charge) > 0.))  hEta_chargedTrack->Fill(track->Eta);
+
           auto particle = (GenParticle *)track->Particle.GetObject();
           auto pid = particle->PID;
 
@@ -337,7 +342,6 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
           if (imother == -1) return false;
           auto mother = (GenParticle *)particles->At(imother);
           auto mpid = mother->PID;
-
 
           bool TOFpid = false;
           bool RICHpid = false;
@@ -464,6 +468,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     nTracksGen->Write();
     nTracksEle->Write();
     nTracksPos->Write();
+    hEta_chargedTrack->Write();
     hPt_trackEle->Write();
     hPt_trackPID->Write();
     hM_Pt_DCA_sameMother->Write();
