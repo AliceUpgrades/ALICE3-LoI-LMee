@@ -309,7 +309,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             // cut away tracks that are way off.
             if (fabs(track->D0) > 0.4) continue; // adopt to just stay in the beampipe?
             if (fabs(track->DZ) > 3.) continue;
-            if (!kineCuts(track) continue);
+            if (!kineCuts(track)) continue;
 
             // check if has TOF
             if (toflayer.hasTOF(*track)) vecTOFtracks.push_back(track);
