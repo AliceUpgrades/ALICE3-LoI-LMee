@@ -146,6 +146,7 @@ void anaPlots(TString inputFile)
   TH3F* hGen_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Ele_Gen_Pt_Eta_Phi");
   TH3F* hGen_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Pos_Gen_Pt_Eta_Phi");
 
+  // TH3F* hGenSmeared_Track_ElePos_Pt_Eta_Phi_beforeKineCuts = (TH3F*) fIn->Get("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts");
   TH3F* hGenSmeared_Track_ElePos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_ElePos_GenSmeared_Pt_Eta_Phi");
   TH3F* hGenSmeared_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Ele_GenSmeared_Pt_Eta_Phi");
   TH3F* hGenSmeared_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get("hTrack_Pos_GenSmeared_Pt_Eta_Phi");
@@ -440,6 +441,10 @@ if (bPlotPIDhistograms) {
   TH1F* etaGenTrackPos = (TH1F*) hGen_Track_Pos_Pt_Eta_Phi->ProjectionY("Gen positrons etaTrack");
   TH1F* phiGenTrackPos = (TH1F*) hGen_Track_Pos_Pt_Eta_Phi->ProjectionZ("Gen positrons phiTrack");
 
+  // TH1F* ptGenSmearedTrackElePos_beforeKineCuts  = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi_beforeKineCuts->ProjectionX("GenSmeared ElePos ptTrack beforeKineCuts");
+  // TH1F* etaGenSmearedTrackElePos_beforeKineCuts = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi_beforeKineCuts->ProjectionY("GenSmeared ElePos etaTrack beforeKineCuts");
+  // TH1F* phiGenSmearedTrackElePos_beforeKineCuts = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi_beforeKineCuts->ProjectionZ("GenSmeared ElePos phiTrack beforeKineCuts");
+
   TH1F* ptGenSmearedTrackElePos  = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi->ProjectionX("GenSmeared ElePos ptTrack");
   TH1F* etaGenSmearedTrackElePos = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi->ProjectionY("GenSmeared ElePos etaTrack");
   TH1F* phiGenSmearedTrackElePos = (TH1F*) hGenSmeared_Track_ElePos_Pt_Eta_Phi->ProjectionZ("GenSmeared ElePos phiTrack");
@@ -610,6 +615,7 @@ if (bPlotPIDhistograms) {
  TH1F* ptGenTrackElePos_rebin = (TH1F*) ptGenTrackElePos->Rebin(nbinspt_proj,"ptGenTrackElePos_rebin",&pt_bin_proj[0]);
  TH1F* ptGenSmearedTrackElePos_rebin = (TH1F*) ptGenSmearedTrackElePos->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_rebin",&pt_bin_proj[0]);
  TH1F* ptGenTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
+ // TH1F* ptGenSmearedTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenSmearedTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
 
 
  TH1F* ptAllRecTrack_rebin = (TH1F*) ptAllRecTrack->Rebin(nbinspt_proj,"ptAllRecTrack_rebin",&pt_bin_proj[0]);
@@ -1131,12 +1137,16 @@ if (bPlotTrackContamination) {
   ptGenSmearedTrackElePos->SetMarkerStyle(25);
   makeHistNice(ptGenTrackElePos_beforeKineCuts_rebin,kViolet);
   ptGenTrackElePos_beforeKineCuts_rebin->SetMarkerStyle(27);
+  // makeHistNice(ptGenSmearedTrackElePos_beforeKineCuts_rebin,kRed+3);
+  // ptGenSmearedTrackElePos_beforeKineCuts_rebin->SetMarkerStyle(28);
 
   normalzeToBinWidth(ptGenTrackElePos_rebin);
   normalzeToBinWidth(ptGenSmearedTrackElePos_rebin);
   normalzeToBinWidth(ptRecTrackElePos_rebin);
 
   normalzeToBinWidth(ptGenTrackElePos_beforeKineCuts_rebin);
+  // normalzeToBinWidth(ptGenSmearedTrackElePos_beforeKineCuts_rebin);
+
 
 
   makeHistNice(ptRecTrackEle_rebin,kGreen+3);
@@ -1211,9 +1221,9 @@ if (bPlotTrackContamination) {
   make3HistNice(ptRecTrackAfterSmearing_rebin,kRed+1);
   make3HistNice(etaRecTrackAfterSmearing,kRed+1);
   make3HistNice(phiRecTrackAfterSmearing,kRed+1);
-  make3HistNice(ptRecTrackAfterKineCuts_rebin,kViolet+2);
-  make3HistNice(etaRecTrackAfterKineCuts,kViolet+2);
-  make3HistNice(phiRecTrackAfterKineCuts,kViolet+2);
+  make3HistNice(ptRecTrackAfterKineCuts_rebin,kRed+4);
+  make3HistNice(etaRecTrackAfterKineCuts,kRed+4);
+  make3HistNice(phiRecTrackAfterKineCuts,kRed+4);
   make3HistNice(ptRecTrackElePos_rebin,kBlue+1);
   make3HistNice(etaRecTrackElePos,kBlue+1);
   make3HistNice(phiRecTrackElePos,kBlue+1);
@@ -1316,6 +1326,7 @@ if (bPlotTrackContamination) {
   double legPosKine[4] = {0.3,0.78,0.85,0.93};
   double legPosPair[4] = {0.55,0.78,0.95,0.93};
   double legPosCont[4] = {0.2,0.68,0.55,0.93};
+  double legPosBottomLeft[4] = {0.15,0.15,0.55,0.5};
   double legPosNSigmaPID[4] = {0.75,0.80,0.95,0.93};
   //make some legends
   // auto legTrack1 = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
@@ -1391,6 +1402,18 @@ if (bPlotTrackContamination) {
   legGenGenSmearRecElePos_top->AddEntry(ptGenTrackElePos,"gen tracks","p");
   legGenGenSmearRecElePos_top->AddEntry(ptGenSmearedTrackElePos,"gen smeared tracks","p");
   legGenGenSmearRecElePos_top->AddEntry(ptRecTrackElePos,"rec tracks","p");
+
+  auto legGenGenSmearRecElePos_Plus = new TLegend(legPosBottomLeft[0],legPosBottomLeft[1],legPosBottomLeft[2],legPosBottomLeft[3]);
+  legGenGenSmearRecElePos_Plus->SetBorderSize(0);
+  legGenGenSmearRecElePos_Plus->SetFillStyle(0);
+  legGenGenSmearRecElePos_Plus->AddEntry(ptGenTrackElePos_beforeKineCuts_rebin,"gen","p");
+  // legGenGenSmearRecElePos_Plus->AddEntry(ptGenSmearedTrackElePos_beforeKineCuts_rebin,"gen smeared","p");
+  legGenGenSmearRecElePos_Plus->AddEntry(ptGenTrackElePos_rebin,"gen + kine cuts","p");
+  legGenGenSmearRecElePos_Plus->AddEntry(ptGenSmearedTrackElePos_rebin,"gen smeared + kine cuts","p");
+  legGenGenSmearRecElePos_Plus->AddEntry(ptRecTrackBeforeSmearing_rebin,"rec","p");
+  legGenGenSmearRecElePos_Plus->AddEntry(ptRecTrackAfterSmearing_rebin,"rec + smeared","p");
+  legGenGenSmearRecElePos_Plus->AddEntry(ptRecTrackAfterKineCuts_rebin,"rec + smeared + kine","p");
+  legGenGenSmearRecElePos_Plus->AddEntry(ptRecTrackElePos_rebin,"rec + smeared + kine + PID","p");
 
   // auto legEffULSPair = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   // legEffULSPair->SetBorderSize(0);
@@ -1833,7 +1856,14 @@ if (bPlotTrackContamination) {
     textPIDScenario->Draw("same");
     cGenGenSmearRecElePosPt->SaveAs("./plots/GenGenSmearRecElePos_Pt.png");
     ptGenTrackElePos_rebin->GetXaxis()->SetRangeUser(0.,0.5);
+    ptGenTrackElePos_rebin->Draw("hist p e1");
+    ptGenSmearedTrackElePos_rebin->Draw("hist p e1 same");
+    ptRecTrackElePos_rebin->Draw("hist p e1 same");
+    textBField->Draw("same");
+    textPIDScenario->Draw("same");
+    legGenGenSmearRecElePos_Plus->Draw("same");
     ptGenTrackElePos_beforeKineCuts_rebin->Draw("hist p e1 same");
+    // ptGenSmearedTrackElePos_beforeKineCuts_rebin->Draw("hist p e1 same");
     ptRecTrackBeforeSmearing_rebin->Draw("hist p e1 same");
     ptRecTrackAfterSmearing_rebin->Draw("hist p e1 same");
     ptRecTrackAfterKineCuts_rebin->Draw("hist p e1 same");
@@ -2125,6 +2155,7 @@ if (bPlotTrackContamination) {
     // cContaminationPt->SaveAs("./plots/PID_Pt_TotalContamiantion.png");
   }
 
+
   if (bPlotPIDhistograms) {
     const char *namesEleMuPi[3] = {"Ele", "Mu", "Pi"};
     for (size_t iNSig = 0; iNSig < (sizeof(namesEleMuPi)/sizeof(namesEleMuPi[0])); iNSig++) {
@@ -2274,6 +2305,7 @@ if (bPlotTrackContamination) {
       }
     }
   }
+
 
   if (bPlotPairHistograms) {
     if (bPlotULS) {
@@ -2453,6 +2485,7 @@ if (bPlotTrackContamination) {
       }
     }
 
+    cout << __LINE__ << "cout line " << endl;
 
 
     if (bPlotLS) {
@@ -2487,7 +2520,12 @@ if (bPlotTrackContamination) {
 
   if (bPlotEfficiency) {
     TString nameEffRootFile = inputFile.Data();
-    nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
+    if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
+    if (inputFile.Contains("B2_100000events")) nameEffRootFile.ReplaceAll("../grid/output/B2_100000events/anaEEstudy.", "");
+    if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll("../grid/output/B2_100k/anaEEstudy.", "");
+    if (inputFile.Contains("B5_100000events")) nameEffRootFile.ReplaceAll("../grid/output/B5_100000events/anaEEstudy.", "");
+    if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll("../grid/output/B5_100k/anaEEstudy.", "");
+
     nameEffRootFile.ReplaceAll(".root", "");
     TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
     ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");

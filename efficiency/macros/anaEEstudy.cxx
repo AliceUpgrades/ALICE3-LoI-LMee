@@ -675,6 +675,7 @@ void anaEEstudy(
 
 
   TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts = new TH3F("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hTrack_Ele_Gen_Pt_Eta_Phi = new TH3F("hTrack_Ele_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hTrack_Pos_Gen_Pt_Eta_Phi = new TH3F("hTrack_Pos_Gen_Pt_Eta_Phi",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
@@ -846,6 +847,9 @@ void anaEEstudy(
   std::vector<Track *> vecNegTracks_onlyTOFpid[nPIDscenarios], vecPosTracks_onlyTOFpid[nPIDscenarios];
   std::vector<Track *> vecPIDtracks, vecTOFtracks;
 
+  int nTotalTracks = 0;
+  int nTotalParticles = 0;
+
 
   for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry) {
 
@@ -853,6 +857,9 @@ void anaEEstudy(
     treeReader->ReadEntry(ientry);
     // nTracks->Fill(tracks->GetEntries());
     nParticles->Fill(particles->GetEntries());
+    // nTotalParticles = nTotalParticles + particles->GetEntries();
+    // nTotalTracks = nTotalTracks + tracks->GetEntries();
+    // cout << "This event has " << particles->GetEntries() << " particles, and " << tracks->GetEntries() << " tracks, the total Number of Particles is now " << nTotalParticles << " and total number of tracks Tracks " << nTotalTracks << endl << endl;
 
     // std::cout << " NTracks: " << tracks->GetEntries() << std::endl;
     // std::cout << " NParticles: " << particles->GetEntries() << std::endl;
@@ -1186,20 +1193,23 @@ void anaEEstudy(
 
 
                                       hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
+                                      hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
 
       // kinatic cuts on particles
-      if (!kineCuts(particle)) continue;
-
-      if (particle->PID == 11 ) vecElectronGen.push_back(particle);       // vector filled with generated electrons
-      else if (particle->PID == -11 ) vecPositronGen.push_back(particle); // vector filled with generated positrons
+      if (kineCuts(particle)){
+        if (particle->PID == 11 ) vecElectronGen.push_back(particle);       // vector filled with generated electrons
+        else if (particle->PID == -11 ) vecPositronGen.push_back(particle); // vector filled with generated positrons
 
                                       hTrack_ElePos_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-      if (particle->PID == 11)        hTrack_Ele_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated electrons
-      else if (particle->PID == -11)  hTrack_Pos_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated positrons
+        if (particle->PID == 11)        hTrack_Ele_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated electrons
+        else if (particle->PID == -11)  hTrack_Pos_Gen_Pt_Eta_Phi->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated positrons
+      }
 
       // applying kinematic cuts on smeared LV vector
       if (!kineCuts(LV_smeared)) continue;
       double phiGenSmear = TVector2::Phi_0_2pi(LV_smeared.Phi());
+                          // cout << "gen pt eta phi: " << particle->PT << " " << particle->Eta << " " << phiGen << endl;
+                          // cout << "gen smeared pt eta phi: " << LV_smeared.Pt() << " " << LV_smeared.Eta() << " " << phiGenSmear << endl;
 
                                       hTrack_ElePos_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear); // Pt Eta Phi of generated smeared electrons + positrons
       if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear);    // Pt Eta Phi of generated smeared electrons
@@ -1319,6 +1329,7 @@ void anaEEstudy(
   // hTrack_Kaon_Rec_Pt_Eta_Phi->Write();
   // hTrack_Proton_Rec_Pt_Eta_Phi->Write();
   hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Write();
+  hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts->Write();
   hTrack_ElePos_Gen_Pt_Eta_Phi->Write();
   hTrack_Ele_Gen_Pt_Eta_Phi->Write();
   hTrack_Pos_Gen_Pt_Eta_Phi->Write();
