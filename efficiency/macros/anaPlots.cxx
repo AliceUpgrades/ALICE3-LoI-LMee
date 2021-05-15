@@ -1,15 +1,16 @@
 // use bools to select which  histograms are upperIntEdge
 
 bool bPlotEfficiency = kTRUE;
-bool bPlotPIDhistograms = kFALSE;
-  bool bPlotNSigmaProjections = kFALSE;
+bool bPlotPIDhistograms = kTRUE;
+  bool bPlotNSigmaProjections = kTRUE;
 bool bPlotTrackContamination = kTRUE;
 
 bool bPlotPairHistograms = kFALSE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
-int ith_PIDscenario = 2;
+int ith_PIDscenario = 4;
+TString strPIDscenario[] = {"TOF only", "TOF+RICH (3#sigma_{#pi} rej)", "TOF+RICH (3.5#sigma_{#pi} rej)", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -34,7 +35,7 @@ void make3HistNice(TH1* h, int color){
   h->SetMarkerColor(color);
   h->SetLineColor(color);
   h->SetMarkerStyle(20);
-  h->SetMarkerSize(0.6);
+  // h->SetMarkerSize(0.6);
   h->SetLineWidth(2);
 }
 
@@ -66,6 +67,13 @@ void SetStyleAlpha(TH1* h, int color, double alpha)
   h->SetLineWidth(2);
 }
 
+void normalzeToBinWidth(TH1* h){
+  int nBins = h->GetNbinsX();
+  for (size_t iBin = 1; iBin < nBins+1; iBin++) {
+    h->SetBinContent(iBin, h->GetBinContent(iBin)/h->GetXaxis()->GetBinWidth(iBin));
+  }
+}
+
 
 void anaPlots(TString inputFile)
 {
@@ -90,6 +98,7 @@ void anaPlots(TString inputFile)
   // read generated ULS histos
   // fIn->cd("generated/ULS");
   // Track histograms
+
 
   // TH3F* hRec_TrackPtEtaPhi_primary = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_primary_rec");
   // TH3F* hRecEle_TrackPtEtaPhi_primary = (TH3F*) fIn->cd(pathPIDScenario)->Get("hPt_Eta_Phi_primary_Ele_rec");
@@ -583,6 +592,9 @@ if (bPlotPIDhistograms) {
   // phiRecTrackAfterSmearing->Rebin(10);
 
 
+ TH1F* ptRecTrackBeforeSmearing_rebin = (TH1F*) ptRecTrackBeforeSmearing->Rebin(nbinspt_proj,"ptRecTrackBeforeSmearing_rebin",&pt_bin_proj[0]);
+ TH1F* ptRecTrackAfterSmearing_rebin = (TH1F*) ptRecTrackAfterSmearing->Rebin(nbinspt_proj,"ptRecTrackAfterSmearing_rebin",&pt_bin_proj[0]);
+
  TH1F* ptRecTrackElePos_rebin = (TH1F*) ptRecTrackElePos->Rebin(nbinspt_proj,"ptRecTrackElePos_rebin",&pt_bin_proj[0]);
  TH1F* ptGenTrackElePos_rebin = (TH1F*) ptGenTrackElePos->Rebin(nbinspt_proj,"ptGenTrackElePos_rebin",&pt_bin_proj[0]);
  TH1F* ptGenSmearedTrackElePos_rebin = (TH1F*) ptGenSmearedTrackElePos->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_rebin",&pt_bin_proj[0]);
@@ -601,9 +613,12 @@ if (bPlotPIDhistograms) {
 
 
  TH1F* ptRecTrackEle_rebin = (TH1F*) ptRecTrackEle->Rebin(nbinspt_proj,"ptRecTrackEle_rebin",&pt_bin_proj[0]);
- TH1F* ptGenSmearedTrackEle_rebin = (TH1F*) ptGenSmearedTrackEle->Rebin(nbinspt_proj,"ptGenSmearedTrackEle_rebin",&pt_bin_proj[0]);
  TH1F* ptRecTrackPos_rebin = (TH1F*) ptRecTrackPos->Rebin(nbinspt_proj,"ptRecTrackPos_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenSmearedTrackEle_rebin = (TH1F*) ptGenSmearedTrackEle->Rebin(nbinspt_proj,"ptGenSmearedTrackEle_rebin",&pt_bin_proj[0]);
  TH1F* ptGenSmearedTrackPos_rebin = (TH1F*) ptGenSmearedTrackPos->Rebin(nbinspt_proj,"ptGenSmearedTrackPos_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenTrackEle_rebin = (TH1F*) ptGenTrackEle->Rebin(nbinspt_proj,"ptGenTrackEle_rebin",&pt_bin_proj[0]);
+ TH1F* ptGenTrackPos_rebin = (TH1F*) ptGenTrackPos->Rebin(nbinspt_proj,"ptGenTrackPos_rebin",&pt_bin_proj[0]);
+
 
 
   // ptRecTrackElePos->Rebin(2);
@@ -911,9 +926,9 @@ if (bPlotTrackContamination) {
   hPurityRecEtaPos->Divide(etaRecTrackPos,etaRecPosTrack,1,1,"B");
   hPurityRecPhiPos->Divide(phiRecTrackPos,phiRecPosTrack,1,1,"B");
 
-  hTotalPureContaminationRecPt = (TH1F*)  ptAllRecTrack_rebin->Clone();
-  hTotalPureContaminationRecEta = (TH1F*) etaAllRecTrack->Clone();
-  hTotalPureContaminationRecPhi = (TH1F*) phiAllRecTrack->Clone();
+  hTotalPureContaminationRecPt = (TH1F*)  ptAllRecTrack_rebin->Clone("TotalContaminationPt");
+  hTotalPureContaminationRecEta = (TH1F*) etaAllRecTrack->Clone("TotalContaminationEta");
+  hTotalPureContaminationRecPhi = (TH1F*) phiAllRecTrack->Clone("TotalContaminationPhi");
   hPureContaminationRecPtNeg = (TH1F*)  ptRecNegTrack_rebin->Clone();
   hPureContaminationRecEtaNeg = (TH1F*) etaRecNegTrack->Clone();
   hPureContaminationRecPhiNeg = (TH1F*) phiRecNegTrack->Clone();
@@ -950,12 +965,42 @@ if (bPlotTrackContamination) {
   hProtonContaminationRecPt->Sumw2();
   hProtonContaminationRecEta->Sumw2();
   hProtonContaminationRecPhi->Sumw2();
-  hTotalPureContaminationRecPt->Sumw2();
-  hTotalPureContaminationRecEta->Sumw2();
-  hTotalPureContaminationRecPhi->Sumw2();
-  hTotalPureContaminationRecPt->Add(ptRecTrackElePos_rebin,-1);
-  hTotalPureContaminationRecEta->Add(etaRecTrackElePos,-1);
-  hTotalPureContaminationRecPhi->Add(phiRecTrackElePos,-1);
+  // hTotalPureContaminationRecPt->Add(ptRecTrackElePos_rebin,-1);
+  // hTotalPureContaminationRecEta->Add(etaRecTrackElePos,-1);
+  // hTotalPureContaminationRecPhi->Add(phiRecTrackElePos,-1);
+  // hTotalPureContaminationRecPt->Sumw2();
+  // hTotalPureContaminationRecEta->Sumw2();
+  // hTotalPureContaminationRecPhi->Sumw2();
+
+  double binError = 0., binValA =0., binValB=0., errorA = 0., errorB = 0.;
+  for (int iBin = 1; iBin < hTotalPureContaminationRecPt->GetNbinsX()+1; iBin++) {
+   binValA = ptRecTrackElePos_rebin->GetBinContent(iBin);
+   binValB = hTotalPureContaminationRecPt->GetBinContent(iBin);
+   errorA = ptRecTrackElePos_rebin->GetBinError(iBin);
+   errorB = hTotalPureContaminationRecPt->GetBinError(iBin);
+   binError = TMath::Sqrt(TMath::Abs(errorA*errorA - errorB*errorB));
+   hTotalPureContaminationRecPt->SetBinContent(iBin,binValB-binValA);
+   hTotalPureContaminationRecPt->SetBinError(iBin,binError);
+  }
+  for (int iBin = 1; iBin < hTotalPureContaminationRecEta->GetNbinsX()+1; iBin++) {
+   binValA = etaRecTrackElePos->GetBinContent(iBin);
+   binValB = hTotalPureContaminationRecEta->GetBinContent(iBin);
+   errorA = etaRecTrackElePos->GetBinError(iBin);
+   errorB = hTotalPureContaminationRecEta->GetBinError(iBin);
+   binError = TMath::Sqrt(TMath::Abs(errorA*errorA - errorB*errorB));
+   hTotalPureContaminationRecEta->SetBinContent(iBin,binValB-binValA);
+   hTotalPureContaminationRecEta->SetBinError(iBin,binError);
+  }
+  for (int iBin = 1; iBin < hTotalPureContaminationRecPhi->GetNbinsX()+1; iBin++) {
+   binValA = phiRecTrackElePos->GetBinContent(iBin);
+   binValB = hTotalPureContaminationRecPhi->GetBinContent(iBin);
+   errorA = phiRecTrackElePos->GetBinError(iBin);
+   errorB = hTotalPureContaminationRecPhi->GetBinError(iBin);
+   binError = TMath::Sqrt(TMath::Abs(errorA*errorA - errorB*errorB));
+   hTotalPureContaminationRecPhi->SetBinContent(iBin,binValB-binValA);
+   hTotalPureContaminationRecPhi->SetBinError(iBin,binError);
+  }
+
   hPureContaminationRecPtNeg->Add(ptRecTrackEle_rebin,-1);
   hPureContaminationRecEtaNeg->Add(etaRecTrackEle,-1);
   hPureContaminationRecPhiNeg->Add(phiRecTrackEle,-1);
@@ -980,9 +1025,21 @@ if (bPlotTrackContamination) {
   hProtonContaminationRecPt->Divide(hProtonContaminationRecPt, hTotalRecTrackPt,1,1,"B");
   hProtonContaminationRecEta->Divide(hProtonContaminationRecEta, hTotalRecTrackEta,1,1,"B");
   hProtonContaminationRecPhi->Divide(hProtonContaminationRecPhi, hTotalRecTrackPhi,1,1,"B");
-  hTotalPureContaminationRecPt->Divide(hTotalPureContaminationRecPt,hTotalRecTrackPt,1,1,"B");
-  hTotalPureContaminationRecEta->Divide(hTotalPureContaminationRecEta,hTotalRecTrackEta,1,1,"B");
-  hTotalPureContaminationRecPhi->Divide(hTotalPureContaminationRecPhi,hTotalRecTrackPhi,1,1,"B");
+
+  // hTotalPureContaminationRecPt->Divide(hTotalPureContaminationRecPt,hTotalRecTrackPt,1,1,"B");
+  // hTotalPureContaminationRecEta->Divide(hTotalPureContaminationRecEta,hTotalRecTrackEta,1,1,"B");
+  // hTotalPureContaminationRecPhi->Divide(hTotalPureContaminationRecPhi,hTotalRecTrackPhi,1,1,"B");
+  for (int iBin = 1; iBin < hTotalPureContaminationRecPt->GetNbinsX()+1; iBin++) {
+    binValA = hTotalPureContaminationRecPt->GetBinContent(iBin);
+    binValB = hTotalRecTrackPt->GetBinContent(iBin);
+    if (binValB==0. || binValA==0.) continue;
+    errorA = hTotalPureContaminationRecPt->GetBinError(iBin);
+    errorB = hTotalRecTrackPt->GetBinError(iBin);
+    binError = binValA/binValB * TMath::Sqrt((errorA*errorA)/(binValA*binValA) + (errorB*errorB)/(binValB*binValB)- (2*errorA*errorA)/(binValA*binValB));
+    hTotalPureContaminationRecPt->SetBinContent(iBin,binValA/binValB);
+    hTotalPureContaminationRecPt->SetBinError(iBin,binError);
+    // std::cout << " value of contamination in " << iBin <<  "-th Bin: " << binValA/binValB <<  ",  with BinError : " << binError << std::endl;
+  }
 }
 
 
@@ -1044,22 +1101,37 @@ if (bPlotTrackContamination) {
   ptGenTrackElePos->SetMarkerStyle(24);
   ptGenSmearedTrackElePos->SetMarkerStyle(26);
 
-  makeHistNice(ptRecTrackEle,kGreen+3);
+  makeHistNice(ptGenTrackElePos_rebin,kGreen+3);
+  makeHistNice(ptGenSmearedTrackElePos_rebin,kOrange+1);
+  makeHistNice(ptRecTrackElePos_rebin,kBlue+1);
+  ptGenTrackElePos_rebin->SetMarkerStyle(24);
+  ptGenSmearedTrackElePos_rebin->SetMarkerStyle(25);
+  makeHistNice(ptGenTrackElePos,kGreen+3);
+  makeHistNice(ptGenSmearedTrackElePos,kOrange+1);
+  makeHistNice(ptRecTrackElePos,kBlue+1);
+  ptGenTrackElePos->SetMarkerStyle(24);
+  ptGenSmearedTrackElePos->SetMarkerStyle(25);
+
+  normalzeToBinWidth(ptGenTrackElePos_rebin);
+  normalzeToBinWidth(ptGenSmearedTrackElePos_rebin);
+  normalzeToBinWidth(ptRecTrackElePos_rebin);
+
+  makeHistNice(ptRecTrackEle_rebin,kGreen+3);
   makeHistNice(etaRecTrackEle,kGreen+3);
   makeHistNice(phiRecTrackEle,kGreen+3);
-  makeHistNice(ptRecTrackPos,kOrange+1);
+  makeHistNice(ptRecTrackPos_rebin,kOrange+1);
   makeHistNice(etaRecTrackPos,kOrange+1);
   makeHistNice(phiRecTrackPos,kOrange+1);
-  makeHistNice(ptGenTrackEle,kBlue+1);
+  makeHistNice(ptGenTrackEle_rebin,kBlue+1);
   makeHistNice(etaGenTrackEle,kBlue+1);
   makeHistNice(phiGenTrackEle,kBlue+1);
-  makeHistNice(ptGenTrackPos,kRed+1);
+  makeHistNice(ptGenTrackPos_rebin,kRed+1);
   makeHistNice(etaGenTrackPos,kRed+1);
   makeHistNice(phiGenTrackPos,kRed+1);
-  ptGenTrackEle->SetMarkerStyle(24);
+  ptGenTrackEle_rebin->SetMarkerStyle(24);
   etaGenTrackEle->SetMarkerStyle(24);
   phiGenTrackEle->SetMarkerStyle(24);
-  ptGenTrackPos->SetMarkerStyle(24);
+  ptGenTrackPos_rebin->SetMarkerStyle(24);
   etaGenTrackPos->SetMarkerStyle(24);
   phiGenTrackPos->SetMarkerStyle(24);
 
@@ -1110,15 +1182,18 @@ if (bPlotTrackContamination) {
   // etaGenEleTrackPrim->SetMarkerSize(0.4);
 
 
-  make3HistNice(ptRecTrackBeforeSmearing,kGreen+1);
+  make3HistNice(ptRecTrackBeforeSmearing_rebin,kGreen+1);
   make3HistNice(etaRecTrackBeforeSmearing,kGreen+1);
   make3HistNice(phiRecTrackBeforeSmearing,kGreen+1);
-  make3HistNice(ptRecTrackAfterSmearing,kRed+1);
+  make3HistNice(ptRecTrackAfterSmearing_rebin,kRed+1);
   make3HistNice(etaRecTrackAfterSmearing,kRed+1);
   make3HistNice(phiRecTrackAfterSmearing,kRed+1);
-  make3HistNice(ptRecTrackElePos,kBlue+1);
+  make3HistNice(ptRecTrackElePos_rebin,kBlue+1);
   make3HistNice(etaRecTrackElePos,kBlue+1);
   make3HistNice(phiRecTrackElePos,kBlue+1);
+
+  normalzeToBinWidth(ptRecTrackBeforeSmearing_rebin);
+  normalzeToBinWidth(ptRecTrackAfterSmearing_rebin);
 
   // make3HistNice(ptRecTrackEtaCut_1,kOrange-5);
   // make3HistNice(ptRecTrackEtaCut_2,kOrange-4);
@@ -1232,36 +1307,49 @@ if (bPlotTrackContamination) {
   auto legTrackPosEle_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legTrackPosEle_top->SetBorderSize(0);
   legTrackPosEle_top->SetFillStyle(0);
+  legTrackPosEle_top->SetTextSize(0.04);
   legTrackPosEle_top->AddEntry(ptEffEle,"electrons","p");
   legTrackPosEle_top->AddEntry(ptEffPos,"positrons","p");
 
-  auto legEff_GenGenSmear = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
+  auto legEff_GenGenSmear = new TLegend(legPosTrack[0]+0.05,legPosTrack[1]+0.05,legPosTrack[2]+0.05,legPosTrack[3]);
   legEff_GenGenSmear->SetBorderSize(0);
   legEff_GenGenSmear->SetFillStyle(0);
+  legEff_GenGenSmear->SetTextSize(0.04);
   legEff_GenGenSmear->AddEntry(ptEffElePosGen,"rec/gen","p");
   legEff_GenGenSmear->AddEntry(ptEffElePosGenSmeared,"rec/gen smeared","p");
+
+  auto legEff_Gen = new TLegend(legPosTrack[0]+0.15,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
+  legEff_Gen->SetBorderSize(0);
+  legEff_Gen->SetFillStyle(0);
+  legEff_Gen->SetTextSize(0.04);
+  legEff_Gen->AddEntry(ptEffElePosGen,"rec/gen","p");
+
 
   auto legTrackEle_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legTrackEle_top->SetBorderSize(0);
   legTrackEle_top->SetFillStyle(0);
+  legTrackEle_top->SetTextSize(0.04);
   legTrackEle_top->AddEntry(ptEffEle,"electrons","p");
 
   auto legTrackPos_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legTrackPos_top->SetBorderSize(0);
   legTrackPos_top->SetFillStyle(0);
+  legTrackPos_top->SetTextSize(0.04);
   legTrackPos_top->AddEntry(ptEffPos,"positrons","p");
 
   auto legGenRecPos_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legGenRecPos_top->SetBorderSize(0);
   legGenRecPos_top->SetFillStyle(0);
+  legGenRecPos_top->SetTextSize(0.04);
   legGenRecPos_top->AddEntry(ptGenTrackPos,"gen positrons","p");
-  legGenRecPos_top->AddEntry(ptRecTrackPos,"rec positrons","p");
+  legGenRecPos_top->AddEntry(ptRecTrackPos_rebin,"rec positrons","p");
 
   auto legGenRecEle_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legGenRecEle_top->SetBorderSize(0);
   legGenRecEle_top->SetFillStyle(0);
-  legGenRecEle_top->AddEntry(ptGenTrackEle,"gen electrons","p");
-  legGenRecEle_top->AddEntry(ptRecTrackEle,"rec electrons","p");
+  legGenRecEle_top->SetTextSize(0.04);
+  legGenRecEle_top->AddEntry(ptGenTrackEle_rebin,"gen electrons","p");
+  legGenRecEle_top->AddEntry(ptRecTrackEle_rebin,"rec electrons","p");
 
   auto legGenGenSmearRecElePos_top = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legGenGenSmearRecElePos_top->SetBorderSize(0);
@@ -1296,6 +1384,13 @@ if (bPlotTrackContamination) {
   legPIDContamination->AddEntry(hProtonContaminationRecPt,"Proton","p");
   legPIDContamination->AddEntry(hTotalPureContaminationRecPt,"Total","p");
 
+  TLegend* legTotalContamination;
+  legTotalContamination = new TLegend(legPosCont[0]-0.05,legPosCont[1],legPosCont[2],legPosCont[3]);
+  legTotalContamination->SetBorderSize(0);
+  legTotalContamination->SetFillStyle(0);
+  legTotalContamination->SetTextSize(0.04);
+  legTotalContamination->AddEntry(hTotalPureContaminationRecPt,"Total contamination","p");
+
   auto legPIDSeparateColor = new TLegend(legPosNSigmaPID[0],legPosNSigmaPID[1],legPosNSigmaPID[2],legPosNSigmaPID[3]);
   legPIDSeparateColor->SetBorderSize(0);
   legPIDSeparateColor->SetFillStyle(0);
@@ -1307,9 +1402,9 @@ if (bPlotTrackContamination) {
   auto legSmearLabel = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legSmearLabel->SetBorderSize(0);
   legSmearLabel->SetFillStyle(0);
-  legSmearLabel->AddEntry(ptRecTrackBeforeSmearing,"before Smearing","p");
-  legSmearLabel->AddEntry(ptRecTrackAfterSmearing,"after Smearing","p");
-  legSmearLabel->AddEntry(ptRecTrackElePos,"after Smearing & kin Cuts","p");
+  legSmearLabel->AddEntry(ptRecTrackBeforeSmearing_rebin,"before Smearing","p");
+  legSmearLabel->AddEntry(ptRecTrackAfterSmearing_rebin,"after Smearing","p");
+  legSmearLabel->AddEntry(ptRecTrackElePos_rebin,"after Smearing & kin Cuts","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_1," |#eta| < 1.0","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_2," |#eta| < 2.0","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_4," |#eta| < 4.0","p");
@@ -1319,9 +1414,12 @@ if (bPlotTrackContamination) {
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_10," |#eta| < 10.0","p");
 
 
-TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
-
-
+  TLatex *textBField         = new TLatex(0.7, 0.75 , Form("B = %gT",BField));
+  TLatex *textPIDScenario    = new TLatex(0.7, 0.7 , Form("%s",strPIDscenario[ith_PIDscenario-1].Data()));
+  textBField->SetNDC(kTRUE);
+  textPIDScenario->SetNDC(kTRUE);
+  textBField->SetTextSize(0.04);
+  textPIDScenario->SetTextSize(0.02);
 
 
 
@@ -1460,6 +1558,7 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     ptEffPos->Draw("hist p e1 same");
     legTrackPosEle_top->Draw("same");
     textBField->Draw("same");
+    textPIDScenario->Draw("same");
     cEffElePosPt->SaveAs("./plots/Eff_ElePos_Pt.png");
 
     auto cEffAddedElePosPt = new TCanvas("cEffAddedElePosPt","cEffAddedElePosPt",800,800);
@@ -1476,7 +1575,14 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     ptEffElePosGenSmeared->Draw("hist p e1 same");
     legEff_GenGenSmear->Draw("same");
     textBField->Draw("same");
+    textPIDScenario->Draw("same");
     cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_GenGenSmear.png");
+    ptEffElePosGen->Draw("hist p e1 ");
+    legEff_Gen->Draw("same");
+    textBField->Draw("same");
+    textPIDScenario->Draw("same");
+    cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_Gen.png");
+
 
     auto cEffEleEta = new TCanvas("cEffEleEta","cEffEleEta",800,800);
     // cEffEleEta->SetLogy();
@@ -1675,14 +1781,16 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     cGenGenSmearRecElePosPt->SetTopMargin(0.03);
     cGenGenSmearRecElePosPt->SetRightMargin(0.03);
     cGenGenSmearRecElePosPt->SetLeftMargin(0.13);
-    ptGenTrackElePos->GetYaxis()->SetTitle("N^{gen} Tracks");
-    ptGenTrackElePos->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-    ptGenTrackElePos->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptGenTrackElePos->SetMaximum(1.1*std::max({ptGenTrackEle->GetMaximum(),ptRecTrackEle->GetMaximum()}));
-    ptGenTrackElePos->Draw("hist p e1");
-    ptGenSmearedTrackElePos->Draw("hist p e1 same");
-    ptRecTrackElePos->Draw("hist p e1 same");
+    ptGenTrackElePos_rebin->GetYaxis()->SetTitle("N^{gen} Tracks");
+    ptGenTrackElePos_rebin->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackElePos_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
+    // ptGenTrackElePos_rebin->SetMaximum(10*std::max({ptGenTrackElePos_rebin->GetMaximum(),ptGenSmearedTrackElePos_rebin->GetMaximum(),ptRecTrackElePos_rebin->GetMaximum()}));
+    ptGenTrackElePos_rebin->Draw("hist p e1");
+    ptGenSmearedTrackElePos_rebin->Draw("hist p e1 same");
+    ptRecTrackElePos_rebin->Draw("hist p e1 same");
     legGenGenSmearRecElePos_top->Draw("same");
+    textBField->Draw("same");
+    textPIDScenario->Draw("same");
     cGenGenSmearRecElePosPt->SaveAs("./plots/GenGenSmearRecElePos_Pt.png");
 
 
@@ -1691,12 +1799,12 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     cGenRecElePt->SetTopMargin(0.03);
     cGenRecElePt->SetRightMargin(0.03);
     cGenRecElePt->SetLeftMargin(0.13);
-    ptGenTrackEle->GetYaxis()->SetTitle("N^{gen} Tracks");
-    ptGenTrackEle->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-    ptGenTrackEle->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptGenTrackEle->SetMaximum(1.1*std::max({ptGenTrackEle->GetMaximum(),ptRecTrackEle->GetMaximum()}));
-    ptGenTrackEle->Draw("hist p e1");
-    ptRecTrackEle->Draw("hist p e1 same");
+    ptGenTrackEle_rebin->GetYaxis()->SetTitle("N^{gen} Tracks");
+    ptGenTrackEle_rebin->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackEle_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptGenTrackEle_rebin->SetMaximum(1.1*std::max({ptGenTrackEle->GetMaximum(),ptRecTrackEle->GetMaximum()}));
+    ptGenTrackEle_rebin->Draw("hist p e1");
+    ptRecTrackEle_rebin->Draw("hist p e1 same");
     legGenRecEle_top->Draw("same");
     cGenRecElePt->SaveAs("./plots/GenRecEle_Pt.png");
 
@@ -1706,17 +1814,17 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     cGenRecPosPt->SetTopMargin(0.03);
     cGenRecPosPt->SetRightMargin(0.03);
     cGenRecPosPt->SetLeftMargin(0.13);
-    ptGenTrackPos->GetYaxis()->SetTitle("N^{gen} Tracks");
-    ptGenTrackPos->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-    ptGenTrackPos->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptGenTrackPos->SetMaximum(1.1*std::max({ptGenTrackPos->GetMaximum(),ptRecTrackPos->GetMaximum()}));
-    ptGenTrackPos->Draw("hist p e1");
-    ptRecTrackPos->Draw("hist p e1 same");
+    ptGenTrackPos_rebin->GetYaxis()->SetTitle("N^{gen} Tracks");
+    ptGenTrackPos_rebin->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackPos_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptGenTrackPos_rebin->SetMaximum(1.1*std::max({ptGenTrackPos->GetMaximum(),ptRecTrackPos->GetMaximum()}));
+    ptGenTrackPos_rebin->Draw("hist p e1");
+    ptRecTrackPos_rebin->Draw("hist p e1 same");
     legGenRecPos_top->Draw("same");
     cGenRecPosPt->SaveAs("./plots/GenRecPos_Pt.png");
 
-    Int_t ptGenTrackEleEntries = ptGenTrackEle->Integral();
-    Int_t ptRecTrackEleEntries = ptRecTrackEle->Integral();
+    Int_t ptGenTrackEleEntries = ptGenTrackEle_rebin->Integral();
+    Int_t ptRecTrackEleEntries = ptRecTrackEle_rebin->Integral();
 
 
 
@@ -1748,9 +1856,9 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   cBeforeAfterSmearing->cd(1)->SetLogy();
   ptRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(0.,8);
   // ptRecTrackBeforeSmearing->SetMinimum(0.01);
-  ptRecTrackBeforeSmearing->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing->GetMaximum(),ptRecTrackAfterSmearing->GetMaximum(),ptRecTrackElePos->GetMaximum()}));
-  ptRecTrackBeforeSmearing->Draw("pe1");
-  ptRecTrackAfterSmearing->Draw("pe1 same");
+  ptRecTrackBeforeSmearing->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing_rebin->GetMaximum(),ptRecTrackAfterSmearing_rebin->GetMaximum(),ptRecTrackElePos_rebin->GetMaximum()}));
+  ptRecTrackBeforeSmearing_rebin->Draw("pe1");
+  ptRecTrackAfterSmearing_rebin->Draw("pe1 same");
   // ptRecTrackEtaCut_10->Draw("pe1 same");
   // ptRecTrackEtaCut_9->Draw("pe1 same");
   // ptRecTrackEtaCut_8->Draw("pe1 same");
@@ -1761,7 +1869,7 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
   // ptRecTrackEtaCut_3->Draw("pe1 same");
   // ptRecTrackEtaCut_2->Draw("pe1 same");
   // ptRecTrackEtaCut_1->Draw("pe1 same");
-  ptRecTrackElePos->Draw("pe1 same");
+  ptRecTrackElePos_rebin->Draw("pe1 same");
   legSmearLabel->Draw("same");
   cBeforeAfterSmearing->cd(2);
   etaRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(-2.0,2.0);
@@ -1824,6 +1932,7 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
       cPID_logx->SetTopMargin(0.03);
       cPID_logx->SetRightMargin(0.13);
       cPID_logx->SetLeftMargin(0.13);
+      vecTOF_PIDplots.at(i)->GetYaxis()->SetRangeUser(-25,25);
       vecTOF_PIDplots.at(i)->Draw("COLZ ");
       cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.png",vecTOF_PIDplots.at(i)->GetName()));
     }
@@ -1843,6 +1952,7 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
       // cPID_logx->SetTopMargin(0.03);
       // cPID_logx->SetRightMargin(0.03);
       // cPID_logx->SetLeftMargin(0.13);
+      vecRICH_PIDplots.at(i)->GetYaxis()->SetRangeUser(-25,25);
       vecRICH_PIDplots.at(i)->Draw("COLZ ");
       cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.png",vecRICH_PIDplots.at(i)->GetName()));
     }
@@ -1934,6 +2044,13 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     hTotalPureContaminationRecPhi->Draw("same hist p e1");
     cContaminationPtEtaPhi->SaveAs("./plots/PID_Contamiantion.png");
 
+    TLatex *textBField_conta         = new TLatex(0.7, 0.85 , Form("B = %gT",BField));
+    TLatex *textPIDScenario_conta    = new TLatex(0.7, 0.9 , Form("%s",strPIDscenario[ith_PIDscenario-1].Data()));
+    textBField_conta->SetNDC(kTRUE);
+    textPIDScenario_conta->SetNDC(kTRUE);
+    textBField_conta->SetTextSize(0.04);
+    textPIDScenario_conta->SetTextSize(0.02);
+
     auto cContaminationPt = new TCanvas("cContaminationPt","cContaminationPt",800,800);
     cContaminationPt->SetTopMargin(0.03);
     cContaminationPt->SetRightMargin(0.03);
@@ -1949,7 +2066,14 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     hProtonContaminationRecPt->Draw("same hist p e1");
     hTotalPureContaminationRecPt->Draw("same hist p e1");
     legPIDContamination->Draw("same");
+    textBField_conta->Draw("same");
+    textPIDScenario_conta->Draw("same");
     cContaminationPt->SaveAs("./plots/PID_Pt_Contamiantion.png");
+    // hTotalPureContaminationRecPt->Draw("hist p e1");
+    // legTotalContamination->Draw("same");
+    // textBField_conta->Draw("same");
+    // textPIDScenario_conta->Draw("same");
+    // cContaminationPt->SaveAs("./plots/PID_Pt_TotalContamiantion.png");
   }
 
   if (bPlotPIDhistograms) {
@@ -1959,9 +2083,9 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
       cNSigmaSeparatePID_TOF->SetTopMargin(0.03);
       cNSigmaSeparatePID_TOF->SetRightMargin(0.03);
       cNSigmaSeparatePID_TOF->SetLeftMargin(0.13);
-      hNsigmaP_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_TOF_truePion[iNSig]->SetMaximum(1.1);
-      hNsigmaP_TOF_truePion[iNSig]->SetMinimum(0.);
+      cNSigmaSeparatePID_TOF->SetLogx();
+      // hNsigmaP_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      hNsigmaP_TOF_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
       hNsigmaP_TOF_truePion[iNSig]->Draw("");
       hNsigmaP_TOF_trueElec[iNSig]->Draw("same");
       hNsigmaP_TOF_trueMuon[iNSig]->Draw("same");
@@ -1972,9 +2096,11 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
       cNSigmaSeparatePID_TOF_afterCuts->SetTopMargin(0.03);
       cNSigmaSeparatePID_TOF_afterCuts->SetRightMargin(0.03);
       cNSigmaSeparatePID_TOF_afterCuts->SetLeftMargin(0.13);
-      hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMaximum(1.1);
-      hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMinimum(0.);
+      cNSigmaSeparatePID_TOF_afterCuts->SetLogx();
+      // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMaximum(1.1);
+      // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMinimum(0.);
       hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->Draw("");
       hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->Draw("same");
       hNsigmaP_afterPIDcuts_TOF_trueMuon[iNSig]->Draw("same");
@@ -1985,9 +2111,11 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
       cNSigmaSeparatePID_RICH->SetTopMargin(0.03);
       cNSigmaSeparatePID_RICH->SetRightMargin(0.03);
       cNSigmaSeparatePID_RICH->SetLeftMargin(0.13);
-      hNsigmaP_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_RICH_truePion[iNSig]->SetMaximum(1.1);
-      hNsigmaP_RICH_truePion[iNSig]->SetMinimum(0.);
+      cNSigmaSeparatePID_RICH->SetLogx();
+      // hNsigmaP_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      hNsigmaP_RICH_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      // hNsigmaP_RICH_truePion[iNSig]->SetMaximum(1.1);
+      // hNsigmaP_RICH_truePion[iNSig]->SetMinimum(0.);
       hNsigmaP_RICH_truePion[iNSig]->Draw("");
       hNsigmaP_RICH_trueElec[iNSig]->Draw("same");
       hNsigmaP_RICH_trueMuon[iNSig]->Draw("same");
@@ -1998,9 +2126,11 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
       cNSigmaSeparatePID_RICH_afterCuts->SetTopMargin(0.03);
       cNSigmaSeparatePID_RICH_afterCuts->SetRightMargin(0.03);
       cNSigmaSeparatePID_RICH_afterCuts->SetLeftMargin(0.13);
-      hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->SetMaximum(1.1);
-      hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->SetMinimum(0.);
+      cNSigmaSeparatePID_RICH_afterCuts->SetLogx();
+      // hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      // hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->SetMaximum(1.1);
+      // hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->SetMinimum(0.);
       hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->Draw("");
       hNsigmaP_afterPIDcuts_RICH_trueElec[iNSig]->Draw("same");
       hNsigmaP_afterPIDcuts_RICH_trueMuon[iNSig]->Draw("same");
@@ -2318,11 +2448,15 @@ TLatex *textBField    = new TLatex(3., 0.75 , Form("B = %gT",BField));
     ptEffEle->Write();
     ptEffPos->Write();
     ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
-    ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
-    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
-    ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
-    ptEffElePosGen->Write();
-    ptEffElePosGenSmeared->Write();
+     ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
+     ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
+     ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
+     ptEffElePosGen->Write();
+     ptEffElePosGenSmeared->Write();
+
+     hTotalPureContaminationRecPt->SetTitle("Total Contamination");
+     hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
+     hTotalPureContaminationRecPt->Write();
     fOut->Close();
   }
 }
