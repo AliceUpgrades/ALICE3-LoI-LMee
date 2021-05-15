@@ -208,6 +208,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
     // Event histograms
     auto nTracks = new TH1F("nTracks",";Tracks",10000,0,10000);
+    auto nTracksCent = new TH1F("nTracksCent",";Tracks",10000,0,10000);
     auto nTracksGen = new TH1F("nTracksGen",";Tracks",8000,0,16000);
     auto nTracksEle = new TH1F("nTracksEle",";Tracks",1000,0,1000);
     auto nTracksPos = new TH1F("nTracksPos",";Tracks",1000,0,1000);
@@ -309,7 +310,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
             // cut away tracks that are way off.
             if (fabs(track->D0) > 0.4) continue; // adopt to just stay in the beampipe?
             if (fabs(track->DZ) > 3.) continue;
-            if (!kineCuts(track)) continue;
+
 
             // check if has TOF
             if (toflayer.hasTOF(*track)) vecTOFtracks.push_back(track);
@@ -322,9 +323,9 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
 
 
         }
-        if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
         nTracks->Fill(vecPIDtracks.size());
-
+        if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
+        nTracksCent->Fill(vecPIDtracks.size());
         std::array<float, 2> tzero;
         toflayer.eventTime(vecTOFtracks, tzero);
         hTime0->Fill(tzero[0]);
@@ -333,8 +334,8 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
         for(auto track : vecPIDtracks)
         {
           // check fr centrality
-          if((track->PT > 0.08) && (fabs(track->Charge) > 0.))  hEta_chargedTrack->Fill(track->Eta);
-
+          if (!kineCuts(track)) continue;
+          if(fabs(track->Charge) > 0.)  hEta_chargedTrack->Fill(track->Eta);
           auto particle = (GenParticle *)track->Particle.GetObject();
           auto pid = particle->PID;
 
@@ -465,6 +466,7 @@ void bkg(const char *inputFile, const char *outputFile = "output.root")
     }
     auto fout = TFile::Open(outputFile, "RECREATE");
     nTracks->Write();
+    nTracksCent->Write();
     nTracksGen->Write();
     nTracksEle->Write();
     nTracksPos->Write();
