@@ -2,7 +2,11 @@
 
 Executable = "/alice/cern.ch/user/h/hscheid/test/Delphes//generateDelphes.sh";
 Validationcommand = "/alice/cern.ch/user/h/hscheid/test/Delphes/validation.sh";
-Arguments = "1000 PbPb";
+# 1: Number of events in the run
+# 2: system (PbPb, pp_inel, pp_cc)
+# 3: bkg (background generation),
+#		 dca (DCA templae generation)
+Arguments = "100 PbPb dca";
 Packages = {
 	"VO_ALICE@DelphesO2::v20210409-1"
 };
@@ -24,23 +28,30 @@ Workdirectorysize = {
 	"12000MB"
 };
 
-Split = "production:1-100";
+Split = "production:1-2";
 SplitArguments = "";
 
 
 InputFile = {
-  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.el.werner.rmin100.5kG.dat",
-  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.mu.werner.rmin100.5kG.dat",
-  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.pi.werner.rmin100.5kG.dat",
-  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.ka.werner.rmin100.5kG.dat",
-  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG//lutCovm.pr.werner.rmin100.5kG.dat",
-	"LF:/alice/cern.ch/user/h/hscheid/test/pythia//pythia8_PbPb.cfg",
-  "LF:/alice/cern.ch/user/h/hscheid/test/Delphes//bkg.cxx"
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG/lutCovm.el.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG/lutCovm.mu.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG/lutCovm.pi.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG/lutCovm.ka.werner.rmin100.5kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.5kG/lutCovm.pr.werner.rmin100.5kG.dat",
+	"LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.2kG/lutCovm.el.werner.rmin100.2kG.dat",
+	"LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.2kG/lutCovm.mu.werner.rmin100.2kG.dat",
+	"LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.2kG/lutCovm.pi.werner.rmin100.2kG.dat",
+	"LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.2kG/lutCovm.ka.werner.rmin100.2kG.dat",
+	"LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.2kG/lutCovm.pr.werner.rmin100.2kG.dat",
+  "LF:/alice/cern.ch/user/h/hscheid/test/pythia/pythia8_PbPb.cfg",
+	"LF:/alice/cern.ch/user/h/hscheid/test/pythia/pythia8_pp_cc.cfg",
+  "LF:/alice/cern.ch/user/h/hscheid/test/Delphes/bkg.cxx",
+  "LF:/alice/cern.ch/user/h/hscheid/test/Delphes/dca.cxx"
 };
 
 OutputArchive = {
     "log_archive.zip:stdout,stderr,*.log,*.sh@",
-    "root_archive.zip:background.root@"
+    "root_archive.zip:*.root@"
 };
 
-OutputDir = "/alice/cern.ch/user/h/hscheid/test/Delphes//output/#alien_counter_03i#";
+OutputDir = "/alice/cern.ch/user/h/hscheid/test/Delphes/output/$1/#alien_counter_03i#";

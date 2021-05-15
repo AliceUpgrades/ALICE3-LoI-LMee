@@ -1,18 +1,16 @@
 #! /usr/bin/env bash
 
-runDelphes() {
-  # write function to be more readable
-  ### copy pythia8 configuration and adjust it
-  sleep 2 # be save that the file is copied before modifing it. this can get corrupt it when latency is high
-
-  DelphesPythia8 propagate.tcl pythia8.cfg delphes.root &&
-  root -q -l "bkg.cxx(\"delphes.root\", \"background.root\")"
-}
+# runDelphes() {
+#   # write function to be more readable
+#   ### copy pythia8 configuration and adjust it
+#
+# }
 
 NEVENTS=$1     # number of events in a run
-
 # SYSTEM="pp_inel"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 SYSTEM=$2   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
+ANALYSIS=$3
+
 
 RADIUS=100     # radius tracks have to reach for reco
 
@@ -32,7 +30,6 @@ echo "maxEta = $TOFETA"
 #how many events are generated
 echo " --- generating events:"
 echo " --- $NEVENTS $SYSTEM events"
-
 
 # card
 cp $DELPHESO2_ROOT/examples/cards/propagate.2kG.tails.tcl propagate.tcl
@@ -59,22 +56,22 @@ cp lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 
 # Set B fild in propagation card and analysis macro
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
-sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" bkg.cxx
+sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" $ANALYSIS.cxx
 
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${TOFRAD}e\-2/" propagate.tcl
-sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" bkg.cxx
+sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" $ANALYSIS.cxx
 ### set TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${TOFLEN}e\-2/" propagate.tcl
-sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" bkg.cxx
+sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" $ANALYSIS.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${TOFETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
 sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
 sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
-sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" bkg.cxx
-sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" bkg.cxx
+sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" $ANALYSIS.cxx
+sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" $ANALYSIS.cxx
 
 
 ### create LUTs
@@ -83,7 +80,10 @@ sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" bkg.cxx
 
 
 
-runDelphes &&
+sleep 2 # be save that the file is copied before modifing it. this can get corrupt it when latency is high
+
+DelphesPythia8 propagate.tcl pythia8.cfg delphes.root &&
+root -q -l "$ANALYSIS.cxx(\"delphes.root\", \"output.root\")" &&
 (rm -rf delphes.root && echo " --- run $I completed") ||
 (rm -rf delphes.root && echo " --- run $I crashed") &
 
