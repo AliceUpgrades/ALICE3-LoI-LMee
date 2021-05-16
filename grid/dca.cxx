@@ -19,6 +19,9 @@ double rich_length = 200.; // [cm]
 double PtCut = 0.08;
 double EtaCut = 1.1;
 
+// charm pair clasification
+enum charmPairType {kIsNoCharm = 0, kIsDzeroPair,kIsDplusPair,kIsDmixedPair};
+
 void makeHistNice(TH1* h, int color){
   h->SetMarkerColor(color);
   h->SetLineColor(color);
@@ -137,6 +140,18 @@ bool isCharm(int pdg) {
 }
 
 
+
+int charmPair(int mpid1, int mpid2)
+{ if (mpid1 == 431) mpid1 = 421; // set D_s as a D0 since the decay length is very similar 123 vs 150 mum
+  if (mpid2 == 431) mpid2 = 421; // set D_s as a D0 since the decay length is very similar 123 vs 150 mum
+  if ((mpid1 == 421) && (mpid2 == 421)) return charmPairType::kIsDzeroPair;
+  else if ((mpid1 == 411) && (mpid2 == 411)) return charmPairType::kIsDplusPair;
+  else if ((mpid1 == 411) && (mpid2 == 421)) return charmPairType::kIsDmixedPair;
+  else if ((mpid1 == 421) && (mpid2 == 411)) return charmPairType::kIsDmixedPair;
+  else return charmPairType::kIsNoCharm;
+}
+
+
 bool hasCharmAncestor(GenParticle *particle, TClonesArray *particles)
 {
   auto imother = particle->M1;
@@ -235,11 +250,40 @@ void dca(
   auto hDCAxy_secondary_beauty = new TH2F("hDCAxy_secondary_beauty", title.c_str(), 400, 0., 20., 1200, -30., 30.);
   auto hPt_DCARes_beauty = new TH2F("hPt_DCARes_beauty",";p_{T} (GeV/c); #Delta DCA (mm)", 400,0,20,600,0,0.3);
   auto hPt_DCAAbs_beauty = new TH2F("hPt_DCAAbs_beauty",";p_{T} (GeV/c); DCA (mm)", 400,0,20,600,-3.,3);
+
   // Pair histograms
-  auto hM_Pt_DCAprimary = new TH3F("hM_Pt_DCAprimary",title3d.c_str(),300.,0,3.,50,0.,5.,800,0.,20.);
-  auto hM_Pt_DCAheavy= new TH3F("hM_Pt_DCAheavy",title3d.c_str(),300.,0,3.,50,0.,5.,800,0.,20.);
-  auto hM_Pt_DCAcharm= new TH3F("hM_Pt_DCAcharm",title3d.c_str(),300.,0,3.,50,0.,5.,800,0.,20.);
-  auto hM_Pt_DCAbeauty= new TH3F("hM_Pt_DCAbeauty",title3d.c_str(),300.,0,3.,50,0.,5.,800,0.,20.);
+  // Binning
+   // ptee
+   const int n_ptee_bin_c = 202;
+   Double_t ptee_bin_c[n_ptee_bin_c+1] = {};
+   for(int i=0  ;i<4   ;i++) {
+     ptee_bin_c[i] = 0.025 * (i-  0) +  0.0;//from 0 to 0.075 GeV/c, every 0.025 GeV/c
+   }
+   for(int i=4 ;i<=202  ;i++) {
+     ptee_bin_c[i] = 0.05  * (i- 4) +  0.1;//from 0.1 to 10 GeV/c, evety 0.05 GeV/c
+   }
+   // mee
+   Double_t mee_bin_c[401];
+   int n_mee_bin_c = 400;
+   for(int k = 0 ; k < 401; k++){
+     mee_bin_c[k] = k*0.01; // 4./400.
+   }
+   // DCA
+   Double_t dca_bin_c[201];
+   int n_dca_bin_c = 200;
+   for(int k = 0 ; k < 201; k++){
+     dca_bin_c[k] = k*0.1; // 4./400.
+   }
+
+
+  auto hM_Pt_DCAprimary = new TH3F("hM_Pt_DCAprimary",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAheavy = new TH3F("hM_Pt_DCAheavy",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAcharm = new TH3F("hM_Pt_DCAcharm",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  // dedicaded sources
+  auto hM_Pt_DCAcharm_Dzero = new TH3F("hM_Pt_DCAcharm_Dzero",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAcharm_Dplus = new TH3F("hM_Pt_DCAcharm_Dplus",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAcharm_Dmixed = new TH3F("hM_Pt_DCAcharm_Dmixed",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAbeauty = new TH3F("hM_Pt_DCAbeauty",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
 
 // mee delta phi dca distributions
 
@@ -376,6 +420,10 @@ void dca(
         // if(mother1 != mother2  && hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles))
           {
           hM_Pt_DCAcharm->Fill(LV.Mag(),LV.Pt(),dca);
+          printf("mpid1: %d\t mpid2: %d\n",m1Pid,m2Pid);
+          if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDzeroPair)  {hM_Pt_DCAcharm_Dzero->Fill(LV.Mag(),LV.Pt(),dca);}
+          if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDplusPair)  {hM_Pt_DCAcharm_Dplus->Fill(LV.Mag(),LV.Pt(),dca);}
+          if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDmixedPair) {hM_Pt_DCAcharm_Dmixed->Fill(LV.Mag(),LV.Pt(),dca);}
           // hM_dPhi_DCAcharm->Fill(LV.Mag(),deltaPhi,dca);
           }
         if( isBeauty(m1Pid) && isBeauty(m2Pid) )
@@ -444,6 +492,9 @@ void dca(
   hM_Pt_DCAprimary->Write();
   hM_Pt_DCAheavy->Write();
   hM_Pt_DCAcharm->Write();
+  hM_Pt_DCAcharm_Dzero->Write();
+  hM_Pt_DCAcharm_Dplus->Write();
+  hM_Pt_DCAcharm_Dmixed->Write();
   hM_Pt_DCAbeauty->Write();
   hM_dPhi_DCAprimary->Write();
   hM_dPhi_DCAcharm->Write();
