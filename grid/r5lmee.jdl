@@ -3,7 +3,7 @@
 Executable = "/alice/cern.ch/user/h/hscheid/test/Delphes//generateDelphes.sh";
 Validationcommand = "/alice/cern.ch/user/h/hscheid/test/Delphes/validation.sh";
 # 1: Number of events in the run
-# 2: system (PbPb, pp_inel, pp_cc)
+# 2: system (PbPb, pp_inel, pp_cc, pp_cc)
 # 3: bkg (background generation),
 #		 dca (DCA templae generation)
 Arguments = "100 PbPb dca";
@@ -45,6 +45,7 @@ InputFile = {
 	"LF:/alice/cern.ch/user/h/hscheid/test/LUTs/lutCovm.werner.rmin100.2kG/lutCovm.pr.werner.rmin100.2kG.dat",
   "LF:/alice/cern.ch/user/h/hscheid/test/pythia/pythia8_PbPb.cfg",
 	"LF:/alice/cern.ch/user/h/hscheid/test/pythia/pythia8_pp_cc.cfg",
+	"LF:/alice/cern.ch/user/h/hscheid/test/pythia/pythia8_pp_bb.cfg",
   "LF:/alice/cern.ch/user/h/hscheid/test/Delphes/bkg.cxx",
   "LF:/alice/cern.ch/user/h/hscheid/test/Delphes/dca.cxx"
 };
