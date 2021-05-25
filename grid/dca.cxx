@@ -20,7 +20,7 @@ double PtCut = 0.08;
 double EtaCut = 1.1;
 
 // charm pair clasification
-enum charmPairType {kIsNoCharm = 0, kIsDzeroPair,kIsDplusPair,kIsDmixedPair,kIncludsBaryon};
+enum charmPairType {kIsNoCharm = 0, kIsDzeroPair,kIsDplusPair,kIsDmixedPair,kIncludsBaryon,kIsDzeroBaryon,kIsDplusBaryon,kIsBaryonPair};
 
 void makeHistNice(TH1* h, int color){
   h->SetMarkerColor(color);
@@ -142,14 +142,25 @@ bool isCharm(int pdg) {
 
 
 int charmPair(int mpid1, int mpid2)
+// kIsDzeroBaryon,kIsDplusBaryon,kIsBaryonPair
 { if (mpid1 == 431) mpid1 = 421; // set D_s as a D0 since the decay length is very similar 123 vs 150 mum
   if (mpid2 == 431) mpid2 = 421; // set D_s as a D0 since the decay length is very similar 123 vs 150 mum
+  if ((mpid1 > 4000) && (mpid1 < 5000)) mpid1 = 4001;
+  if ((mpid2 > 4000) && (mpid2 < 5000)) mpid2 = 4001;
+
   if ((mpid1 == 421) && (mpid2 == 421)) return charmPairType::kIsDzeroPair;
   else if ((mpid1 == 411) && (mpid2 == 411)) return charmPairType::kIsDplusPair;
   else if ((mpid1 == 411) && (mpid2 == 421)) return charmPairType::kIsDmixedPair;
   else if ((mpid1 == 421) && (mpid2 == 411)) return charmPairType::kIsDmixedPair;
   // baryon pairs
-  else if ((mpid1 > 4000) || (mpid2 > 4000)) return charmPairType::kIncludsBaryon; // if one is a baryon or both are
+  else if ((mpid1 == 4001) || (mpid2 == 4001)) return charmPairType::kIncludsBaryon; // if one is a baryon or both are
+  else if ((mpid1 == 4001) && (mpid2 == 4001)) return charmPairType::kIsBaryonPair; // if both are baryon
+  else if ((mpid1 == 421) && (mpid2 == 4001)) return charmPairType::kIsDzeroBaryon; // if both are baryon
+  else if ((mpid1 == 4001) && (mpid2 == 421)) return charmPairType::kIsDzeroBaryon; // if both are baryon
+  else if ((mpid1 == 411) && (mpid2 == 4001)) return charmPairType::kIsDplusBaryon; // if both are baryon
+  else if ((mpid1 == 4001) && (mpid2 == 411)) return charmPairType::kIsDplusBaryon; // if both are baryon
+
+
   else return charmPairType::kIsNoCharm;
 }
 
@@ -285,7 +296,12 @@ void dca(
   auto hM_Pt_DCAcharm_Dzero = new TH3F("hM_Pt_DCAcharm_Dzero",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   auto hM_Pt_DCAcharm_Dplus = new TH3F("hM_Pt_DCAcharm_Dplus",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   auto hM_Pt_DCAcharm_Dmixed = new TH3F("hM_Pt_DCAcharm_Dmixed",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+
   auto hM_Pt_DCAcharm_baryon = new TH3F("hM_Pt_DCAcharm_baryon",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAcharm_DzeroBaryon = new TH3F("hM_Pt_DCAcharm_DzeroBaryon",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAcharm_DplusBaryon = new TH3F("hM_Pt_DCAcharm_DplusBaryon",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  auto hM_Pt_DCAcharm_BaryonPair = new TH3F("hM_Pt_DCAcharm_BaryonPair",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+
   auto hM_Pt_DCAbeauty = new TH3F("hM_Pt_DCAbeauty",title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
 
 // mee delta phi dca distributions
@@ -429,6 +445,10 @@ void dca(
           if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDmixedPair) {hM_Pt_DCAcharm_Dmixed->Fill(LV.Mag(),LV.Pt(),dca);}
           if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIncludsBaryon) {hM_Pt_DCAcharm_baryon->Fill(LV.Mag(),LV.Pt(),dca);}
 
+          if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDplusBaryon) {hM_Pt_DCAcharm_DzeroBaryon->Fill(LV.Mag(),LV.Pt(),dca);}
+          if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDzeroBaryon) {hM_Pt_DCAcharm_DplusBaryon->Fill(LV.Mag(),LV.Pt(),dca);}
+          if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsBaryonPair) {hM_Pt_DCAcharm_BaryonPair->Fill(LV.Mag(),LV.Pt(),dca);}
+
           // hM_dPhi_DCAcharm->Fill(LV.Mag(),deltaPhi,dca);
           }
         if( isBeauty(m1Pid) && isBeauty(m2Pid) )
@@ -501,6 +521,9 @@ void dca(
   hM_Pt_DCAcharm_Dplus->Write();
   hM_Pt_DCAcharm_Dmixed->Write();
   hM_Pt_DCAcharm_baryon->Write();
+  hM_Pt_DCAcharm_DzeroBaryon->Write();
+  hM_Pt_DCAcharm_DplusBaryon->Write();
+  hM_Pt_DCAcharm_BaryonPair->Write();
   hM_Pt_DCAbeauty->Write();
   hM_dPhi_DCAprimary->Write();
   hM_dPhi_DCAcharm->Write();
