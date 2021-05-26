@@ -153,12 +153,12 @@ int charmPair(int mpid1, int mpid2)
   else if ((mpid1 == 411) && (mpid2 == 421)) return charmPairType::kIsDmixedPair;
   else if ((mpid1 == 421) && (mpid2 == 411)) return charmPairType::kIsDmixedPair;
   // baryon pairs
-  else if ((mpid1 == 4001) || (mpid2 == 4001)) return charmPairType::kIncludsBaryon; // if one is a baryon or both are
   else if ((mpid1 == 4001) && (mpid2 == 4001)) return charmPairType::kIsBaryonPair; // if both are baryon
-  else if ((mpid1 == 421) && (mpid2 == 4001)) return charmPairType::kIsDzeroBaryon; // if both are baryon
+  else if ((mpid1 == 421) && (mpid2 == 4001)) return charmPairType::kIsDzeroBaryon; // if one is D0 the other a baryon
   else if ((mpid1 == 4001) && (mpid2 == 421)) return charmPairType::kIsDzeroBaryon; // if both are baryon
   else if ((mpid1 == 411) && (mpid2 == 4001)) return charmPairType::kIsDplusBaryon; // if both are baryon
   else if ((mpid1 == 4001) && (mpid2 == 411)) return charmPairType::kIsDplusBaryon; // if both are baryon
+  else if ((mpid1 == 4001) || (mpid2 == 4001)) return charmPairType::kIncludsBaryon; // if one is a baryon or both are
 
 
   else return charmPairType::kIsNoCharm;
