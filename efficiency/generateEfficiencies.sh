@@ -5,10 +5,11 @@ runDelphes() {
   if [[ $5 == "PbPb" ]]
   then
     cp ../pythia/pythia8_$5.cfg pythia8_$5.$1.cfg
+    # cp ../pythia/pythia8_${5}_502TeV.cfg pythia8_$5.$1.cfg
     sleep 2
     echo "Main:numberOfEvents $2" >> pythia8_$5.$1.cfg
-    echo "Random:seed = `expr 1001 \* $1`" >> pythia8_$5.$1.cfg
     echo "Random:setSeed on" >> pythia8_$5.$1.cfg
+    echo "Random:seed = `expr 1001 \* $1`" >> pythia8_$5.$1.cfg
     # echo "Beams:allowVertexSpread on " >> pythia8_$5.$1.cfg
     # echo "Beams:sigmaTime 60." >> pythia8_$5.$1.cfg
   elif [[ $5 == "pp" ]]
@@ -129,7 +130,7 @@ else
 fi
 
 # make sure B field is set right
-sed -i -e "s/set Bz .*$/set Bz ${BFIELD}e\-1/" propagate.tcl
+sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${BARRELRAD}e\-2/" propagate.tcl
@@ -152,15 +153,15 @@ sed -i -e "s/double rich_length = .*$/double rich_length = ${RICHLEN}\;/" anaEEs
 
 
 # adapt pt cuts corresponding to selected B-field
-if [[ $BFIELD -eq 2 ]]
-then
-  PTACC=4 # pt = 40 MeV/c acceptance cut for low B field
-elif [[ $BFIELD -eq 5 ]]
-then
-  PTACC=8 # pt = 40 MeV/c acceptance cut for low B field
-fi
-sed -i -e "s/double PtCut .*$/double PtCut = ${PTACC}e\-2;/" anaEEstudy.cxx
-echo " --- using Pt Acceptance cut:  0.0${PTACC}GeV/c"
+# if [[ $BFIELD -eq 2 ]]
+# then
+#   PTACC=4 # pt = 40 MeV/c acceptance cut for low B field
+# elif [[ $BFIELD -eq 5 ]]
+# then
+#   PTACC=8 # pt = 40 MeV/c acceptance cut for low B field
+# fi
+# sed -i -e "s/double PtCut .*$/double PtCut = ${PTACC}e\-2;/" anaEEstudy.cxx
+# echo " --- using Pt Acceptance cut:  0.0${PTACC}GeV/c"
 
 #load the right LUTs in the anaEEstudy.cxx
 
@@ -212,9 +213,9 @@ echo " Finished running Delphes "
 ### merge runs when all done
 hadd -f anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
-cp ./macros/anaPlots.cxx anaPlots.cxx &&
-root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
-rm anaPlots.cxx
+# cp ./macros/anaPlots.cxx anaPlots.cxx &&
+# root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
+# rm anaPlots.cxx
 mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod
 ### clean up
 rm lutCovm*
