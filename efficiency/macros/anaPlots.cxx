@@ -247,24 +247,26 @@ if (bPlotPIDhistograms) {
     vecTOF_PIDplots.push_back(hRec_TOF_NSigma[i]);
     hRec_RICH_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH", pname[i]));
     vecRICH_PIDplots.push_back(hRec_RICH_NSigma[i]);
-    hRec_TOF_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF", pname[i]));
+    hRec_TOF_NSigma[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_sce%i", pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
     vecTOF_PIDplots.push_back(hRec_TOF_NSigma[i]);
-    hRec_RICH_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH", pname[i]));
+    hRec_RICH_NSigma[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_sce%i", pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
     vecRICH_PIDplots.push_back(hRec_RICH_NSigma[i]);
   }
 
 
   for (int i = 0; i < 5; ++i) {
+    // hNsigmaP_TOF[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF", pname[i]));
     hNsigmaP_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueElec", pname[i]));
     hNsigmaP_TOF_trueMuon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueMuon", pname[i]));
     hNsigmaP_TOF_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_truePion", pname[i]));
     hNsigmaP_TOF_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueKaon", pname[i]));
     hNsigmaP_TOF_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueProton", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueElec", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueMuon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueMuon", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_truePion", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueKaon", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueProton", pname[i]));
+    // hNsigmaP_afterPIDcuts_TOF[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF", pname[i]));
+    hNsigmaP_afterPIDcuts_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueElec_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_trueMuon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueMuon_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_truePion[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_truePion_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_trueKaon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueKaon_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_trueProton[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueProton_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
     hNsigmaP_TOF_trueElec[i]->SetMarkerColor(kBlue);
     hNsigmaP_TOF_trueMuon[i]->SetMarkerColor(kBlack);
     hNsigmaP_TOF_truePion[i]->SetMarkerColor(kRed);
@@ -293,12 +295,12 @@ if (bPlotPIDhistograms) {
     hNsigmaP_RICH_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH_truePion", pname[i]));
     hNsigmaP_RICH_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH_trueKaon", pname[i]));
     hNsigmaP_RICH_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH_trueProton", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueElec", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueMuon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueMuon", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton", pname[i]));
+    hNsigmaP_afterPIDcuts_RICH[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueElec[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueElec_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueMuon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueMuon_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_truePion[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_truePion_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueKaon_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueProton[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueProton_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
     hNsigmaP_RICH_trueElec[i]->SetMarkerColor(kBlue);
     hNsigmaP_RICH_trueMuon[i]->SetMarkerColor(kBlack);
     hNsigmaP_RICH_truePion[i]->SetMarkerColor(kRed);
@@ -2316,6 +2318,7 @@ if (bPlotTrackContamination) {
       if(i % 2 == 0)textBeforePID->Draw("same");
       else textAfterPID->Draw("same");
       textTOF->Draw("same");
+      cPID->SetTicks();
       cPID->SaveAs(Form("./plots/PID_histograms/%s.png",vecTOF_PIDplots.at(i)->GetName()));
 
       cPID_logx->cd();
@@ -2330,6 +2333,7 @@ if (bPlotTrackContamination) {
       if(i % 2 == 0)textBeforePID->Draw("same");
       else textAfterPID->Draw("same");
       textTOF->Draw("same");
+      cPID_logx->SetTicks();
       cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.png",vecTOF_PIDplots.at(i)->GetName()));
     }
     for (size_t i = 0; i < vecRICH_PIDplots.size(); i++) {
@@ -2344,6 +2348,7 @@ if (bPlotTrackContamination) {
       if(i % 2 == 0)textBeforePID->Draw("same");
       else textAfterPID->Draw("same");
       textRICH->Draw("same");
+      cPID->SetTicks();
       cPID->SaveAs(Form("./plots/PID_histograms/%s.png",vecRICH_PIDplots.at(i)->GetName()));
 
       cPID_logx->cd();
@@ -2358,6 +2363,7 @@ if (bPlotTrackContamination) {
       if(i % 2 == 0)textBeforePID->Draw("same");
       else textAfterPID->Draw("same");
       textRICH->Draw("same");
+      cPID_logx->SetTicks();
       cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.png",vecRICH_PIDplots.at(i)->GetName()));
     }
   }
@@ -2542,6 +2548,7 @@ if (bPlotTrackContamination) {
       legendInfo->Draw("same");
       textBeforePID->Draw("same");
       textTOF->Draw("same");
+      cNSigmaSeparatePID_TOF->SetTicks();
       cNSigmaSeparatePID_TOF->SaveAs(Form("./plots/PID_histograms/NSigma%s_TOF_SeparatePiEleMuPID_noCuts.png",namesEleMuPi[iNSig]));
 
       auto cNSigmaSeparatePID_TOF_afterCuts = new TCanvas("cNSigmaPionSeparatePID_TOF_afterCuts","cNSigmaPionSeparatePID_TOF_afterCuts",800,800);
@@ -2560,6 +2567,7 @@ if (bPlotTrackContamination) {
       legendInfo->Draw("same");
       textAfterPID->Draw("same");
       textTOF->Draw("same");
+      cNSigmaSeparatePID_TOF_afterCuts->SetTicks();
       cNSigmaSeparatePID_TOF_afterCuts->SaveAs(Form("./plots/PID_histograms/NSigma%s_TOF_SeparatePiEleMuPID_afterCuts.png",namesEleMuPi[iNSig]));
 
 
@@ -2580,6 +2588,7 @@ if (bPlotTrackContamination) {
       legendInfo->Draw("same");
       textBeforePID->Draw("same");
       textRICH->Draw("same");
+      cNSigmaSeparatePID_RICH->SetTicks();
       cNSigmaSeparatePID_RICH->SaveAs(Form("./plots/PID_histograms/NSigma%s_RICH_SeparatePiEleMuPID_noCuts.png",namesEleMuPi[iNSig]));
 
 
@@ -2599,6 +2608,7 @@ if (bPlotTrackContamination) {
       legendInfo->Draw("same");
       textAfterPID->Draw("same");
       textRICH->Draw("same");
+      cNSigmaSeparatePID_RICH_afterCuts->SetTicks();
       cNSigmaSeparatePID_RICH_afterCuts->SaveAs(Form("./plots/PID_histograms/NSigma%s_RICH_SeparatePiEleMuPID_afterCuts.png",namesEleMuPi[iNSig]));
     }
 
