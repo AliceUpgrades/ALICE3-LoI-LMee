@@ -31,8 +31,8 @@ double eMass = 0.000511;
 
 // Cinematic cuts on tracks
 // double PtCut = 0.0;     // open cuts
-// double PtCut = 0.04;       // if B=0.2T becomes overwritten by the generateEfficiencies.sh skript
-// double PtCut = 0.08;    // if B=0.5T becomes overwritten by the generateEfficiencies.sh skript
+// double PtCut = 0.04;    // right now pt cut in cut variations below // if B=0.2T becomes overwritten by the generateEfficiencies.sh skript
+// double PtCut = 0.08;    // right now pt cut in cut variations below // if B=0.5T becomes overwritten by the generateEfficiencies.sh skript
 double EtaCut = 1.1;
 // double EtaCut = 10.;    // open cuts
 
@@ -76,20 +76,20 @@ double rich_PionRejection_p_cut = 1.0; // [GeV/c]
 
 
 // PID Scenarios
-bool useTOFPID[]        = {kTRUE,   kTRUE     /*,  kTRUE,  kTRUE,  kTRUE,   kTRUE*/};
-bool useRICHPID_B2[]    = {kFALSE,  kFALSE    /*,  kTRUE,  kTRUE,  kTRUE,   kTRUE*/};
-bool useRICHPID_B5[]    = {kTRUE,   kTRUE     /*,  kTRUE,  kTRUE,  kTRUE,   kTRUE*/};
-bool usePreShPID[]      = {kFALSE,  kFALSE    /*,  kFALSE, kFALSE, kFALSE,  kFALSE*/};
+bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  kTRUE,  kTRUE,  kTRUE,   kTRUE};
+bool useRICHPID_B2[]    = {/*kFALSE,  kFALSE,    */  kFALSE, kTRUE,  kTRUE,   kTRUE};
+bool useRICHPID_B5[]    = {/*kTRUE,   kTRUE,     */  kFALSE, kTRUE,  kTRUE,   kTRUE};
+bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  kFALSE, kFALSE, kFALSE,  kFALSE};
 // TOF cuts on tracks
-double nSigmaTOFEle[]   = {3.0,     3.0       /*,    3.0,    3.0,    3.0,     3.0*/};
-double nSigmaTOFPi[]    = {3.0,     3.0       /*,    3.0,    3.0,    3.0,     3.0*/};
+double nSigmaTOFEle[]   = {/*3.0,     3.0,       */    3.0,    3.0,    3.0,     3.0};
+double nSigmaTOFPi[]    = {/*3.0,     3.0,       */    3.0,    3.0,    3.0,     3.0};
 // RICH cuts on tracks
-double nSigmaRICHEle[]  = {3.0,     3.0       /*,    3.0,    3.0,    3.0,     3.0*/};
-double nSigmaRICHPi[]   = {4.0,     4.0       /*,    3.0,    3.5,    4.0,     4.0*/};
+double nSigmaRICHEle[]  = {/*3.0,     3.0,       */    3.0,    3.0,    3.0,     3.0};
+double nSigmaRICHPi[]   = {/*4.0,     4.0,       */    3.0,    3.0,    3.5,     4.0};
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
-double PtCut02[]        = {0.04,    0.08      /*,   0.08,   0.08,   0.04,    0.04*/};
-double PtCut05[]        = {0.2,     0.08       /*,   0.2,    0.2,    0.2,     0.08*/};
+double PtCut02[]        = {/*0.04,    0.08,      */   0.03,   0.03,   0.03,    0.03};
+double PtCut05[]        = {/*0.2,     0.08,       */  0.03,   0.03,   0.03,    0.03};
 
 
 
@@ -140,22 +140,7 @@ double PtCut05[]        = {0.2,     0.08       /*,   0.2,    0.2,    0.2,     0.
 //   // ################## end of PID selection ##################
 // }
 
-// void makeHistNice(TH1* h, int color){
-//   h->SetMarkerColor(color);
-//   h->SetLineColor(color);
-//   h->SetMarkerStyle(20);
-//   h->SetLineWidth(2);
-// }
 
-bool hasCommonAncestor(GenParticle* p1,GenParticle* tr2 )
-{
-  // check if 2 particles have one ancestor
-  // fill vector with all ancestors of particle on
-  // check if particle2 is included
-  // if so, return true if not check for mother of p2
-  // maybe do this recursiv???
-  return false;
-}
 
 bool hasStrangeAncestor(GenParticle *particle, TClonesArray *particles)
 {
@@ -223,8 +208,7 @@ bool kineCuts(TLorentzVector LV, Int_t iSce){
   return (pt && eta);
 }
 
-bool hasHeavyAncestor(GenParticle *particle, TClonesArray *particles)
-{
+bool hasHeavyAncestor(GenParticle *particle, TClonesArray *particles){
   auto imother = particle->M1;
   if (imother == -1) return false;
   auto mother = (GenParticle *)particles->At(imother);
@@ -265,8 +249,7 @@ bool isBeauty(int pid){
   return false;
 }
 
-bool hasBeautyAncestor(GenParticle *particle, TClonesArray *particles)
-{
+bool hasBeautyAncestor(GenParticle *particle, TClonesArray *particles){
   //check until beauty ancestor is found
   auto imother = particle->M1;
   if (imother == -1) return false;
@@ -349,37 +332,6 @@ Bool_t IsStable(Int_t pdg)
   return isStable;
 }
 
-// std::vector<int> qPDGs = {1,2,3,4,5,6,7,8};
-// bool isNoQuark(GenParticle *particle) {
-//   int pdg = particle->PID;
-//   int abspdg = fabs(pdg);
-//   if(std::find(qPDGs.begin(), qPDGs.end(), abspdg) != qPDGs.end()) return kFALSE;
-//   else return kTRUE;
-// }
-//
-// bool hasQuarkAncestor(GenParticle *particle, TClonesArray *particles) {
-//   auto imother = particle->M1;
-//   if (imother == -1) return false;
-//   auto mother = (GenParticle *)particles->At(imother);
-//   auto pid = mother->PID;
-//   auto abspid = fabs(pid);
-//   if(std::find(qPDGs.begin(), qPDGs.end(), abspid) != qPDGs.end()) return kTRUE;
-//   else return kFALSE;
-// }
-//
-// bool hasMotherPhotonGMQuark(GenParticle *particle, TClonesArray *particles) {
-//   auto imother = particle->M1;
-//   if (imother == -1) return false;
-//   auto mother = (GenParticle *)particles->At(imother);
-//   auto mPid = mother->PID;
-//   auto igmother = 0;
-//   if(mother) igmother = mother->M1;
-//   auto gmother  = igmother != -1 ? (GenParticle *)particles->At(igmother) : (GenParticle *)nullptr;
-//   auto gmPid    = 0;
-//   if(gmother) gmPid = gmother->PID;
-//   if (mPid == 22) return kTRUE;
-//   else return kFALSE;
-// }
 
 // Resolution
 // TObjArray *fArrResoPt = 0x0;
@@ -546,11 +498,7 @@ TH3F* hMPtDCA_LS_rec_misIDhf[3];
 
 void anaEEstudy(
     const char *inputFile = "delphes100k.root", // one fo the LF and charm part. Has 1M charm+beauty events
-    // const char *inputFile = "delphes_500kBeauty.root", // one fo the LF and charm part. Has 1M charm+beauty events
     const char *outputFile = "anaEEstudyLFcc.root" // merge output files after analysis was run to keep file size moderate
-    // const char *outputFile = "dcabb.root" // merge output files after analysis was run to keep file size moderate
-    // const Int_t nEvents = -1,              // number of events to analyze (all in case of -1)
-    // const Bool_t bStarlight = kFALSE       // special treatment in case of STARLight events
   )
 {
 
@@ -566,8 +514,6 @@ void anaEEstudy(
   auto treeReader = new ExRootTreeReader(&chain);
   auto numberOfEntries = treeReader->GetEntries();
   auto numberOfEntriesTree = numberOfEntries;
-  // if(nEvents > -1) numberOfEntries = nEvents;
-  // Printf("Process %lld out of %lld entries",numberOfEntries,numberOfEntriesTree);
 
 
 // binning
@@ -668,16 +614,18 @@ void anaEEstudy(
   auto nParticlesMidRapidity = new TH1F("nParticlesMidRapidity",";Particles",15000,0,15000);
   auto nParticlesMidRapidityCent = new TH1F("nParticlesMidRapidityCent",";Particles",15000,0,15000);
 
+  // Get number of Tracks selected by centrality within mid rapidity range
   auto hdNdeta_midrap_gen = new TH1F("hdNdeta_midrap_gen",";#eta",1,-0.5,0.5);
   auto hdNdeta_midrap_rec = new TH1F("hdNdeta_midrap_rec",";#eta",1,-0.5,0.5);
 
+  // Check pt of tracks with and without hasTOF(), hasRICH() signals
   auto hTrackP = new TH1F("hTrackP",";#it{p} (GeV/#it{c})",200,0.,1.);
   auto hTrackP_hasTOForRICH = new TH1F("hTrackP_hasTOForRICH",";#it{p} (GeV/#it{c})",200,0.,0.2);
   auto hTrackPt = new TH1F("hTrackPt",";#it{p}_{T} (GeV/#it{c})",200,0.,1.);
   auto hTrackPt_hasTOForRICH = new TH1F("hTrackPt_hasTOForRICH",";#it{p}_{T} (GeV/#it{c})",200,0.,0.2);
 
 
-  //Check smearing of generated tracks
+  // Check smearing of generated tracks
   auto hSmearing_For_Eff_pt = new TH2F("hSmearing_For_Eff_pt","(#it{p}_{T,gen}-#it{p}_{T,rec})/#it{p}_{T,gen};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.5,0.5);
   auto hSmearing_For_Eff_phi_pos = new TH2F("hSmearing_For_Eff_phi_pos","#phi_{gen}-#phi_{rec};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.4,0.1);
   auto hSmearing_For_Eff_phi_neg = new TH2F("hSmearing_For_Eff_phi_neg","#phi_{gen}-#phi_{rec};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.1,0.4);
@@ -709,6 +657,7 @@ void anaEEstudy(
   // TH3F* hPt_Eta_Phi_beauty_rec[nPIDscenarios];
   // TH3F* hPt_Eta_Phi_beauty_Ele_rec[nPIDscenarios];
   // TH3F* hPt_Eta_Phi_beauty_Pos_rec[nPIDscenarios];
+
   for (int j = 0; j < nPIDscenarios; ++j){
     hAfterKineCuts_Pt_Eta_Phi_rec[j] = new TH3F(Form("hAfterKineCuts_Pt_Eta_Phi_rec_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
     hTrack_ElePos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
@@ -737,41 +686,44 @@ void anaEEstudy(
 
 
   // Pair histograms
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_gen[j]         = new TH3F(Form("hMPtDCA_ULS_gen_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_gen_primary[j] = new TH3F("hForm(MPtDCA_ULS_gen_primary",_sce%it,j+1)itle3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_gen_heavy[j]   = new TH3F(Form("hMPtDCA_ULS_gen_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_gen_charm[j]   = new TH3F(Form("hMPtDCA_ULS_gen_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_gen_beauty[j]  = new TH3F(Form("hMPtDCA_ULS_gen_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec[j]         = new TH3F(Form("hMPtDCA_ULS_rec_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_primary[j] = new TH3F(Form("hMPtDCA_ULS_rec_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_heavy[j]   = new TH3F(Form("hMPtDCA_ULS_rec_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_charm[j]   = new TH3F(Form("hMPtDCA_ULS_rec_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_beauty[j]  = new TH3F(Form("hMPtDCA_ULS_rec_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_MCpidEle[j]         = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_MCpidEle_primary[j] = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_MCpidEle_heavy[j]   = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_MCpidEle_charm[j]   = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_ULS_rec_MCpidEle_beauty[j]  = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  for (int j = 0; j < nPIDscenarios; ++j){
+  // Pair histograms ULS
+    hMPtDCA_ULS_gen[j]         = new TH3F(Form("hMPtDCA_ULS_gen_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_gen_primary[j] = new TH3F(Form("hMPtDCA_ULS_gen_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_gen_heavy[j]   = new TH3F(Form("hMPtDCA_ULS_gen_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_gen_charm[j]   = new TH3F(Form("hMPtDCA_ULS_gen_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_gen_beauty[j]  = new TH3F(Form("hMPtDCA_ULS_gen_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_ULS_rec[j]         = new TH3F(Form("hMPtDCA_ULS_rec_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_primary[j] = new TH3F(Form("hMPtDCA_ULS_rec_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_heavy[j]   = new TH3F(Form("hMPtDCA_ULS_rec_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_charm[j]   = new TH3F(Form("hMPtDCA_ULS_rec_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_beauty[j]  = new TH3F(Form("hMPtDCA_ULS_rec_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_ULS_rec_MCpidEle[j]         = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_MCpidEle_primary[j] = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_MCpidEle_heavy[j]   = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_MCpidEle_charm[j]   = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_ULS_rec_MCpidEle_beauty[j]  = new TH3F(Form("hMPtDCA_ULS_rec_MCpidEle_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   // Pair histograms LS
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_gen[j]         = new TH3F(Form("hMPtDCA_LS_gen_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_gen_primary[j] = new TH3F("hForm(MPtDCA_LS_gen_primary",_sce%it,j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_gen_heavy[j]   = new TH3F(Form("hMPtDCA_LS_gen_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_gen_charm[j]   = new TH3F(Form("hMPtDCA_LS_gen_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_gen_beauty[j]  = new TH3F(Form("hMPtDCA_LS_gen_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec[j]         = new TH3F(Form("hMPtDCA_LS_rec_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_primary[j] = new TH3F(Form("hMPtDCA_LS_rec_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_heavy[j]   = new TH3F(Form("hMPtDCA_LS_rec_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_charm[j]   = new TH3F(Form("hMPtDCA_LS_rec_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_beauty[j]  = new TH3F(Form("hMPtDCA_LS_rec_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_MCpidEle[j]         = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_MCpidEle_primary[j] = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_MCpidEle_heavy[j]   = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_MCpidEle_charm[j]   = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  // for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_MCpidEle_beauty[j]  = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_misIDoneLeg[j]         = new TH3F(Form("hMPtDCA_LS_rec_misIDoneLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_misIDtwoLeg[j]         = new TH3F(Form("hMPtDCA_LS_rec_misIDtwoLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_misIDPion[j]         = new TH3F(Form("hMPtDCA_LS_rec_misIDPion_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-  for (int j = 0; j < nPIDscenarios; ++j) hMPtDCA_LS_rec_misIDhf[j]         = new TH3F(Form("hMPtDCA_LS_rec_misIDhf_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_gen[j]         = new TH3F(Form("hMPtDCA_LS_gen_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_gen_primary[j] = new TH3F(Form("hMPtDCA_LS_gen_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_gen_heavy[j]   = new TH3F(Form("hMPtDCA_LS_gen_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_gen_charm[j]   = new TH3F(Form("hMPtDCA_LS_gen_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_gen_beauty[j]  = new TH3F(Form("hMPtDCA_LS_gen_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec[j]         = new TH3F(Form("hMPtDCA_LS_rec_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_primary[j] = new TH3F(Form("hMPtDCA_LS_rec_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_heavy[j]   = new TH3F(Form("hMPtDCA_LS_rec_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_charm[j]   = new TH3F(Form("hMPtDCA_LS_rec_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_beauty[j]  = new TH3F(Form("hMPtDCA_LS_rec_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_MCpidEle[j]         = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_MCpidEle_primary[j] = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_primary_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_MCpidEle_heavy[j]   = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_MCpidEle_charm[j]   = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_MCpidEle_beauty[j]  = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_misIDoneLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDoneLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_misIDtwoLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDtwoLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_misIDPion[j]        = new TH3F(Form("hMPtDCA_LS_rec_misIDPion_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_misIDhf[j]          = new TH3F(Form("hMPtDCA_LS_rec_misIDhf_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  }
 
 
 
@@ -896,6 +848,7 @@ void anaEEstudy(
   for (size_t iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
     vecTListGenPIDscenarios.push_back(lGenPIDscenario[iPIDscenario]);
   }
+
   // auto hPt_Eta_Phi_primary_gen = new TH3F("hPt_Eta_Phi_primary_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   // auto hPt_Eta_Phi_primary_Ele_gen = new TH3F("hPt_Eta_Phi_primary_Ele_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
   // auto hPt_Eta_Phi_primary_Pos_gen = new TH3F("hPt_Eta_Phi_primary_Pos_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
@@ -918,18 +871,6 @@ void anaEEstudy(
   // auto hCharmGM = new TH1F("hCharmGM",";MotherPDG",1000,0,10000);
   // auto hBeautyM = new TH1F("hBeautyM",";MotherPDG",1000,0,10000);
   // auto hBeautyGM = new TH1F("hBeautyGM",";MotherPDG",1000,0,10000);
-
-
-  // auto hPt_Eta_Phi_rec_Eta_Cut_1 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_1", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_2 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_2", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_3 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_3", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_4 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_4", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_5 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_5", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_6 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_6", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_7 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_7", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_8 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_8", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_9 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_9", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
-  // auto hPt_Eta_Phi_rec_Eta_Cut_10 = new TH3F("hPt_Eta_Phi_rec_Eta_Cut_10", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", 200, 0., 20., 200, -10., 10.,180,0,2*TMath::Pi());
 
 
 
@@ -1520,7 +1461,7 @@ void anaEEstudy(
         // fill nsigma after PID cuts histograms    (after PID selection has been applied)
         for (int i = 0; i < 5; ++i) {
           // NSigma plots, separating for true particle ID
-          if(TOFpid){
+          if(toflayer.hasTOF(*track)){
             hNsigmaP_afterPIDcuts_TOF[i][iPID_scenario]->Fill(p, PIDnsigmaTOF[i]);
             if      (abs(particle->PID) == 11)   hNsigmaP_afterPIDcuts_TOF_trueElec[i][iPID_scenario]->Fill(p, PIDnsigmaTOF[i]);
             else if (abs(particle->PID) == 13)   hNsigmaP_afterPIDcuts_TOF_trueMuon[i][iPID_scenario]->Fill(p, PIDnsigmaTOF[i]);
@@ -1528,7 +1469,7 @@ void anaEEstudy(
             else if (abs(particle->PID) == 321)  hNsigmaP_afterPIDcuts_TOF_trueKaon[i][iPID_scenario]->Fill(p, PIDnsigmaTOF[i]);
             else if (abs(particle->PID) == 2212) hNsigmaP_afterPIDcuts_TOF_trueProton[i][iPID_scenario]->Fill(p, PIDnsigmaTOF[i]);
           }
-          if(RICHpid){
+          if(richdetector.hasRICH(*track)){
             hNsigmaP_afterPIDcuts_RICH[i][iPID_scenario]->Fill(p, PIDnsigmaRICH[i]);
             if      (abs(particle->PID) == 11)   hNsigmaP_afterPIDcuts_RICH_trueElec[i][iPID_scenario]->Fill(p, PIDnsigmaRICH[i]);
             else if (abs(particle->PID) == 13)   hNsigmaP_afterPIDcuts_RICH_trueMuon[i][iPID_scenario]->Fill(p, PIDnsigmaRICH[i]);
@@ -1805,16 +1746,6 @@ void anaEEstudy(
   // fout->mkdir("reconstructed/ULS");
   // fout->cd("reconstructed/ULS");
 
-  // hPt_Eta_Phi_rec_Eta_Cut_10->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_9->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_8->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_7->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_6->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_5->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_4->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_3->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_2->Write();
-  // hPt_Eta_Phi_rec_Eta_Cut_1->Write();
 
   hM_Pt_sig_gen->Write();
 

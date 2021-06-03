@@ -9,10 +9,10 @@ bool bPlotPairHistograms = kTRUE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
-int ith_PIDscenario = 2;
-// TString strPIDscenario[] = {"TOF only", "TOF+RICH (3#sigma_{#pi} rej)", "TOF+RICH (3.5#sigma_{#pi} rej)", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
+int ith_PIDscenario = 4;
+TString strPIDscenario[] = {"TOF only", "TOF+RICH (3#sigma_{#pi} rej)", "TOF+RICH (3.5#sigma_{#pi} rej)", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
 // TString strPIDscenario[] = {"TOF only 0.04<pte", "TOF only 0.08<pte"};
-TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
+// TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -2263,22 +2263,22 @@ if (bPlotTrackContamination) {
   // TLegendEntry *entryInfo3;
   if(BField == 0.2){
     if(ith_PIDscenario == 1){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.08 GeV/#font[12]{c}","");
+      // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
     }
     if(ith_PIDscenario == 2){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.16 GeV/#font[12]{c}","");
+      // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
     }
   }
   else if (BField == 0.5){
     if(ith_PIDscenario == 1){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.4 GeV/#font[12]{c}","");
+      // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
     }
-    if(ith_PIDscenario == 2){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.16 GeV/#font[12]{c}","");
+    if(ith_PIDscenario >= 2){
+      // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
     }
   }
   TLegendEntry *entryInfo3=legendInfo->AddEntry("PID","TOF + RICH (4 #sigma_{#pi} rej) PID ","");
