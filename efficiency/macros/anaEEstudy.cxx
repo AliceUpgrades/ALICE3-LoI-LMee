@@ -404,10 +404,11 @@ TLorentzVector  ApplySmearing(TObjArray* fArrResoPt, TObjArray* fArrResoEta, TOb
   else if (ptbin > ptbin_max)
     ptbin = ptbin_max;
 
-  Double_t smearing = 1;
-  if (((TH1D *)(fArrResoPt->At(ptbin)))->GetBinContent(ptbin) != 0.)
-    smearing = ((TH1D *)(fArrResoPt->At(ptbin)))->GetRandom() * pt;
-  const Double_t sPt = pt - smearing;
+  Double_t sPt = pt;
+  if (((TH1D *)(fArrResoPt->At(ptbin)))->Integral() > 0.000001){
+    Double_t smearing = ((TH1D *)(fArrResoPt->At(ptbin)))->GetRandom() * pt;
+    sPt = pt - smearing;
+  }
 
   // smear eta
   ptbin     = ((TH2D *)(fArrResoEta->At(0)))->GetXaxis()->FindBin(pt);
@@ -416,9 +417,11 @@ TLorentzVector  ApplySmearing(TObjArray* fArrResoPt, TObjArray* fArrResoEta, TOb
     ptbin = 1;
   else if (ptbin > ptbin_max)
     ptbin = ptbin_max;
-  if (((TH1D *)(fArrResoEta->At(ptbin)))->GetBinContent(ptbin) != 0.)
-    smearing = ((TH1D *)(fArrResoEta->At(ptbin)))->GetRandom();
-  const Double_t sEta = eta - smearing;
+  Double_t sEta = eta;
+  if (((TH1D *)(fArrResoEta->At(ptbin)))->Integral() > 0.000001){
+    Double_t smearing = ((TH1D *)(fArrResoEta->At(ptbin)))->GetRandom();
+    sEta = eta - smearing;
+  }
 
   // smear phi
   ptbin     = ((TH2D *)(fArrResoPhi_Pos->At(0)))->GetXaxis()->FindBin(pt);
@@ -427,14 +430,19 @@ TLorentzVector  ApplySmearing(TObjArray* fArrResoPt, TObjArray* fArrResoEta, TOb
     ptbin = 1;
   if (ptbin > ptbin_max)
     ptbin = ptbin_max;
+
+  Double_t sPhi = phi;
   if (ch > 0) {
-    if (((TH1D *)(fArrResoPhi_Pos->At(ptbin)))->GetBinContent(ptbin) != 0.)
-      smearing = ((TH1D *)(fArrResoPhi_Pos->At(ptbin)))->GetRandom();
+    if (((TH1D *)(fArrResoPhi_Pos->At(ptbin)))->Integral() > 0.000001){
+      Double_t smearing = ((TH1D *)(fArrResoPhi_Pos->At(ptbin)))->GetRandom();
+      sPhi = phi - smearing;
+    }
   } else if (ch < 0) {
-    if (((TH1D *)(fArrResoPhi_Neg->At(ptbin)))->GetBinContent(ptbin) != 0.)
-      smearing = ((TH1D *)(fArrResoPhi_Neg->At(ptbin)))->GetRandom();
+    if (((TH1D *)(fArrResoPhi_Neg->At(ptbin)))->Integral() > 0.000001){
+      Double_t smearing = ((TH1D *)(fArrResoPhi_Neg->At(ptbin)))->GetRandom();
+      sPhi = phi - smearing;
+    }
   }
-  const Double_t sPhi = phi - smearing;
 
   // printf(" Original Pt = %f Phi %f Eta %f -> final pt = %f Phi %f Eta %f
   // \n",pt,phi,eta,sPt,sPhi,sEta);
@@ -1426,10 +1434,17 @@ void anaEEstudy(
           if (p > tof_PionRej_p_cut && richdetector.hasRICH(*track)) {
             if((fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID)) TOFpid = true; // is within 3 sigma of the electron band (TOF)
           }
-          else if( (p <= tof_PionRej_p_cut) || (p > tof_PionRej_p_cut && !richdetector.hasRICH(*track)) ){
+          else if(p <= tof_PionRej_p_cut){
             if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
           }
-          else{ TOFpid = false; cout << "!!! something is going wrong !!! " << endl;}
+          else{ TOFpid = false; // This is rejecting all the heavier partilces which do not create a RICH signal
+          //   cout << "!!! something is going wrong !!! " << endl;
+          //   cout << " PDG = " << track->PID << ", p = " << p << endl;
+          //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
+          //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
+          //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
+          //   cout << endl;
+          }
 
           if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
         }
