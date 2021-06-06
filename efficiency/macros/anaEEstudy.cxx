@@ -557,7 +557,7 @@ void anaEEstudy(
 
 
   // Smearing for generated tracks
-  if (Bz==0.5) smearingfile = "resolution.root";
+  smearingfile = "resolution.root";
   TFile *fRes = TFile::Open(smearingfile.Data());
   // ReadResoFile(fRes);
 
@@ -1437,14 +1437,8 @@ void anaEEstudy(
           else if(p <= tof_PionRej_p_cut){
             if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
           }
-          else{ TOFpid = false; // This is rejecting all the heavier partilces which do not create a RICH signal
-          //   cout << "!!! something is going wrong !!! " << endl;
-          //   cout << " PDG = " << track->PID << ", p = " << p << endl;
-          //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-          //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
-          //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
-          //   cout << endl;
-          }
+          else TOFpid = false; // This is rejecting all the heavier partilces which do not have a RICH signal in the pt area of 0.4-0.6 GeV/c
+
 
           if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
         }
