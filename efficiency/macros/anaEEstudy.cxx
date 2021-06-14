@@ -923,12 +923,6 @@ void anaEEstudy(
 
   // RICH histograms
   TH2 *hNsigmaBeta_RICH[5];
-  // TH2 *hDeltaAngleP_RICH[5];
-  // TH2 *hDeltaAngleP_RICH_trueElec[5];
-  // TH2 *hDeltaAngleP_RICH_trueMuon[5];
-  // TH2 *hDeltaAngleP_RICH_truePion[5];
-  // TH2 *hDeltaAngleP_RICH_trueKaon[5];
-  // TH2 *hDeltaAngleP_RICH_trueProton[5];
   TH2 *hNsigmaP_RICH[5];
   TH2 *hNsigmaP_RICH_trueElec[5];
   TH2 *hNsigmaP_RICH_trueMuon[5];
@@ -943,12 +937,7 @@ void anaEEstudy(
   TH2 *hNsigmaP_afterPIDcuts_RICH_trueProton[5][nPIDscenarios];
   auto hCherenkovAngleP_beforeSmearing = new TH2F("hCherenkovAngleP_beforeSmearing", ";#it{p} GeV/c; cherenkov angle", 500, 0., 10., 200, 0., 0.4);
   auto hCherenkovAngleP_afterSmearing = new TH2F("hCherenkovAngleP_afterSmearing", ";#it{p} GeV/c; cherenkov angle", 500, 0., 10., 200, 0., 0.4);
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH[i] = new TH2F(Form("hDeltaAngleP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueElec[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueMuon[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_truePion[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueKaon[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueProton[i] = new TH2F(Form("hDeltaAngleP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;#Delta #alpha_{%s}", plabel[i]), 500, 0., 10., 400, -0.4, 0.4);
+
   for (int i = 0; i < 5; ++i)  hNsigmaBeta_RICH[i] = new TH2F(Form("hNsigmaBeta_%s_RICH", pname[i]), Form(";#beta ;n#sigma_{%s}", plabel[i]), 200, 0., 1.1, 400, -100., 100.);
 
   for (int i = 0; i < 5; ++i) { // particle type loop
@@ -1027,12 +1016,12 @@ void anaEEstudy(
     vecTListRecPIDscenarios.push_back(lRecPIDscenario[iPIDscenario]);
   }
 
-
+  // Setting Track and Particle vectors
+  //-----------------------------------
   std::vector<Track *> vecElectron[nPIDscenarios],vecPositron[nPIDscenarios];
   std::vector<Track *> vecNegTracks[nPIDscenarios],vecPosTracks[nPIDscenarios];
   std::vector<GenParticle *> vecElectronGen[nPIDscenarios],vecPositronGen[nPIDscenarios], vecElectronGenSmeared[nPIDscenarios],vecPositronGenSmeared[nPIDscenarios];
   std::vector<GenParticle *> vecGen, vecNegGen, vecPosGen;
-  std::vector<Track *> vecNegTracks_onlyTOFpid[nPIDscenarios], vecPosTracks_onlyTOFpid[nPIDscenarios];
   std::vector<Track *> vecPIDtracks; // , vecTOFtracks
 
   int nTotalTracks = 0;
@@ -1100,10 +1089,11 @@ void anaEEstudy(
 
 
     // centrality selection
-    // accept event if events has mote then X particles within the FIT detector accaptance (2.2<eta&&eta< 5.0) || (-3.4<eta&&eta<-2.3)
+    //---------------------
+    // accept event if event has more then X particles within the FIT detector accaptance (2.2<eta&&eta< 5.0) || (-3.4<eta&&eta<-2.3)
     nParticlesFIT->Fill(numParticlesFIT);
     nParticlesMidRapidity->Fill(numParticlesMidRapidity);
-    if( numParticlesFIT < 5195 ) {
+    if( numParticlesFIT < 5179 ) {
       vecGen.clear();
     continue;
     }
@@ -1116,7 +1106,8 @@ void anaEEstudy(
 
 
 
-
+    // loop over particles within centrality
+    //--------------------------------------
     for (auto particle : vecGen) {
       // if( (particle->Eta > -0.5 && particle->Eta<0.5) && particle->Charge != 0 ) hdNdeta_midrap_gen->Fill(particle->Eta);
 
@@ -1142,18 +1133,22 @@ void anaEEstudy(
       double phiGen = TVector2::Phi_0_2pi(particle->Phi);
 
 
-      // Smeared generated particles
+      // Smearing generated particles
+      //-----------------------------
       LV.SetPtEtaPhiM(particle->PT,particle->Eta,phiGen,eMass);
       Double_t charge = -particle->PID;
       LV_smeared = ApplySmearing(fArrResoPt,fArrResoEta,fArrResoPhi_Pos,fArrResoPhi_Neg,LV,charge);
-      if(charge > 0.) hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
-      if(charge < 0.) hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
-      hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta());
+
+      //Filling suport histograms to see effect of smearing
+      if(charge > 0.)  hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
+      if(charge < 0.)  hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
+                       hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta());
       if(LV.Pt() > 0.) hSmearing_For_Eff_pt->Fill(particle->PT, (LV.Pt() - LV_smeared.Pt())/LV.Pt());
 
-
+      // Filling TH3 before kinematic cuts are applied
       if (abs(particle->PID) == 11 )  hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
       if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
+
 
       for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
         // kinematic cuts on particles
@@ -1161,7 +1156,8 @@ void anaEEstudy(
           if (particle->PID == 11 ) vecElectronGen[iPID_scenario].push_back(particle);       // vector filled with generated electrons
           else if (particle->PID == -11 ) vecPositronGen[iPID_scenario].push_back(particle); // vector filled with generated positrons
 
-
+          // Filling TH3 histograms for generated  Tracks
+          //---------------------------------------------
                                             hTrack_All_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of all generated tracks
           if (abs(particle->PID) == 11 )    hTrack_ElePos_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
           if (abs(particle->PID) == 13 )    hTrack_Muon_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
@@ -1179,8 +1175,8 @@ void anaEEstudy(
                           // cout << "gen smeared pt eta phi: " << LV_smeared.Pt() << " " << LV_smeared.Eta() << " " << phiGenSmear << endl;
 
 
-
-
+        // Filling TH3 histograms for generated smeared Tracks
+        //----------------------------------------------------
         // look only at electrons
         if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear); // Pt Eta Phi of generated smeared electrons + positrons
         if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear);    // Pt Eta Phi of generated smeared electrons
@@ -1360,12 +1356,11 @@ void anaEEstudy(
             if(richdetector.hasRICH(*track)){
               hNsigmaP_RICH[i]->Fill(p, PIDnsigmaRICH[i]);
               hNsigmaBeta_RICH[i]->Fill(beta, PIDnsigmaRICH[i]);
-              // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH[i]->Fill(p, PIDdeltaangleRICH[i]);
-              if      (abs(particle->PID) == 11)    {hNsigmaP_RICH_trueElec[i]->Fill(p, PIDnsigmaRICH[i]);   /*hDeltaAngleP_RICH_trueElec[i]->Fill(p, PIDdeltaangleRICH[i]);*/}
-              else if (abs(particle->PID) == 13)    {hNsigmaP_RICH_trueMuon[i]->Fill(p, PIDnsigmaRICH[i]);   /*hDeltaAngleP_RICH_trueMuon[i]->Fill(p, PIDdeltaangleRICH[i]);*/}
-              else if (abs(particle->PID) == 211)   {hNsigmaP_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);   /*hDeltaAngleP_RICH_truePion[i]->Fill(p, PIDdeltaangleRICH[i]);*/}
-              else if (abs(particle->PID) == 321)   {hNsigmaP_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);   /*hDeltaAngleP_RICH_trueKaon[i]->Fill(p, PIDdeltaangleRICH[i]);*/}
-              else if (abs(particle->PID) == 2212)  {hNsigmaP_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]); /*hDeltaAngleP_RICH_trueProton[i]->Fill(p, PIDdeltaangleRICH[i]);*/}
+              if      (abs(particle->PID) == 11)    {hNsigmaP_RICH_trueElec[i]->Fill(p, PIDnsigmaRICH[i]);   }
+              else if (abs(particle->PID) == 13)    {hNsigmaP_RICH_trueMuon[i]->Fill(p, PIDnsigmaRICH[i]);   }
+              else if (abs(particle->PID) == 211)   {hNsigmaP_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);   }
+              else if (abs(particle->PID) == 321)   {hNsigmaP_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);   }
+              else if (abs(particle->PID) == 2212)  {hNsigmaP_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]); }
             }
           }
           // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
@@ -1509,9 +1504,6 @@ void anaEEstudy(
 
         if (particle->PID == 11 ) vecElectron[iPID_scenario].push_back(track);       // vector of reconstructed electrons
         else if (particle->PID == -11 ) vecPositron[iPID_scenario].push_back(track); // vector of reconstructed positrons
-
-        if (track->Charge < 0) vecNegTracks_onlyTOFpid[iPID_scenario].push_back(track);      // vector of all reconstructed negative tracks selcted by TOF only
-        else if (track->Charge > 0) vecPosTracks_onlyTOFpid[iPID_scenario].push_back(track); // vector of all reconstructed positve tracks selcted by TOF only
 
         // look only at electrons
         if(abs(particle->PID) != 11 ) continue;   // considering only electrons & positrons
@@ -1789,12 +1781,7 @@ void anaEEstudy(
   // for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueKaon[i]->Write();
   // for (int i = 0; i < 5; ++i) hNsigmaP_afterPIDcuts_RICH_trueProton[i]->Write();
   for (int i = 0; i < 5; ++i) hNsigmaBeta_RICH[i]->Write();
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH[i]->Write();
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueElec[i]->Write();
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueMuon[i]->Write();
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_truePion[i]->Write();
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueKaon[i]->Write();
-  // for (int i = 0; i < 5; ++i) hDeltaAngleP_RICH_trueProton[i]->Write();
+
 
 
   // fout->cd("reconstructed/");
