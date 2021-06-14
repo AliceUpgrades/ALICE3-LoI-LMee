@@ -9,10 +9,10 @@ bool bPlotPairHistograms = kTRUE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
-int ith_PIDscenario = 2;
-// TString strPIDscenario[] = {"TOF only", "TOF+RICH (3#sigma_{#pi} rej)", "TOF+RICH (3.5#sigma_{#pi} rej)", "TOF+RICH (4#sigma_{#pi} rej)", "TOF+RICH+PS (4#sigma_{#pi} rej)"};
+int ith_PIDscenario = 4;
+TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
 // TString strPIDscenario[] = {"TOF only 0.04<pte", "TOF only 0.08<pte"};
-TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
+// TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -70,11 +70,12 @@ void SetStyleAlpha(TH1* h, int color, double alpha)
   h->SetLineWidth(2);
 }
 
-void normalzeToBinWidth(TH1* h){
-  int nBins = h->GetNbinsX();
-  for (size_t iBin = 1; iBin < nBins+1; iBin++) {
-    h->SetBinContent(iBin, h->GetBinContent(iBin)/h->GetXaxis()->GetBinWidth(iBin));
-  }
+void normalizeToBinWidth(TH1* h){
+  h->Scale(1.,"width");
+  // int nBins = h->GetNbinsX();
+  // for (size_t iBin = 1; iBin < nBins+1; iBin++) {
+  //   h->SetBinContent(iBin, h->GetBinContent(iBin)/h->GetXaxis()->GetBinWidth(iBin));
+  // }
 }
 
 
@@ -95,7 +96,7 @@ void anaPlots(TString inputFile)
   findBField = inputFile.Contains("B=0.5");
   if (findBField) BField = 0.5;
   findCollSystem = inputFile.Contains("PbPb");
-  if (findCollSystem) collSystem = "PbPb";
+  if (findCollSystem) collSystem = "Pb-Pb";
   findCollSystem = inputFile.Contains("pp");
   if (findCollSystem) collSystem = "pp";
 
@@ -105,7 +106,7 @@ void anaPlots(TString inputFile)
 
 
 
-    TLatex *textBField         = new TLatex(0.7, 0.75 , Form("B = %gT",BField));
+    TLatex *textBField         = new TLatex(0.7, 0.75 , Form("#it{B} = %g T",BField));
     TLatex *textPIDScenario    = new TLatex(0.7, 0.7 , Form("%s",strPIDscenario[ith_PIDscenario-1].Data()));
     textBField->SetNDC(kTRUE);
     textPIDScenario->SetNDC(kTRUE);
@@ -113,12 +114,12 @@ void anaPlots(TString inputFile)
     textPIDScenario->SetTextSize(0.02);
 
 
-    TLatex *textBField_conta         = new TLatex(0.17, 0.68 , Form("B = %gT",BField));
+    TLatex *textBField_conta         = new TLatex(0.17, 0.68 , Form("#it{B} = %g T",BField));
     TLatex *textPIDScenario_conta    = new TLatex(0.7, 0.9 , Form("%s",strPIDscenario[ith_PIDscenario-1].Data()));
     textBField_conta->SetNDC(kTRUE);
     textPIDScenario_conta->SetNDC(kTRUE);
     textBField_conta->SetTextSize(0.03);
-    textPIDScenario_conta->SetTextSize(0.025);
+    textPIDScenario_conta->SetTextSize(25);
 
 
 
@@ -242,29 +243,46 @@ if (bPlotPIDhistograms) {
   TH2F *hRec_TOF_NSigma[5];
   TH2F *hRec_RICH_NSigma[5];
   const char *pname[5] = {"el", "mu", "pi", "ka", "pr"};
+  const char *plabel[5] = {"e", "#mu", "#pi", "K", "p"};
   for (int i = 0; i < 5; ++i) {
     hRec_TOF_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF", pname[i]));
+    hRec_TOF_NSigma[i]->GetXaxis()->SetTitle("#it{p} (GeV/#it{c})");
+    hRec_TOF_NSigma[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
     vecTOF_PIDplots.push_back(hRec_TOF_NSigma[i]);
     hRec_RICH_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH", pname[i]));
+    hRec_RICH_NSigma[i]->GetXaxis()->SetTitle("#it{p} (GeV/#it{c})");
+    hRec_RICH_NSigma[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
     vecRICH_PIDplots.push_back(hRec_RICH_NSigma[i]);
-    hRec_TOF_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF", pname[i]));
+    hRec_TOF_NSigma[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_sce%i", pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hRec_TOF_NSigma[i]->GetXaxis()->SetTitle("#it{p} (GeV/#it{c})");
+    hRec_TOF_NSigma[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
     vecTOF_PIDplots.push_back(hRec_TOF_NSigma[i]);
-    hRec_RICH_NSigma[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH", pname[i]));
+    hRec_RICH_NSigma[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_sce%i", pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hRec_RICH_NSigma[i]->GetXaxis()->SetTitle("#it{p} (GeV/#it{c})");
+    hRec_RICH_NSigma[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
     vecRICH_PIDplots.push_back(hRec_RICH_NSigma[i]);
   }
 
 
   for (int i = 0; i < 5; ++i) {
+    // hNsigmaP_TOF[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF", pname[i]));
     hNsigmaP_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueElec", pname[i]));
     hNsigmaP_TOF_trueMuon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueMuon", pname[i]));
     hNsigmaP_TOF_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_truePion", pname[i]));
     hNsigmaP_TOF_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueKaon", pname[i]));
     hNsigmaP_TOF_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueProton", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueElec", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueMuon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueMuon", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_truePion", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueKaon", pname[i]));
-    hNsigmaP_afterPIDcuts_TOF_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueProton", pname[i]));
+    // hNsigmaP_afterPIDcuts_TOF[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_TOF", pname[i]));
+    hNsigmaP_afterPIDcuts_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueElec_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_trueMuon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueMuon_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_truePion[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_truePion_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_trueKaon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueKaon_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_TOF_trueProton[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_TOF_trueProton_sce%i", pathRecPIDScenario.Data(),pname[i],ith_PIDscenario));
+    hNsigmaP_TOF_trueElec[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
+    hNsigmaP_TOF_trueMuon[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
+    hNsigmaP_TOF_truePion[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
+    hNsigmaP_afterPIDcuts_TOF_trueElec[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
+    hNsigmaP_afterPIDcuts_TOF_trueMuon[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
+    hNsigmaP_afterPIDcuts_TOF_truePion[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{TOF}", plabel[i]));
     hNsigmaP_TOF_trueElec[i]->SetMarkerColor(kBlue);
     hNsigmaP_TOF_trueMuon[i]->SetMarkerColor(kBlack);
     hNsigmaP_TOF_truePion[i]->SetMarkerColor(kRed);
@@ -293,12 +311,18 @@ if (bPlotPIDhistograms) {
     hNsigmaP_RICH_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH_truePion", pname[i]));
     hNsigmaP_RICH_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH_trueKaon", pname[i]));
     hNsigmaP_RICH_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_RICH_trueProton", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueElec", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueMuon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueMuon", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_truePion[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon", pname[i]));
-    hNsigmaP_afterPIDcuts_RICH_trueProton[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton", pname[i]));
+    hNsigmaP_afterPIDcuts_RICH[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueElec[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueElec_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueMuon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueMuon_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_truePion[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_truePion_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueKaon[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueKaon_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_afterPIDcuts_RICH_trueProton[i] = (TH2F*) fIn->Get(Form("%s/hNsigmaP_%s_afterPIDcuts_RICH_trueProton_sce%i",pathRecPIDScenario.Data(), pname[i], ith_PIDscenario));
+    hNsigmaP_RICH_trueElec[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
+    hNsigmaP_RICH_trueMuon[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
+    hNsigmaP_RICH_truePion[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
+    hNsigmaP_afterPIDcuts_RICH_trueElec[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
+    hNsigmaP_afterPIDcuts_RICH_trueMuon[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
+    hNsigmaP_afterPIDcuts_RICH_truePion[i]->GetYaxis()->SetTitle(Form("N#sigma_{%s}^{RICH}", plabel[i]));
     hNsigmaP_RICH_trueElec[i]->SetMarkerColor(kBlue);
     hNsigmaP_RICH_trueMuon[i]->SetMarkerColor(kBlack);
     hNsigmaP_RICH_truePion[i]->SetMarkerColor(kRed);
@@ -546,11 +570,12 @@ if (bPlotPIDhistograms) {
     TH1F* hParticlesFIT = (TH1F*) fIn->Get("nParticlesFIT");
     Int_t nentries=0;
     Int_t nbins = hParticlesFIT->GetXaxis()->GetNbins();
+    Int_t centralNinetyPercent = hParticlesFIT->GetEntries() * 0.9;
     cout  << nbins << endl;
     for (size_t ibin = 1; ibin < nbins ; ibin++) {
-      if(nentries >= 75600) continue; // look for the lowest 90% to find the lower egde of the 10% cental events
+      if(nentries >= centralNinetyPercent) continue; // look for the lowest 90% to find the lower egde of the 10% cental events
       nentries = nentries + hParticlesFIT->GetBinContent(ibin);
-      if(nentries >= 75600) cout << "nentries has reached 10% at " << hParticlesFIT->GetXaxis()->GetBinCenter(ibin) << endl;
+      if(nentries >= centralNinetyPercent) cout << "nentries has reached 10% at " << hParticlesFIT->GetXaxis()->GetBinCenter(ibin) << endl;
     }
 
     TH1F* hdNdeta_midrap = (TH1F*) fIn->Get("hdNdeta_midrap_gen");
@@ -708,31 +733,31 @@ if (bPlotPIDhistograms) {
     // proj_genLS_PteeBB->Scale(1./nEventsCent);
 
 
-    normalzeToBinWidth(proj_recULS_Mee);
-    normalzeToBinWidth(proj_recULS_Ptee);
-    normalzeToBinWidth(proj_recULS_DCA);
-    // normalzeToBinWidth(proj_recULS_MeePrim);
-    // normalzeToBinWidth(proj_recULS_PteePrim);
-    // normalzeToBinWidth(proj_recULS_MeeCC);
-    // normalzeToBinWidth(proj_recULS_PteeCC);
-    // normalzeToBinWidth(proj_recULS_MeeBB);
-    // normalzeToBinWidth(proj_recULS_PteeBB);
-    normalzeToBinWidth(proj_recLS_Mee);
-    normalzeToBinWidth(proj_recLS_Ptee);
-    normalzeToBinWidth(proj_recLS_DCA);
+    normalizeToBinWidth(proj_recULS_Mee);
+    normalizeToBinWidth(proj_recULS_Ptee);
+    normalizeToBinWidth(proj_recULS_DCA);
+    // normalizeToBinWidth(proj_recULS_MeePrim);
+    // normalizeToBinWidth(proj_recULS_PteePrim);
+    // normalizeToBinWidth(proj_recULS_MeeCC);
+    // normalizeToBinWidth(proj_recULS_PteeCC);
+    // normalizeToBinWidth(proj_recULS_MeeBB);
+    // normalizeToBinWidth(proj_recULS_PteeBB);
+    normalizeToBinWidth(proj_recLS_Mee);
+    normalizeToBinWidth(proj_recLS_Ptee);
+    normalizeToBinWidth(proj_recLS_DCA);
 
-    normalzeToBinWidth(proj_genULS_Mee);
-    normalzeToBinWidth(proj_genULS_Ptee);
-    normalzeToBinWidth(proj_genULS_DCA);
-    normalzeToBinWidth(proj_genLS_Mee);
-    normalzeToBinWidth(proj_genLS_Ptee);
-    normalzeToBinWidth(proj_genLS_DCA);
-    // normalzeToBinWidth(proj_genLS_MeePrim);
-    // normalzeToBinWidth(proj_genLS_MeeCC);
-    // normalzeToBinWidth(proj_genLS_MeeBB);
-    // normalzeToBinWidth(proj_genLS_PteePrim);
-    // normalzeToBinWidth(proj_genLS_PteeCC);
-    // normalzeToBinWidth(proj_genLS_PteeBB);
+    normalizeToBinWidth(proj_genULS_Mee);
+    normalizeToBinWidth(proj_genULS_Ptee);
+    normalizeToBinWidth(proj_genULS_DCA);
+    normalizeToBinWidth(proj_genLS_Mee);
+    normalizeToBinWidth(proj_genLS_Ptee);
+    normalizeToBinWidth(proj_genLS_DCA);
+    // normalizeToBinWidth(proj_genLS_MeePrim);
+    // normalizeToBinWidth(proj_genLS_MeeCC);
+    // normalizeToBinWidth(proj_genLS_MeeBB);
+    // normalizeToBinWidth(proj_genLS_PteePrim);
+    // normalizeToBinWidth(proj_genLS_PteeCC);
+    // normalizeToBinWidth(proj_genLS_PteeBB);
 
 
   // ptRecTrackPrim->Rebin(2);
@@ -1052,7 +1077,7 @@ if (bPlotPIDhistograms) {
     ptEffEle = (TH1F*) ptRecTrackEle_rebin->Clone("eff_pT_singleElectrons");
     ptEffEle->Sumw2();
     // ptEffEle->Divide(ptEffEle,ptGenSmearedTrackEle_rebin,1,1,"B");
-    ptEffEle->Divide(ptEffEle,ptGenTrackEle,1,1,"B");
+    ptEffEle->Divide(ptEffEle,ptGenTrackEle_rebin,1,1,"B");
     etaEffEle = (TH1F*) etaRecTrackEle->Clone("eff_eta_singleElectrons");
     etaEffEle->Sumw2();
     // etaEffEle->Divide(etaEffEle,etaGenSmearedTrackEle,1,1,"B");
@@ -1067,7 +1092,7 @@ if (bPlotPIDhistograms) {
     ptEffPos = (TH1F*) ptRecTrackPos_rebin->Clone("eff_pT_singlePositrons");
     ptEffPos->Sumw2();
     // ptEffPos->Divide(ptEffPos,ptGenSmearedTrackPos_rebin,1,1,"B");
-    ptEffPos->Divide(ptEffPos,ptGenTrackPos,1,1,"B");
+    ptEffPos->Divide(ptEffPos,ptGenTrackPos_rebin,1,1,"B");
     etaEffPos = (TH1F*) etaRecTrackPos->Clone("eff_eta_singlePositrons");
     etaEffPos->Sumw2();
     // etaEffPos->Divide(etaEffPos,etaGenSmearedTrackPos,1,1,"B");
@@ -1383,12 +1408,12 @@ if (bPlotTrackContamination) {
   // makeHistNice(ptGenSmearedTrackElePos_beforeKineCuts_rebin,kRed+3);
   // ptGenSmearedTrackElePos_beforeKineCuts_rebin->SetMarkerStyle(28);
 
-  normalzeToBinWidth(ptGenTrackElePos_rebin);
-  normalzeToBinWidth(ptGenSmearedTrackElePos_rebin);
-  normalzeToBinWidth(ptRecTrackElePos_rebin);
-
-  normalzeToBinWidth(ptGenTrackElePos_beforeKineCuts_rebin);
-  // normalzeToBinWidth(ptGenSmearedTrackElePos_beforeKineCuts_rebin);
+  // normalizeToBinWidth(ptGenTrackElePos_rebin);
+  // normalizeToBinWidth(ptGenSmearedTrackElePos_rebin);
+  // normalizeToBinWidth(ptRecTrackElePos_rebin);
+  //
+  // normalizeToBinWidth(ptGenTrackElePos_beforeKineCuts_rebin);
+  // normalizeToBinWidth(ptGenSmearedTrackElePos_beforeKineCuts_rebin);
 
 
 
@@ -1471,9 +1496,9 @@ if (bPlotTrackContamination) {
   make3HistNice(etaRecTrackElePos,kBlue+1);
   make3HistNice(phiRecTrackElePos,kBlue+1);
 
-  normalzeToBinWidth(ptRecTrackBeforeSmearing_rebin);
-  normalzeToBinWidth(ptRecTrackAfterSmearing_rebin);
-  normalzeToBinWidth(ptRecTrackAfterKineCuts_rebin);
+  // normalizeToBinWidth(ptRecTrackBeforeSmearing_rebin);
+  // normalizeToBinWidth(ptRecTrackAfterSmearing_rebin);
+  // normalizeToBinWidth(ptRecTrackAfterKineCuts_rebin);
 
   // make3HistNice(ptRecTrackEtaCut_1,kOrange-5);
   // make3HistNice(ptRecTrackEtaCut_2,kOrange-4);
@@ -1572,7 +1597,6 @@ if (bPlotTrackContamination) {
   double legPosPair[4] = {0.55,0.78,0.95,0.93};
   double legPosCont[4] = {0.2,0.68,0.55,0.93};
   double legPosBottomLeft[4] = {0.15,0.15,0.55,0.5};
-  double legPosNSigmaPID[4] = {0.75,0.80,0.95,0.93};
   //make some legends
   // auto legTrack1 = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   // legTrack1->SetBorderSize(0);
@@ -1677,25 +1701,29 @@ if (bPlotTrackContamination) {
 
   TLegend* legPIDContamination;
   // legPIDContamination = new TLegend(legPosCont[0]-0.05,legPosCont[1],legPosCont[2],legPosCont[3]);
-  legPIDContamination = new TLegend(0.48,0.73,0.83,0.95);
+  // legPIDContamination = new TLegend(0.48,0.73,0.83,0.95);
+  legPIDContamination = new TLegend(0.7,0.76,0.9,0.93);
   legPIDContamination->SetBorderSize(0);
   legPIDContamination->SetFillStyle(0);
-  legPIDContamination->SetTextSize(0.025);
+  legPIDContamination->SetTextSize(25);
+  legPIDContamination->SetTextFont(43);
+  legPIDContamination->AddEntry(hTotalPureContaminationRecPt,"Total","p");
   legPIDContamination->AddEntry(hMuonContaminationRecPt,"Muon","p");
   legPIDContamination->AddEntry(hPionContaminationRecPt,"Pion","p");
-  legPIDContamination->AddEntry(hKaonContaminationRecPt,"Kaon","p");
-  legPIDContamination->AddEntry(hProtonContaminationRecPt,"Proton","p");
-  legPIDContamination->AddEntry(hTotalPureContaminationRecPt,"Total","p");
+  // legPIDContamination->AddEntry(hKaonContaminationRecPt,"Kaon","p");
+  // legPIDContamination->AddEntry(hProtonContaminationRecPt,"Proton","p");
 
   TLegend* legRejFactor;
-  legRejFactor = new TLegend(0.7,0.73,0.9,0.95);
+  legRejFactor = new TLegend(0.7,0.8,0.9,0.9);
   legRejFactor->SetBorderSize(0);
   legRejFactor->SetFillStyle(0);
-  legRejFactor->SetTextSize(0.025);
+  // legRejFactor->SetTextSize(0.025);
+  legRejFactor->SetTextSize(25);
+  legRejFactor->SetTextFont(43);
   legRejFactor->AddEntry(hMuonRejectionFactorPt,"Muon","p");
   legRejFactor->AddEntry(hPionRejectionFactorPt,"Pion","p");
-  legRejFactor->AddEntry(hKaonRejectionFactorPt,"Kaon","p");
-  legRejFactor->AddEntry(hProtonRejectionFactorPt,"Proton","p");
+  // legRejFactor->AddEntry(hKaonRejectionFactorPt,"Kaon","p");
+  // legRejFactor->AddEntry(hProtonRejectionFactorPt,"Proton","p");
   // legRejFactor->AddEntry(hTotalRejectionFactorPt,"Total","p");
 
   TLegend* legRejFactor_mu;
@@ -1720,13 +1748,35 @@ if (bPlotTrackContamination) {
   legTotalContamination->SetTextSize(0.04);
   legTotalContamination->AddEntry(hTotalPureContaminationRecPt,"Total contamination","p");
 
-  auto legPIDSeparateColor = new TLegend(legPosNSigmaPID[0],legPosNSigmaPID[1],legPosNSigmaPID[2],legPosNSigmaPID[3]);
+  auto legPIDSeparateColorTOF = new TLegend(0.2, 0.16, 0.35, 0.3);
+  legPIDSeparateColorTOF->SetBorderSize(0);
+  legPIDSeparateColorTOF->SetFillStyle(0);
+  legPIDSeparateColorTOF->SetTextSize(25);
+  legPIDSeparateColorTOF->SetTextFont(43);
+  TLegendEntry *entryInfo00=legPIDSeparateColorTOF->AddEntry(hNsigmaP_RICH_trueElec[0],"Electrons","");
+  TLegendEntry *entryInfo01=legPIDSeparateColorTOF->AddEntry(hNsigmaP_RICH_trueMuon[0],"Muons","");
+  TLegendEntry *entryInfo02=legPIDSeparateColorTOF->AddEntry(hNsigmaP_RICH_truePion[0],"Pions","");
+  entryInfo00->SetTextColor(kBlue);
+  entryInfo01->SetTextColor(kBlack);
+  entryInfo02->SetTextColor(kRed);
+  // legPIDSeparateColorTOF->AddEntry(hNsigmaP_RICH_trueElec[0],"Electrons","l");
+  // legPIDSeparateColorTOF->AddEntry(hNsigmaP_RICH_trueMuon[0],"Muon","l");
+  // legPIDSeparateColorTOF->AddEntry(hNsigmaP_RICH_truePion[0],"Pion","l");
+
+  auto legPIDSeparateColor = new TLegend(0.7, 0.74, 0.9, 0.9);
   legPIDSeparateColor->SetBorderSize(0);
   legPIDSeparateColor->SetFillStyle(0);
-  legPIDSeparateColor->SetTextSize(0.04);
-  legPIDSeparateColor->AddEntry(hNsigmaP_RICH_trueElec[0],"Electrons","l");
-  legPIDSeparateColor->AddEntry(hNsigmaP_RICH_trueMuon[0],"Muon","l");
-  legPIDSeparateColor->AddEntry(hNsigmaP_RICH_truePion[0],"Pion","l");
+  legPIDSeparateColor->SetTextSize(25);
+  legPIDSeparateColor->SetTextFont(43);
+  TLegendEntry *entryInfo03=legPIDSeparateColor->AddEntry(hNsigmaP_RICH_trueElec[0],"Electrons","");
+  TLegendEntry *entryInfo04=legPIDSeparateColor->AddEntry(hNsigmaP_RICH_trueMuon[0],"Muons","");
+  TLegendEntry *entryInfo05=legPIDSeparateColor->AddEntry(hNsigmaP_RICH_truePion[0],"Pions","");
+  entryInfo03->SetTextColor(kBlue);
+  entryInfo04->SetTextColor(kBlack);
+  entryInfo05->SetTextColor(kRed);
+  // legPIDSeparateColor->AddEntry(hNsigmaP_RICH_trueElec[0],"Electrons","l");
+  // legPIDSeparateColor->AddEntry(hNsigmaP_RICH_trueMuon[0],"Muon","l");
+  // legPIDSeparateColor->AddEntry(hNsigmaP_RICH_truePion[0],"Pion","l");
 
   auto legSmearLabel = new TLegend(legPosTrack[0]+0.05,legPosTrack[1],legPosTrack[2]+0.05,legPosTrack[3]);
   legSmearLabel->SetBorderSize(0);
@@ -1855,8 +1905,8 @@ if (bPlotTrackContamination) {
     cEffElePt->SetTopMargin(0.03);
     cEffElePt->SetRightMargin(0.03);
     cEffElePt->SetLeftMargin(0.13);
-    ptEffEle->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffEle->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptEffEle->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    ptEffEle->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptEffEle->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffEle->Draw("hist p e1 ");
     // // ptEffElePrim->SetMaximum(1.);
@@ -1871,8 +1921,8 @@ if (bPlotTrackContamination) {
     cEffElePosPt->SetTopMargin(0.03);
     cEffElePosPt->SetRightMargin(0.03);
     cEffElePosPt->SetLeftMargin(0.13);
-    ptEffEle->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffEle->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptEffEle->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    ptEffEle->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptEffEle->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffEle->SetMaximum(1.1*std::max({ptEffEle->GetMaximum(),ptEffPos->GetMaximum()}));
     ptEffEle->SetMinimum(0.);
@@ -1888,12 +1938,14 @@ if (bPlotTrackContamination) {
     cEffAddedElePosPt->SetTopMargin(0.03);
     cEffAddedElePosPt->SetRightMargin(0.03);
     cEffAddedElePosPt->SetLeftMargin(0.13);
-    ptEffElePosGen->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffElePosGen->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptEffElePosGen->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    ptEffElePosGen->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum(),ptEffElePosGenSmeared->GetMaximum()}));
+    // ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum()}));
+    // ptEffElePosGenSmeared->SetMaximum(1.1*std::max({ptEffElePosGenSmeared->GetMaximum()}));
     ptEffElePosGen->SetMinimum(0.);
-    ptEffElePosGen->Draw("hist p e1 ");
+    ptEffElePosGen->Draw("hist p e1");
     ptEffElePosGenSmeared->Draw("hist p e1 same");
     legEff_GenGenSmear->Draw("same");
     textBField->Draw("same");
@@ -1951,9 +2003,9 @@ if (bPlotTrackContamination) {
       cEffPosElePtEtaPhi->cd(i)->SetRightMargin(0.03);
     }
     cEffPosElePtEtaPhi->cd(1);
-    ptEffEle->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffPos->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffEle->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptEffEle->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    ptEffPos->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    ptEffEle->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptEffEle->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffPos->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffEle->SetMaximum(1.1*std::max({ptEffEle->GetMaximum(),ptEffPos->GetMaximum()}));
@@ -1987,8 +2039,8 @@ if (bPlotTrackContamination) {
     //   cEffElePtEtaPhi->cd(i)->SetRightMargin(0.03);
     // }
     // cEffElePtEtaPhi->cd(1);
-    // ptEffElePrim->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    // ptEffElePrim->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    // ptEffElePrim->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    // ptEffElePrim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     // ptEffElePrim->GetXaxis()->SetRangeUser(0.0,4.0);
     // ptEffElePrim->SetMaximum(1.1*std::max({ptEffElePrim->GetMaximum(),ptEffEleCC->GetMaximum(),ptEffEleBB->GetMaximum()}));
     // ptEffElePrim->SetMinimum(0.);
@@ -2024,8 +2076,8 @@ if (bPlotTrackContamination) {
     //   cEffPosPtEtaPhi->cd(i)->SetRightMargin(0.03);
     // }
     // cEffPosPtEtaPhi->cd(1);
-    // ptEffPosPrim->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    // ptEffPosPrim->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    // ptEffPosPrim->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    // ptEffPosPrim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     // ptEffPosPrim->GetXaxis()->SetRangeUser(0.0,4.0);
     // ptEffPosPrim->SetMaximum(1.1*std::max({ptEffPosPrim->GetMaximum(),ptEffPosCC->GetMaximum(),ptEffPosBB->GetMaximum()}));
     // ptEffPosPrim->SetMinimum(0.);
@@ -2060,8 +2112,8 @@ if (bPlotTrackContamination) {
     cEffPosPt->SetTopMargin(0.03);
     cEffPosPt->SetRightMargin(0.03);
     cEffPosPt->SetLeftMargin(0.13);
-    ptEffPos->GetYaxis()->SetTitle("p_{T}^{rec}/p_{T}^{gen}");
-    ptEffPos->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptEffPos->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
+    ptEffPos->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptEffPos->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffPos->Draw("hist p e1");
     // ptEffPosPrim->SetMaximum(1.);
@@ -2109,7 +2161,7 @@ if (bPlotTrackContamination) {
     cGenGenSmearRecElePosPt->SetRightMargin(0.03);
     cGenGenSmearRecElePosPt->SetLeftMargin(0.13);
     ptGenTrackElePos_rebin->GetYaxis()->SetTitle("N^{gen} Tracks");
-    ptGenTrackElePos_rebin->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackElePos_rebin->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptGenTrackElePos_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
     // ptGenTrackElePos_rebin->SetMaximum(10*std::max({ptGenTrackElePos_rebin->GetMaximum(),ptGenSmearedTrackElePos_rebin->GetMaximum(),ptRecTrackElePos_rebin->GetMaximum()}));
     ptGenTrackElePos_rebin->Draw("hist p e1");
@@ -2140,7 +2192,7 @@ if (bPlotTrackContamination) {
     cGenRecElePt->SetRightMargin(0.03);
     cGenRecElePt->SetLeftMargin(0.13);
     ptGenTrackEle_rebin->GetYaxis()->SetTitle("N^{gen} Tracks");
-    ptGenTrackEle_rebin->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackEle_rebin->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptGenTrackEle_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
     ptGenTrackEle_rebin->SetMaximum(1.1*std::max({ptGenTrackEle->GetMaximum(),ptRecTrackEle->GetMaximum()}));
     ptGenTrackEle_rebin->Draw("hist p e1");
@@ -2155,7 +2207,7 @@ if (bPlotTrackContamination) {
     cGenRecPosPt->SetRightMargin(0.03);
     cGenRecPosPt->SetLeftMargin(0.13);
     ptGenTrackPos_rebin->GetYaxis()->SetTitle("N^{gen} Tracks");
-    ptGenTrackPos_rebin->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    ptGenTrackPos_rebin->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptGenTrackPos_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
     ptGenTrackPos_rebin->SetMaximum(1.1*std::max({ptGenTrackPos->GetMaximum(),ptRecTrackPos->GetMaximum()}));
     ptGenTrackPos_rebin->Draw("hist p e1");
@@ -2175,7 +2227,7 @@ if (bPlotTrackContamination) {
     // cPairEffULSPt->SetRightMargin(0.03);
     // cPairEffULSPt->SetLeftMargin(0.13);
     // ptPairEffULS->GetYaxis()->SetTitle("p_{T,ee}^{rec}/p_{T,ee}^{gen}");
-    // ptPairEffULS->GetXaxis()->SetTitle("p_{T,ee} (GeV/c)");
+    // ptPairEffULS->GetXaxis()->SetTitle("p_{T,ee} (GeV/#it{c})");
     // ptPairEffULS->GetXaxis()->SetRangeUser(0.0,4.0);
     // ptPairEffULS->Draw("hist p e1 ");
     // legEffULSPair->Draw("same");
@@ -2252,99 +2304,126 @@ if (bPlotTrackContamination) {
   cBeforeAfterSmearing->SaveAs("./plots/RecPtEtaPhiBeforeAfterSmearing.png");
 
   Double_t lx_low; Double_t lx_high; Double_t ly_low; Double_t ly_high;
-  lx_low = 0.1; ly_low = 0.73; lx_high = 0.35; ly_high = 0.95;
+  lx_low = 0.1; ly_low = 0.74; lx_high = 0.35; ly_high = 0.95;
   auto legendInfo = new TLegend(lx_low,ly_low,lx_high,ly_high);
-  TLegendEntry *entryInfo0=legendInfo->AddEntry("ALICE3","ALICE3 Simulation","");
-  TLegendEntry *entryInfo4=legendInfo->AddEntry("Generator","Phythia8 Angantyr","");
-  TLegendEntry *entryInfo1=legendInfo->AddEntry("collisionSystem",Form("0-10%s %s, #sqrt{s_{NN}} = 5.02 TeV","%",collSystem.Data()),"");
-  TLegendEntry *entryInfo2;
-  // TLegendEntry *entryInfo3;
-  if(BField == 0.2){
-    if(ith_PIDscenario == 1){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.08 GeV/#font[12]{c}","");
-    }
-    if(ith_PIDscenario == 2){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.16 GeV/#font[12]{c}","");
-    }
-  }
-  else if (BField == 0.5){
-    if(ith_PIDscenario == 1){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.4 GeV/#font[12]{c}","");
-    }
-    if(ith_PIDscenario == 2){
-      entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
-      // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.16 GeV/#font[12]{c}","");
-    }
-  }
-  TLegendEntry *entryInfo3=legendInfo->AddEntry("PID","TOF + RICH (4 #sigma_{#pi} rej) PID ","");
+  TLegendEntry *entryInfo0=legendInfo->AddEntry("ALICE 3","ALICE 3 Study","");
+  TLegendEntry *entryInfo1=legendInfo->AddEntry("collisionSystem",Form("0-10%s %s, #sqrt{#it{s}_{NN}} = 5.02 TeV","%",collSystem.Data()),"");
+  // TLegendEntry *entryInfo4=legendInfo->AddEntry("Generator",Form("Phythia8 Angantyr, #it{B} = %g T",BField),"");
+  // TLegendEntry *entryInfo2;
+  // // TLegendEntry *entryInfo3;
+  // if(BField == 0.2){
+  //   if(ith_PIDscenario == 1){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  //   if(ith_PIDscenario == 2){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  // }
+  // else if (BField == 0.5){
+  //   if(ith_PIDscenario == 1){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  //   if(ith_PIDscenario >= 2){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  // }
+  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+  TLegendEntry *entryInfo3=legendInfo->AddEntry("PID",Form("%s PID",strPIDscenario[ith_PIDscenario-1].Data()),"");
   legendInfo->SetBorderSize(0);
   legendInfo->SetFillColorAlpha(0, 0.0);
-  legendInfo->SetTextSize(0.025);
+  // legendInfo->SetTextSize(0.025);
+  legendInfo->SetTextFont(43);
+  legendInfo->SetTextSize(25);
 
-  TLatex *textBeforePID         = new TLatex(0.23, 0.7 ,"before PID cuts");
-  textBeforePID->SetNDC(kTRUE);
-  textBeforePID->SetTextSize(0.025);
-  TLatex *textAfterPID         = new TLatex(0.23, 0.7 ,"after PID cuts");
-  textAfterPID->SetNDC(kTRUE);
-  textAfterPID->SetTextSize(0.025);
-  TLatex *textRICH         = new TLatex(0.15, 0.7 ,"RICH, ");
-  textRICH->SetNDC(kTRUE);
-  textRICH->SetTextSize(0.025);
-  TLatex *textTOF         = new TLatex(0.15, 0.7 ,"TOF, ");
-  textTOF->SetNDC(kTRUE);
-  textTOF->SetTextSize(0.025);
+  auto legendInfoTOF = new TLegend(0.4, 0.12, 0.87, 0.3);
+  legendInfoTOF->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoTOF->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoTOF->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoTOF->AddEntry(entryInfo3,entryInfo3->GetLabel(),"");
+  legendInfoTOF->SetBorderSize(0);
+  legendInfoTOF->SetFillColorAlpha(0, 0.0);
+  // legendInfoTOF->SetTextSize(0.025);
+  legendInfoTOF->SetTextFont(43);
+  legendInfoTOF->SetTextSize(25);
+
+  auto legendInfoNoPID = new TLegend(lx_low, ly_low, lx_high, ly_high);
+  legendInfoNoPID->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoNoPID->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoNoPID->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoNoPID->AddEntry("noPID","no PID cuts","");
+  legendInfoNoPID->SetBorderSize(0);
+  legendInfoNoPID->SetFillColorAlpha(0, 0.0);
+  legendInfoNoPID->SetTextFont(43);
+  legendInfoNoPID->SetTextSize(25);
+
+  auto legendInfoNoPIDtof = new TLegend(0.4, 0.12, 0.87, 0.3);
+  legendInfoNoPIDtof->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoNoPIDtof->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoNoPIDtof->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoNoPIDtof->AddEntry("noPID","no PID cuts","");
+  legendInfoNoPIDtof->SetBorderSize(0);
+  legendInfoNoPIDtof->SetFillColorAlpha(0, 0.0);
+  legendInfoNoPIDtof->SetTextFont(43);
+  legendInfoNoPIDtof->SetTextSize(25);
+
+  auto legendInfoCont = (TLegend*)legendInfo->Clone();
+  legendInfoCont->AddEntry("Generator","Phythia8 Angantyr","");
+
+
 
   if (bPlotPIDhistograms) {
     // Plotting PID plots for TOF and RICH, + NSigma PID
     TString DocumentPath = "./plots/PID_histograms";
     gSystem->Exec(Form("mkdir -p %s",DocumentPath.Data()));
     auto cPID = new TCanvas("cPID","cPID",800,800);
-    auto cPID_logx = new TCanvas("cPID_logx","cPID_logx",1000,800);
+    auto cPID_logx = new TCanvas("cPID_logx","cPID_logx",800,800);
 
     for (size_t i = 0; i < vecTOF_PIDplots.size(); i++) {
-      cPID->cd();
       gStyle->SetOptStat(0); // <- das hier macht dies box rechts oben weg
-      cPID->SetLogz();
-      cPID->SetTopMargin(0.03);
-      cPID->SetRightMargin(0.13);
-      cPID->SetLeftMargin(0.13);
-      vecTOF_PIDplots.at(i)->Draw("COLZ ");
-      legendInfo->Draw("same");
-      if(i % 2 == 0)textBeforePID->Draw("same");
-      else textAfterPID->Draw("same");
-      textTOF->Draw("same");
-      cPID->SaveAs(Form("./plots/PID_histograms/%s.png",vecTOF_PIDplots.at(i)->GetName()));
+      // cPID->cd();
+      // cPID->SetLogz();
+      // cPID->SetTopMargin(0.03);
+      // cPID->SetRightMargin(0.07);
+      // cPID->SetLeftMargin(0.13);
+      // vecTOF_PIDplots.at(i)->Draw("COL ");
+      // legendInfo->Draw("same");
+      // if(i % 2 == 0) legendInfoNoPIDtof->Draw("same");
+      // else legendInfoTOF->Draw("same");
+      // cPID->SetTicks();
+      // cPID->SaveAs(Form("./plots/PID_histograms/%s.png",vecTOF_PIDplots.at(i)->GetName()));
 
       cPID_logx->cd();
       cPID_logx->SetLogx();
       cPID_logx->SetLogz();
       cPID_logx->SetTopMargin(0.03);
-      cPID_logx->SetRightMargin(0.13);
+      cPID_logx->SetRightMargin(0.07);
       cPID_logx->SetLeftMargin(0.13);
-      vecTOF_PIDplots.at(i)->GetYaxis()->SetRangeUser(-25,25);
-      vecTOF_PIDplots.at(i)->Draw("COLZ ");
-      legendInfo->Draw("same");
-      if(i % 2 == 0)textBeforePID->Draw("same");
-      else textAfterPID->Draw("same");
-      textTOF->Draw("same");
-      cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.png",vecTOF_PIDplots.at(i)->GetName()));
+      vecTOF_PIDplots.at(i)->GetYaxis()->SetRangeUser(-15,25);
+      vecTOF_PIDplots.at(i)->GetXaxis()->SetRangeUser(0.04,10);
+      vecTOF_PIDplots.at(i)->Draw("COL ");
+
+      if(i % 2 == 0) legendInfoNoPIDtof->Draw("same");
+      else legendInfoTOF->Draw("same");
+      cPID_logx->SetTicks();
+      cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.pdf",vecTOF_PIDplots.at(i)->GetName()));
     }
     for (size_t i = 0; i < vecRICH_PIDplots.size(); i++) {
-      cPID->cd();
       gStyle->SetOptStat(0); // <- das hier macht dies box rechts oben weg
-      cPID->SetLogz();
-      // cPID->SetTopMargin(0.03);
-      // cPID->SetRightMargin(0.03);
-      // cPID->SetLeftMargin(0.13);
-      vecRICH_PIDplots.at(i)->Draw("COLZ ");
-      legendInfo->Draw("same");
-      if(i % 2 == 0)textBeforePID->Draw("same");
-      else textAfterPID->Draw("same");
-      textRICH->Draw("same");
-      cPID->SaveAs(Form("./plots/PID_histograms/%s.png",vecRICH_PIDplots.at(i)->GetName()));
+      // cPID->cd();
+      // cPID->SetLogz();
+      // // cPID->SetTopMargin(0.03);
+      // // cPID->SetRightMargin(0.03);
+      // // cPID->SetLeftMargin(0.13);
+      // vecRICH_PIDplots.at(i)->Draw("COL ");
+      // legendInfo->Draw("same");
+      // if(i % 2 == 0) legendInfoNoPID->Draw("same");
+      // else legendInfo->Draw("same");
+      // cPID->SetTicks();
+      // cPID->SaveAs(Form("./plots/PID_histograms/%s.png",vecRICH_PIDplots.at(i)->GetName()));
 
       cPID_logx->cd();
       cPID_logx->SetLogx();
@@ -2352,13 +2431,18 @@ if (bPlotTrackContamination) {
       // cPID_logx->SetTopMargin(0.03);
       // cPID_logx->SetRightMargin(0.03);
       // cPID_logx->SetLeftMargin(0.13);
-      vecRICH_PIDplots.at(i)->GetYaxis()->SetRangeUser(-25,25);
-      vecRICH_PIDplots.at(i)->Draw("COLZ ");
-      legendInfo->Draw("same");
-      if(i % 2 == 0)textBeforePID->Draw("same");
-      else textAfterPID->Draw("same");
-      textRICH->Draw("same");
-      cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.png",vecRICH_PIDplots.at(i)->GetName()));
+      // vecRICH_PIDplots.at(i)->GetYaxis()->SetRangeUser(-25,15);
+      vecRICH_PIDplots.at(i)->Draw("COL");
+      if(i % 2 == 0) {
+        legendInfoNoPID->Draw("same");
+        vecRICH_PIDplots.at(i)->GetYaxis()->SetRangeUser(-25,15);
+      }
+      else {
+        legendInfo->Draw("same");
+        vecRICH_PIDplots.at(i)->GetYaxis()->SetRangeUser(-6,10);
+      }
+      cPID_logx->SetTicks();
+      cPID_logx->SaveAs(Form("./plots/PID_histograms/%s_logx.pdf",vecRICH_PIDplots.at(i)->GetName()));
     }
   }
 
@@ -2371,7 +2455,7 @@ if (bPlotTrackContamination) {
     }
     cPosNegContaminationPtEtaPhi->cd(1);
     hPureContaminationRecPtNeg->GetYaxis()->SetTitle("contamination");
-    hPureContaminationRecPtNeg->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    hPureContaminationRecPtNeg->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hPureContaminationRecPtNeg->GetXaxis()->SetRangeUser(0.0,4.0);
     hPureContaminationRecPtNeg->SetMaximum(1.1);
     // hPureContaminationRecPtNeg->SetMaximum(1.1*std::max({hPureContaminationRecPtNeg->GetMaximum(),hPureContaminationRecPtPos->GetMaximum()}));
@@ -2414,7 +2498,7 @@ if (bPlotTrackContamination) {
     }
     cContaminationPtEtaPhi->cd(1);
     hMuonContaminationRecPt->GetYaxis()->SetTitle("contamination");
-    hMuonContaminationRecPt->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    hMuonContaminationRecPt->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
     hMuonContaminationRecPt->SetMaximum(1.1);
     hMuonContaminationRecPt->SetMinimum(0.);
@@ -2455,9 +2539,9 @@ if (bPlotTrackContamination) {
     cContaminationPt->SetRightMargin(0.03);
     cContaminationPt->SetLeftMargin(0.13);
     hMuonContaminationRecPt->GetYaxis()->SetTitle("contamination");
-    hMuonContaminationRecPt->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+    hMuonContaminationRecPt->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
-    hMuonContaminationRecPt->SetMaximum(0.25);
+    hMuonContaminationRecPt->SetMaximum(0.12);
     hMuonContaminationRecPt->SetMinimum(0.);
     hMuonContaminationRecPt->Draw("hist p e1");
     hPionContaminationRecPt->Draw("same hist p e1");
@@ -2465,10 +2549,11 @@ if (bPlotTrackContamination) {
     hProtonContaminationRecPt->Draw("same hist p e1");
     hTotalPureContaminationRecPt->Draw("same hist p e1");
     legPIDContamination->Draw("same");
-    textBField_conta->Draw("same");
+    // textBField_conta->Draw("same");
     // textPIDScenario_conta->Draw("same");
-    legendInfo->Draw("same");
-    cContaminationPt->SaveAs("./plots/PID_Pt_Contamiantion.png");
+    legendInfoCont->Draw("same");
+    gPad->SetTicks();
+    cContaminationPt->SaveAs("./plots/PID_Pt_Contamiantion.pdf");
     // hTotalPureContaminationRecPt->Draw("hist p e1");
     // legTotalContamination->Draw("same");
     // textBField_conta->Draw("same");
@@ -2483,14 +2568,13 @@ if (bPlotTrackContamination) {
   cRejectionFactorPt->SetRightMargin(0.03);
   cRejectionFactorPt->SetLeftMargin(0.13);
   cRejectionFactorPt->SetLogy();
-  hPionRejectionFactorPt->GetYaxis()->SetTitle("rej. factor");
-  hPionRejectionFactorPt->GetYaxis()->SetTitle("rej. factor");
-  hPionRejectionFactorPt->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+  hPionRejectionFactorPt->GetYaxis()->SetTitle("rejection factor");
+  hPionRejectionFactorPt->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,4.0);
   // hPionRejectionFactorPt->SetMaximum(10*std::max({hMuonRejectionFactorPt->GetMaximum(),hPionRejectionFactorPt->GetMaximum(),hKaonRejectionFactorPt->GetMaximum(),hProtonRejectionFactorPt->GetMaximum()/*,hTotalRejectionFactorPt->GetMaximum()*/}));
   // hPionRejectionFactorPt->SetMaximum(1.1);
   // hPionRejectionFactorPt->SetMinimum(0.1*std::min({hMuonRejectionFactorPt->GetMinimum(),hPionRejectionFactorPt->GetMinimum(),hKaonRejectionFactorPt->GetMinimum(),hProtonRejectionFactorPt->GetMinimum()/*,hTotalRejectionFactorPt->GetMaximum()*/}));
-  hPionRejectionFactorPt->SetMaximum(100000000);
+  hPionRejectionFactorPt->SetMaximum(100000000000);
   hPionRejectionFactorPt->SetMinimum(0.1);
   hMuonRejectionFactorPt->SetMinimum(0.1);
   hPionRejectionFactorPt->Draw("hist p e1");
@@ -2500,19 +2584,19 @@ if (bPlotTrackContamination) {
   // hTotalRejectionFactorPt->Draw("same hist p e1");
   legRejFactor->Draw("same");
   legendInfo->Draw("same");
-  textBField_conta->Draw("same");
+  // textBField_conta->Draw("same");
   // textPIDScenario_conta->Draw("same");
   cRejectionFactorPt->SetTicks();
-  cRejectionFactorPt->SaveAs("./plots/PID_Pt_RejectionFactor.png");
-  hPionRejectionFactorPt->SetMinimum(10000);
-  hPionRejectionFactorPt->SetMaximum(1000000);
+  cRejectionFactorPt->SaveAs("./plots/PID_Pt_RejectionFactor.pdf");
+  hPionRejectionFactorPt->SetMinimum(1000);
+  hPionRejectionFactorPt->SetMaximum(100000000);
   hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,3.5);
   hPionRejectionFactorPt->Draw("hist p e1");
   TLine* line = new TLine(0.,100000.,4.,100000.);
   line->SetLineStyle(2);
   line->Draw("same");
   legRejFactor_pi->Draw("same");
-  textBField_conta->Draw("same");
+  // textBField_conta->Draw("same");
   textPIDScenario_conta->Draw("same");
   legendInfo->Draw("same");
   cRejectionFactorPt->SetTicks();
@@ -2534,15 +2618,14 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_TOF->SetLeftMargin(0.13);
       cNSigmaSeparatePID_TOF->SetLogx();
       // hNsigmaP_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_TOF_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      hNsigmaP_TOF_truePion[iNSig]->GetYaxis()->SetRangeUser(-15.,25.);
       hNsigmaP_TOF_truePion[iNSig]->Draw("");
       hNsigmaP_TOF_trueElec[iNSig]->Draw("same");
       hNsigmaP_TOF_trueMuon[iNSig]->Draw("same");
-      legPIDSeparateColor->Draw("same");
-      legendInfo->Draw("same");
-      textBeforePID->Draw("same");
-      textTOF->Draw("same");
-      cNSigmaSeparatePID_TOF->SaveAs(Form("./plots/PID_histograms/NSigma%s_TOF_SeparatePiEleMuPID_noCuts.png",namesEleMuPi[iNSig]));
+      legPIDSeparateColorTOF->Draw("same");
+      legendInfoNoPIDtof->Draw("same");
+      cNSigmaSeparatePID_TOF->SetTicks();
+      cNSigmaSeparatePID_TOF->SaveAs(Form("./plots/PID_histograms/NSigma%s_TOF_SeparatePiEleMuPID_noCuts.pdf",namesEleMuPi[iNSig]));
 
       auto cNSigmaSeparatePID_TOF_afterCuts = new TCanvas("cNSigmaPionSeparatePID_TOF_afterCuts","cNSigmaPionSeparatePID_TOF_afterCuts",800,800);
       cNSigmaSeparatePID_TOF_afterCuts->SetTopMargin(0.03);
@@ -2550,17 +2633,16 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_TOF_afterCuts->SetLeftMargin(0.13);
       cNSigmaSeparatePID_TOF_afterCuts->SetLogx();
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetYaxis()->SetRangeUser(-15.,25.);
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMaximum(1.1);
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMinimum(0.);
       hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->Draw("");
       hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->Draw("same");
       hNsigmaP_afterPIDcuts_TOF_trueMuon[iNSig]->Draw("same");
-      legPIDSeparateColor->Draw("same");
-      legendInfo->Draw("same");
-      textAfterPID->Draw("same");
-      textTOF->Draw("same");
-      cNSigmaSeparatePID_TOF_afterCuts->SaveAs(Form("./plots/PID_histograms/NSigma%s_TOF_SeparatePiEleMuPID_afterCuts.png",namesEleMuPi[iNSig]));
+      legPIDSeparateColorTOF->Draw("same");
+      legendInfoTOF->Draw("same");
+      cNSigmaSeparatePID_TOF_afterCuts->SetTicks();
+      cNSigmaSeparatePID_TOF_afterCuts->SaveAs(Form("./plots/PID_histograms/NSigma%s_TOF_SeparatePiEleMuPID_afterCuts.pdf",namesEleMuPi[iNSig]));
 
 
 
@@ -2570,17 +2652,16 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_RICH->SetLeftMargin(0.13);
       cNSigmaSeparatePID_RICH->SetLogx();
       // hNsigmaP_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_RICH_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      hNsigmaP_RICH_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,15.);
       // hNsigmaP_RICH_truePion[iNSig]->SetMaximum(1.1);
       // hNsigmaP_RICH_truePion[iNSig]->SetMinimum(0.);
       hNsigmaP_RICH_truePion[iNSig]->Draw("");
       hNsigmaP_RICH_trueElec[iNSig]->Draw("same");
       hNsigmaP_RICH_trueMuon[iNSig]->Draw("same");
       legPIDSeparateColor->Draw("same");
-      legendInfo->Draw("same");
-      textBeforePID->Draw("same");
-      textRICH->Draw("same");
-      cNSigmaSeparatePID_RICH->SaveAs(Form("./plots/PID_histograms/NSigma%s_RICH_SeparatePiEleMuPID_noCuts.png",namesEleMuPi[iNSig]));
+      legendInfoNoPID->Draw("same");
+      cNSigmaSeparatePID_RICH->SetTicks();
+      cNSigmaSeparatePID_RICH->SaveAs(Form("./plots/PID_histograms/NSigma%s_RICH_SeparatePiEleMuPID_noCuts.pdf",namesEleMuPi[iNSig]));
 
 
       auto cNSigmaSeparatePID_RICH_afterCuts = new TCanvas("cNSigmaPionSeparatePID_RICH_afterCuts","cNSigmaPionSeparatePID_RICH_afterCuts",800,800);
@@ -2589,7 +2670,7 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_RICH_afterCuts->SetLeftMargin(0.13);
       cNSigmaSeparatePID_RICH_afterCuts->SetLogx();
       // hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_afterPIDcuts_RICH_trueElec[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      hNsigmaP_afterPIDcuts_RICH_trueElec[iNSig]->GetYaxis()->SetRangeUser(-6.,10.);
       // hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->SetMaximum(1.1);
       // hNsigmaP_afterPIDcuts_RICH_truePion[iNSig]->SetMinimum(0.);
       hNsigmaP_afterPIDcuts_RICH_trueElec[iNSig]->Draw("");
@@ -2597,9 +2678,64 @@ if (bPlotTrackContamination) {
       hNsigmaP_afterPIDcuts_RICH_trueMuon[iNSig]->Draw("same");
       legPIDSeparateColor->Draw("same");
       legendInfo->Draw("same");
-      textAfterPID->Draw("same");
-      textRICH->Draw("same");
-      cNSigmaSeparatePID_RICH_afterCuts->SaveAs(Form("./plots/PID_histograms/NSigma%s_RICH_SeparatePiEleMuPID_afterCuts.png",namesEleMuPi[iNSig]));
+      cNSigmaSeparatePID_RICH_afterCuts->SetTicks();
+      cNSigmaSeparatePID_RICH_afterCuts->SaveAs(Form("./plots/PID_histograms/NSigma%s_RICH_SeparatePiEleMuPID_afterCuts.pdf",namesEleMuPi[iNSig]));
+
+
+
+      // //projections in RICH
+      // auto cPprojectionsPID_RICH = new TCanvas("cPprojectionsPID_RICH","cPprojectionsPID_RICHcPprojectionsPID_RICH",800,800);
+      // cPprojectionsPID_RICH->SetTopMargin(0.03);
+      // cPprojectionsPID_RICH->SetRightMargin(0.03);
+      // cPprojectionsPID_RICH->SetLeftMargin(0.13);
+      // cPprojectionsPID_RICH->SetLogx();
+      // cPprojectionsPID_RICH->SetLogy();
+      // // hNsigmaP_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      // hNsigmaP_RICH_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      // // hNsigmaP_RICH_truePion[iNSig]->SetMaximum(1.1);
+      // // hNsigmaP_RICH_truePion[iNSig]->SetMinimum(0.);
+      // auto h1 = hNsigmaP_RICH_truePion[iNSig]->ProjectionX();
+      // auto h2 = hNsigmaP_RICH_trueElec[iNSig]->ProjectionX();
+      // auto h3 = hNsigmaP_RICH_trueMuon[iNSig]->ProjectionX();
+      // h1->SetMarkerColor(kRed);
+      // h2->SetMarkerColor(kBlue);
+      // h3->SetMarkerColor(kBlack);
+      // h1->Draw("");
+      // h2->Draw("same");
+      // h3->Draw("same");
+      // legPIDSeparateColor->Draw("same");
+      // legendInfo->Draw("same");
+      // textBeforePID->Draw("same");
+      // textRICH->Draw("same");
+      // cPprojectionsPID_RICH->SetTicks();
+      // cPprojectionsPID_RICH->SaveAs(Form("./plots/PID_histograms/NSigma%s_projX_RICH_SeparatePiEleMuPID_noCuts.png",namesEleMuPi[iNSig]));
+      //
+      // auto cSigmaProjectionsPID_RICH = new TCanvas("cSigmaProjectionsPID_RICH","cSigmaProjectionsPID_RICH",800,800);
+      // cSigmaProjectionsPID_RICH->SetTopMargin(0.03);
+      // cSigmaProjectionsPID_RICH->SetRightMargin(0.03);
+      // cSigmaProjectionsPID_RICH->SetLeftMargin(0.13);
+      // cSigmaProjectionsPID_RICH->SetLogx();
+      // cSigmaProjectionsPID_RICH->SetLogy();
+      // // hNsigmaP_RICH_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      // hNsigmaP_RICH_truePion[iNSig]->GetYaxis()->SetRangeUser(-25.,25.);
+      // // hNsigmaP_RICH_truePion[iNSig]->SetMaximum(1.1);
+      // // hNsigmaP_RICH_truePion[iNSig]->SetMinimum(0.);
+      // auto h4 = hNsigmaP_RICH_truePion[iNSig]->ProjectionY();
+      // auto h5 = hNsigmaP_RICH_trueElec[iNSig]->ProjectionY();
+      // auto h6 = hNsigmaP_RICH_trueMuon[iNSig]->ProjectionY();
+      // h4->SetMarkerColor(kRed);
+      // h5->SetMarkerColor(kBlue);
+      // h6->SetMarkerColor(kBlack);
+      // h4->Draw("");
+      // h5->Draw("same");
+      // h6->Draw("same");
+      // legPIDSeparateColor->Draw("same");
+      // legendInfo->Draw("same");
+      // textBeforePID->Draw("same");
+      // textRICH->Draw("same");
+      // cSigmaProjectionsPID_RICH->SetTicks();
+      // cSigmaProjectionsPID_RICH->SaveAs(Form("./plots/PID_histograms/NSigma%s_projY_RICH_SeparatePiEleMuPID_noCuts.png",namesEleMuPi[iNSig]));
+
     }
 
 
@@ -2734,21 +2870,21 @@ if (bPlotTrackContamination) {
       // TLegendEntry *entryInfo3;
       if(BField == 0.2){
         if(ith_PIDscenario == 1){
-          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
           // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.08 GeV/#font[12]{c}","");
         }
         if(ith_PIDscenario == 2){
-          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
           // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.16 GeV/#font[12]{c}","");
         }
       }
       else if (BField == 0.5){
         if(ith_PIDscenario == 1){
-          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
           // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.4 GeV/#font[12]{c}","");
         }
         if(ith_PIDscenario == 2){
-          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#eta_{e}| < 1.1","");
+          entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
           // entryInfo3=legendInfo->AddEntry("PairPt" ,"#font[12]{p}_{T,ee} > 0.16 GeV/#font[12]{c}","");
         }
       }
@@ -2765,7 +2901,7 @@ if (bPlotTrackContamination) {
       cprojMeePteeDCA->cd(1);
       cprojMeePteeDCA->cd(1)->SetLogy();
       proj_recULS_Mee->GetYaxis()->SetTitle("Yield");
-      proj_recULS_Mee->GetXaxis()->SetTitle("m_{ee} (GeV/c^{2})");
+      proj_recULS_Mee->GetXaxis()->SetTitle("m_{ee} (GeV/#it{c}^{2})");
       // proj_recULS_Mee->RebinX(2);
       // proj_recLS_Mee->RebinX(2);
       proj_recULS_Mee->GetXaxis()->SetRangeUser(0.0,3.0);
@@ -2775,7 +2911,7 @@ if (bPlotTrackContamination) {
       cprojMeePteeDCA->cd(2);
       cprojMeePteeDCA->cd(2)->SetLogy();
       proj_recULS_Ptee->GetYaxis()->SetTitle("Yield");
-      proj_recULS_Ptee->GetXaxis()->SetTitle("p_{T,ee} (GeV/c)");
+      proj_recULS_Ptee->GetXaxis()->SetTitle("p_{T,ee} (GeV/#it{c})");
       // proj_recULS_Ptee->RebinX(2);
       proj_recULS_Ptee->GetXaxis()->SetRangeUser(0.0,4.0);
       proj_recULS_Ptee->Draw("hist p e1");
@@ -2795,8 +2931,8 @@ if (bPlotTrackContamination) {
       // cMeePteeTH2->SetTopMargin(0.03);
       // cMeePteeTH2->SetRightMargin(0.03);
       // cMeePteeTH2->SetLeftMargin(0.13);
-      // hMPtDCA_ULS_rec->GetYaxis()->SetTitle("p_{T} (GeV/c)");
-      // hMPtDCA_ULS_rec->GetXaxis()->SetTitle("m_{ee} (GeV/c^{2})");
+      // hMPtDCA_ULS_rec->GetYaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
+      // hMPtDCA_ULS_rec->GetXaxis()->SetTitle("m_{ee} (GeV/#it{c}^{2})");
       // hMPtDCA_ULS_rec->SetMaximum(0.8);
       // hMPtDCA_ULS_rec->Draw("");
       // cMeePteeTH2->SaveAs("./plots/MeePtee.png");
@@ -2826,7 +2962,7 @@ if (bPlotTrackContamination) {
       // pad1->cd();
       // pad1->SetLogy();
       // proj_recULS_Mee->GetYaxis()->SetTitle("Yield");
-      // proj_recULS_Mee->GetXaxis()->SetTitle("m_{ee} (GeV/c^{2})");
+      // proj_recULS_Mee->GetXaxis()->SetTitle("m_{ee} (GeV/#it{c}^{2})");
       // proj_recULS_Mee->RebinX(2);
       // proj_recLS_Mee->RebinX(2);
       // proj_recULS_Mee->GetXaxis()->SetRangeUser(0.0,3.0);
@@ -2929,33 +3065,37 @@ if (bPlotTrackContamination) {
   }
 
 
-  // TString nameEffRootFile = inputFile.Data();
-  // TString endDirName = "20.5.21_centGen_502TeV";
-  // if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
-  // if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_%s/anaEEstudy.",endDirName.Data()), "");
-  // if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_%s/anaEEstudy.",endDirName.Data()), "");
-  // nameEffRootFile.ReplaceAll(".root", "");
-  // TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
-  //
-  // if (bPlotEfficiency) {
-  //   ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
-  //   ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
-  //   ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
-  //   ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
-  //   ptEffEle->Write();
-  //   ptEffPos->Write();
-  //   ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
-  //   ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
-  //   ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
-  //   ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
-  //   ptEffElePosGen->Write();
-  //   ptEffElePosGenSmeared->Write();
-  // }
-  //
-  // if (bPlotTrackContamination) {
-  //   hTotalPureContaminationRecPt->SetTitle("Total Contamination");
-  //   hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
-  //   hTotalPureContaminationRecPt->Write();
-  // }
-  // fOut->Close();
+//   TString nameEffRootFile = inputFile.Data();
+//   TString endDirName = "5.6.21_largeStat";
+//   if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
+//   if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+//   if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+//   if (inputFile.Contains("B2_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+//   if (inputFile.Contains("B5_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+//   nameEffRootFile.ReplaceAll(".root", "");
+//   TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
+//
+//   if (bPlotEfficiency) {
+//     ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
+//     ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
+//     ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
+//     ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
+//     ptEffEle->Write();
+//     ptEffPos->Write();
+//     ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
+//     ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
+//     ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
+//     ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
+//     ptEffElePosGen->Write();
+//     ptEffElePosGenSmeared->Write();
+//   }
+//
+//   if (bPlotTrackContamination) {
+//     hTotalPureContaminationRecPt->SetTitle("Total Contamination");
+//     hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
+//     hTotalPureContaminationRecPt->Write();
+//   }
+//   fOut->Close();
+
+
 }
