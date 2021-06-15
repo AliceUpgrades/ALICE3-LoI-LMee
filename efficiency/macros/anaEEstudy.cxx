@@ -1331,50 +1331,38 @@ void anaEEstudy(
       std::array<float, 5> PIDdeltaangleRICH, PIDnsigmaRICH;
       richdetector.makePID(*track, PIDdeltaangleRICH, PIDnsigmaRICH);
 
-      // if(iPID_scenario == 1){ //Note: 0=Sce1, 1=Sce2 etc... only fill those histograms once, here no PID selection was done yet
-        // fill nsigma TOF   (before PID selection is applied)
-        hTrackPt->Fill(track->PT);
-        hTrackP->Fill(track->P);
-        if (toflayer.hasTOF(*track) || richdetector.hasRICH(*track)){
-          hTrackPt_hasTOForRICH->Fill(track->PT);
-          hTrackP_hasTOForRICH->Fill(track->P);
-        }
+      // fill nsigma TOF   (before PID selection is applied)
+      hTrackPt->Fill(track->PT);
+      hTrackP->Fill(track->P);
+      if (toflayer.hasTOF(*track) || richdetector.hasRICH(*track)){
+        hTrackPt_hasTOForRICH->Fill(track->PT);
+        hTrackP_hasTOForRICH->Fill(track->P);
+      }
 
 
-        if( etaCut(track) && (toflayer.hasTOF(*track) || richdetector.hasRICH(*track))){
-          for (int i = 0; i < 5; ++i) {
-            if(toflayer.hasTOF(*track)){
-              hNsigmaP_TOF[i]->Fill(p, PIDnsigmaTOF[i]);
-              if      (abs(particle->PID) == 11)    hNsigmaP_TOF_trueElec[i]->Fill(p, PIDnsigmaTOF[i]);
-              else if (abs(particle->PID) == 13)    hNsigmaP_TOF_trueMuon[i]->Fill(p, PIDnsigmaTOF[i]);
-              else if (abs(particle->PID) == 211)   hNsigmaP_TOF_truePion[i]->Fill(p, PIDnsigmaTOF[i]);
-              else if (abs(particle->PID) == 321)   hNsigmaP_TOF_trueKaon[i]->Fill(p, PIDnsigmaTOF[i]);
-              else if (abs(particle->PID) == 2212)  hNsigmaP_TOF_trueProton[i]->Fill(p, PIDnsigmaTOF[i]);
-            }
-
-            // fill nsigma RICH  (before PID selection is applied)
-            if(richdetector.hasRICH(*track)){
-              hNsigmaP_RICH[i]->Fill(p, PIDnsigmaRICH[i]);
-              hNsigmaBeta_RICH[i]->Fill(beta, PIDnsigmaRICH[i]);
-              if      (abs(particle->PID) == 11)    {hNsigmaP_RICH_trueElec[i]->Fill(p, PIDnsigmaRICH[i]);   }
-              else if (abs(particle->PID) == 13)    {hNsigmaP_RICH_trueMuon[i]->Fill(p, PIDnsigmaRICH[i]);   }
-              else if (abs(particle->PID) == 211)   {hNsigmaP_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);   }
-              else if (abs(particle->PID) == 321)   {hNsigmaP_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);   }
-              else if (abs(particle->PID) == 2212)  {hNsigmaP_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]); }
-            }
+      if( etaCut(track) && (toflayer.hasTOF(*track) || richdetector.hasRICH(*track))){
+        for (int i = 0; i < 5; ++i) {
+          if(toflayer.hasTOF(*track)){
+            hNsigmaP_TOF[i]->Fill(p, PIDnsigmaTOF[i]);
+            if      (abs(particle->PID) == 11)    hNsigmaP_TOF_trueElec[i]->Fill(p, PIDnsigmaTOF[i]);
+            else if (abs(particle->PID) == 13)    hNsigmaP_TOF_trueMuon[i]->Fill(p, PIDnsigmaTOF[i]);
+            else if (abs(particle->PID) == 211)   hNsigmaP_TOF_truePion[i]->Fill(p, PIDnsigmaTOF[i]);
+            else if (abs(particle->PID) == 321)   hNsigmaP_TOF_trueKaon[i]->Fill(p, PIDnsigmaTOF[i]);
+            else if (abs(particle->PID) == 2212)  hNsigmaP_TOF_trueProton[i]->Fill(p, PIDnsigmaTOF[i]);
           }
-          // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-          // bool b = fabs(track->ZOuter * 0.1) < 200;
-          // if(p < 0.1) {
-          //   cout << " PDG = " << track->PID << ", p = " << p << endl;
-          //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-          //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
-          //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
-          //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-          //   cout << endl;
-          // }
+
+          // fill nsigma RICH  (before PID selection is applied)
+          if(richdetector.hasRICH(*track)){
+            hNsigmaP_RICH[i]->Fill(p, PIDnsigmaRICH[i]);
+            hNsigmaBeta_RICH[i]->Fill(beta, PIDnsigmaRICH[i]);
+            if      (abs(particle->PID) == 11)    {hNsigmaP_RICH_trueElec[i]->Fill(p, PIDnsigmaRICH[i]);   }
+            else if (abs(particle->PID) == 13)    {hNsigmaP_RICH_trueMuon[i]->Fill(p, PIDnsigmaRICH[i]);   }
+            else if (abs(particle->PID) == 211)   {hNsigmaP_RICH_truePion[i]->Fill(p, PIDnsigmaRICH[i]);   }
+            else if (abs(particle->PID) == 321)   {hNsigmaP_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);   }
+            else if (abs(particle->PID) == 2212)  {hNsigmaP_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]); }
+          }
         }
-        // }
+      }
 
 
 
@@ -1445,19 +1433,6 @@ void anaEEstudy(
           if((fabs(PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_p_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
         }
         else RICHpid = false;
-
-        // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-        // bool b = fabs(track->ZOuter * 0.1) < 200;
-        // if(p < 0.1) {
-        //   cout << " TOFpid = " << TOFpid << ", RICHpid = " << RICHpid << endl;
-        //   cout << " PDG = " << track->PID << ", p = " << p << endl;
-        //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-        //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
-        //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
-        //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-        //   cout << endl;
-        // }
-
 
         if (!(RICHpid || TOFpid) /*&& !PreShpid*/) continue; // check if TOF or RICH signal is true.
         // ################## end of PID selection ##################
