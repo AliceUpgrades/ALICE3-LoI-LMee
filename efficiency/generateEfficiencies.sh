@@ -49,7 +49,7 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=8        # number of max parallel runs
+NJOBS=5        # number of max parallel runs
 NRUNS=10        # number of runs
 
 NEVENTS=10    # number of events in a run
@@ -221,7 +221,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 rm lutCovm*
 rm propagate.tcl
 rm *.root
-rm *.log
+# rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
 rm preparePreshowerEff.C
