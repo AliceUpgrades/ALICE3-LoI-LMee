@@ -151,18 +151,20 @@ double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,  
 
 bool doTOFPID(Track * track, bool useTOF, double p_tofMaxAcc, double p_tofPionRej, double nSigmaTOFele, double nSigmaTOFpi, o2::delphes::TOFLayer toflayer, std::array<float, 5> PIDnsigmaTOF){
   double p = track->P;
-
+  bool TOFpid = false;
   //TOF PID
   if(useTOF && (toflayer.hasTOF(*track)) && (p < p_tofMaxAcc)) {
     if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFele)
-      return true; // is within 3 sigma of the electron band (TOF)
-    else return false;
+      TOFpid = true; // is within 3 sigma of the electron band (TOF)
+    else TOFpid = false;
 
 
     if(fabs(PIDnsigmaTOF[2]) < nSigmaTOFpi)
-      return false; // is within 3 sigma of the pion band (TOF)
+      TOFpid = false; // is within 3 sigma of the pion band (TOF)
   }
-  else return false;
+  else TOFpid = false;
+
+  return TOFpid;
   // ################## end of PID selection ##################
 }
 
