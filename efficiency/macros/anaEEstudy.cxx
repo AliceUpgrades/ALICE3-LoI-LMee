@@ -66,7 +66,8 @@ double inner_tof_sigma0 = 0.20; // [ns]
 
 
 // TOF ele pt acceptance
-double tof_EleAccep_p_cut = 0.6;  // [GeV/c]
+// double tof_EleAccep_p_cut = 0.6;  // [GeV/c]
+double tof_EleAccep_p_cut = 0.3;  // [GeV/c]
 // TOF additional Pion/Muon rejection
 double tof_PionRej_p_cut = 0.4; // [GeV/c] above this value the nSigmaRICHEle_forTOFPID cut is apllied. Thus the TOF is only accepting particles within nSigmaRICHEle and nSigmaTOFele
 double nSigmaRICHEle_forTOFPID = 3.; //
@@ -148,7 +149,22 @@ double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,  
 //   // ################## end of PID selection ##################
 // }
 
+bool doTOFPID(Track * track, bool useTOF, double p_tofMaxAcc, double p_tofPionRej, double nSigmaTOFele, double nSigmaTOFpi, o2::delphes::TOFLayer toflayer, std::array<float, 5> PIDnsigmaTOF){
+  double p = track->P;
 
+  //TOF PID
+  if(useTOF && (toflayer.hasTOF(*track)) && (p < p_tofMaxAcc)) {
+    if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFele)
+      return true; // is within 3 sigma of the electron band (TOF)
+    else return false;
+
+
+    if(fabs(PIDnsigmaTOF[2]) < nSigmaTOFpi)
+      return false; // is within 3 sigma of the pion band (TOF)
+  }
+  else return false;
+  // ################## end of PID selection ##################
+}
 
 bool hasStrangeAncestor(GenParticle *particle, TClonesArray *particles)
 {
@@ -1590,6 +1606,7 @@ void anaEEstudy(
         //
 
 
+<<<<<<< HEAD
         //TOF PID
         if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_p_cut)) {
           if (p > tof_PionRej_p_cut && richdetector.hasRICH(*track)) {
@@ -1624,6 +1641,10 @@ void anaEEstudy(
         //   cout << endl;
         // }
 
+=======
+        // if(!doPID(track, i_useTOFPID, i_useRICHPID, bUsePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, toflayer, richdetector, PIDnsigmaTOF, PIDnsigmaRICH)) continue;
+        if(!doTOFPID(track, i_useTOFPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, toflayer, PIDnsigmaTOF)) continue;
+>>>>>>> new doTOFPID function
 
         if (!(RICHpid || TOFpid) /*&& !PreShpid*/) continue; // check if TOF or RICH signal is true.
         // ################## end of PID selection ##################

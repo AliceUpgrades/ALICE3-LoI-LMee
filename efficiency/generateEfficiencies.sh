@@ -45,7 +45,7 @@ runDelphes() {
   # DelphesPythia8 propagate.tcl pythia8_$5.cc.$1.cfg delphes.cc.$1.root  &> delphes.cc.$1.log &&
   # DelphesPythia8 propagate.tcl pythia8_$5.bb.$1.cfg delphes.bb.$1.root  &> delphes.bb.$1.log &&
   DelphesPythia8 propagate.tcl pythia8_$5.$1.cfg delphes.$5.$1.root  &> delphes.$5.$1.log &&
-  hadd -f delphes.$1.root delphes.*.$1.root && #rm delphes.*.$1.root &&
+  hadd -f delphes.$1.root delphes.*.$1.root && rm delphes.*.$1.root &&
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
@@ -223,7 +223,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 ### clean up
 rm lutCovm*
 rm propagate.tcl
-# rm *.root
+rm *.root
 # rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
