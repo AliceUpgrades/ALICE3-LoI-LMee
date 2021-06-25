@@ -45,11 +45,11 @@ runDelphes() {
   # DelphesPythia8 propagate.tcl pythia8_$5.cc.$1.cfg delphes.cc.$1.root  &> delphes.cc.$1.log &&
   # DelphesPythia8 propagate.tcl pythia8_$5.bb.$1.cfg delphes.bb.$1.root  &> delphes.bb.$1.log &&
   DelphesPythia8 propagate.tcl pythia8_$5.$1.cfg delphes.$5.$1.root  &> delphes.$5.$1.log &&
-  hadd -f delphes.$1.root delphes.*.$1.root && rm delphes.*.$1.root &&
+  hadd -f delphes.$1.root delphes.*.$1.root && #rm delphes.*.$1.root &&
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=5        # number of max parallel runs
+NJOBS=7        # number of max parallel runs
 NRUNS=10        # number of runs
 
 NEVENTS=10    # number of events in a run
@@ -63,15 +63,17 @@ SCENARIO="werner"     # detector setup
 # BFIELD=2       # magnetic field  [kG]
 BFIELD=5       # magnetic field  [kG]
 
+RADIUS=20
+
 SIGMAT=0.020      # time resolution [ns]
 SIGMA0=0.200      # vertex time spread [ns]
-BARRELRAD=100.    # barrel radius      [cm] (right now equal to TOF)
-BARRELLEN=200.    # barrel half length [cm] (right now equal to TOF)
+BARRELRAD=20.    # barrel radius      [cm] (right now equal to TOF)
+BARRELLEN=40.    # barrel half length [cm] (right now equal to TOF)
 BARRELETA=1.443   # barrel max pseudorapidity
 TAILLX=1.0        # tail on left    [q]
 TAILRX=1.3        # tail on right   [q]
-TOFRAD=100.       # TOF radius      [cm]
-TOFLEN=200.       # TOF half length [cm]
+TOFRAD=20.       # TOF radius      [cm]
+TOFLEN=40.       # TOF half length [cm]
 RICHRAD=100.      # RICH radius      [cm]
 RICHLEN=200.      # RICH half length [cm]
 
@@ -106,6 +108,7 @@ cp ../resolutionfiles/resolution_test_${BFIELD}kG.root resolution.root
 echo " --- selected resolution file: resolution_test_${BFIELD}kG.root"
 
 echo " --- selected SCENARIO: $SCENARIO"
+echo " --- selected RADIUS:   $RADIUS"
 
 # code
 cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
@@ -113,18 +116,18 @@ cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 # LUTS
 if [[ $SCENARIO = "werner" ]]
 then
-  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.el.werner.rmin100.${BFIELD}kG.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.mu.werner.rmin100.${BFIELD}kG.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.pi.werner.rmin100.${BFIELD}kG.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.ka.werner.rmin100.${BFIELD}kG.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.werner.rmin100.${BFIELD}kG/lutCovm.pr.werner.rmin100.${BFIELD}kG.dat lutCovm.pr.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 elif [[ $SCENARIO = "default" ]]
 then
-  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.el.${BFIELD}kG.100cm.default.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.mu.${BFIELD}kG.100cm.default.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.pi.${BFIELD}kG.100cm.default.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.ka.${BFIELD}kG.100cm.default.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.${BFIELD}kG.100cm.default/lutCovm.pr.${BFIELD}kG.100cm.default.dat lutCovm.pr.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.el.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.mu.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.pi.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.ka.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.pr.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.pr.dat
 else
   echo "!!! check SCENARIO and BFIELD variables"
 fi
@@ -220,7 +223,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 ### clean up
 rm lutCovm*
 rm propagate.tcl
-rm *.root
+# rm *.root
 # rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
