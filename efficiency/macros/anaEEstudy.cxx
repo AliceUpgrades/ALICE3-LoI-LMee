@@ -924,6 +924,35 @@ void anaEEstudy(
 
 
 
+  // separat scale binning
+  Int_t nXBins = 504;
+  Int_t n10MeVBins=9;
+  Double_t *xBins    = new Double_t[nXBins+1];
+  Double_t xmin = 0.01;
+  Double_t x100MeV = 0.1;
+  Double_t xmax = 10.;
+  Double_t dx1   = (x100MeV-xmin)/(n10MeVBins);
+  Double_t dx2   = (xmax-x100MeV)/((Double_t)nXBins - n10MeVBins);
+
+  // binning log x axis (0-10) steps of 0.01 till 0.1 and 0.02 above
+  for (int i=0;i<=n10MeVBins;i++) {
+    Double_t x = xmin+ i*dx1;
+    xBins[i] = x ;
+  }
+  for (int i=1;i<=nXBins-n10MeVBins;i++) {
+    Double_t x = xBins[n10MeVBins]+ i*dx2;
+    xBins[n10MeVBins+i] = x ;
+  }
+
+  // binning NSigma (-25,25) in steps of 0.125
+  Int_t nYBins = 400;
+  Double_t dy = 50./400.;
+  Double_t yBins[nYBins+1];
+  for (int i = 0; i <= nYBins; i++) {
+    yBins[i] =  dy*i-25.;
+  }
+
+
   auto hM_Pt_sig_gen = new TH2F("hM_Pt_sig_gen",title2d.c_str(),300.,0,3.,200,0.,20.);
 
   TH1F* hTime0 = new TH1F("hTime0_sce%i",";t_{0} (ns)", 1000, -1., 1.);
@@ -962,33 +991,33 @@ void anaEEstudy(
   const char *pname[5] = {"el", "mu", "pi", "ka", "pr"};
   const char *plabel[5] = {"e", "#mu", "#pi", "K", "p"};
   for (int i = 0; i < 5; ++i){  // partilce type loop
-    hNsigmaP_TOF[i] = new TH2F(Form("hNsigmaP_%s_TOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_TOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_TOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_TOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_TOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_TOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_TOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+    hNsigmaP_TOF[i] = new TH2F(Form("hNsigmaP_%s_TOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_TOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_TOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_TOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_TOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_TOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_TOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_TOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
 
-    hNsigmaP_innerTOF[i] = new TH2F(Form("hNsigmaP_%s_innerTOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_innerTOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_innerTOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_innerTOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_innerTOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_innerTOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+    hNsigmaP_innerTOF[i] = new TH2F(Form("hNsigmaP_%s_innerTOF", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_innerTOF_trueElec[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_innerTOF_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_innerTOF_truePion[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_innerTOF_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_innerTOF_trueProton[i] = new TH2F(Form("hNsigmaP_%s_innerTOF_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
     for (int j = 0; j < nPIDscenarios; ++j){ // PID scenatio loop
-      hNsigmaP_afterPIDcuts_TOF[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_TOF_trueElec[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueElec_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_TOF_trueMuon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueMuon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_TOF_truePion[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_truePion_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_TOF_trueKaon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueKaon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_TOF_trueProton[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueProton_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+      hNsigmaP_afterPIDcuts_TOF[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_TOF_trueElec[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueElec_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_TOF_trueMuon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueMuon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_TOF_truePion[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_truePion_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_TOF_trueKaon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueKaon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_TOF_trueProton[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_TOF_trueProton_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
 
-      hNsigmaP_afterPIDcuts_innerTOF[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_innerTOF_trueElec[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueElec_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_innerTOF_trueMuon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueMuon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_innerTOF_truePion[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_truePion_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_innerTOF_trueKaon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueKaon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_innerTOF_trueProton[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueProton_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+      hNsigmaP_afterPIDcuts_innerTOF[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_innerTOF_trueElec[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueElec_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_innerTOF_trueMuon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueMuon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_innerTOF_truePion[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_truePion_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_innerTOF_trueKaon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueKaon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_innerTOF_trueProton[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_innerTOF_trueProton_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
     }
   }
 
@@ -1012,19 +1041,19 @@ void anaEEstudy(
   for (int i = 0; i < 5; ++i)  hNsigmaBeta_RICH[i] = new TH2F(Form("hNsigmaBeta_%s_RICH", pname[i]), Form(";#beta ;n#sigma_{%s}", plabel[i]), 200, 0., 1.1, 400, -100., 100.);
 
   for (int i = 0; i < 5; ++i) { // particle type loop
-    hNsigmaP_RICH[i] = new TH2F(Form("hNsigmaP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -100., 25.);
-    hNsigmaP_RICH_trueElec[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_RICH_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-    hNsigmaP_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+    hNsigmaP_RICH[i] = new TH2F(Form("hNsigmaP_%s_RICH", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_RICH_trueElec[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueElec", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_RICH_trueMuon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueMuon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_RICH_truePion[i] = new TH2F(Form("hNsigmaP_%s_RICH_truePion", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_RICH_trueKaon[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueKaon", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+    hNsigmaP_RICH_trueProton[i] = new TH2F(Form("hNsigmaP_%s_RICH_trueProton", pname[i]), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
     for (int j = 0; j < nPIDscenarios; ++j) { // PID scenatio loop
-      hNsigmaP_afterPIDcuts_RICH[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_RICH_trueElec[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueElec_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_RICH_trueMuon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueMuon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_RICH_truePion[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_RICH_trueKaon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
-      hNsigmaP_afterPIDcuts_RICH_trueProton[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), 500, 0., 10., 400, -25., 25.);
+      hNsigmaP_afterPIDcuts_RICH[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_RICH_trueElec[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueElec_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_RICH_trueMuon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueMuon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_RICH_truePion[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_truePion_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_RICH_trueKaon[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueKaon_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
+      hNsigmaP_afterPIDcuts_RICH_trueProton[i][j] = new TH2F(Form("hNsigmaP_%s_afterPIDcuts_RICH_trueProton_sce%i", pname[i], j+1), Form(";#it{p} GeV/c;n#sigma_{%s}", plabel[i]), nXBins, xBins, nYBins, yBins);
     }
   }
 
