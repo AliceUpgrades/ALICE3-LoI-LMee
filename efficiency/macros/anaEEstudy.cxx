@@ -25,7 +25,7 @@ bool bSmear    = true;
 bool bUsePreSh = false;
 bool bUseTOF   = true;
 bool bUseRICH  = true;
-double Bz = 0.2;            // becomes overwritten by the generateEfficiencies.sh skript
+double Bz = 0.5;            // becomes overwritten by the generateEfficiencies.sh skript
 double eMass = 0.000511;
 
 
@@ -61,7 +61,7 @@ double tof_sigma0 = 0.20; // [ns]
 // inner TOF (20 cm)
 double inner_tof_radius = 20.;  // [cm]
 double inner_tof_length = 40.;  // [cm]
-double inner_tof_sigmat = 0.02; // [ns]
+double inner_tof_sigmat = 0.05; // [ns]
 double inner_tof_sigma0 = 0.20; // [ns]
 
 
@@ -84,21 +84,21 @@ double rich_PionRejection_p_cut = 1.0; // [GeV/c]
 
 
 // PID Scenarios           different pt cuts           different PID scenarios              added second TOF layer
-bool useInnerTOFPID[]   = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kTRUE};
-bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE,  kTRUE,   kTRUE   */   kTRUE};
-bool useRICHPID_B2[]    = {/*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE};
-bool useRICHPID_B5[]    = {/*kTRUE,   kTRUE,     */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE};
-bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kFALSE};
+bool useInnerTOFPID[]   = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kTRUE,   kTRUE};
+bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE,  kTRUE,   kTRUE   */   kTRUE,   kTRUE};
+bool useRICHPID_B2[]    = {/*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE,  kFALSE};
+bool useRICHPID_B5[]    = {/*kTRUE,   kTRUE,     */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE,  kFALSE};
+bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kFALSE,  kFALSE};
 // TOF cuts on tracks
-double nSigmaTOFEle[]   = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0};
-double nSigmaTOFPi[]    = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0};
+double nSigmaTOFEle[]   = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0,    3.0};
+double nSigmaTOFPi[]    = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0,    3.0};
 // RICH cuts on tracks
-double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    0.0};
-double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */    99.};
+double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    0.0,    0.0};
+double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */    99.,    99.};
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
-double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04};
-double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.2 };
+double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04,   0.04};
+double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.08,    0.2 };
 
 
 
@@ -497,7 +497,7 @@ TLorentzVector  ApplySmearing(TObjArray* fArrResoPt, TObjArray* fArrResoEta, TOb
 
 // Pair histograms ULS
 std::string title2d = ";#it{m}_{ee} (GeV/#it{c}^{2});#it{p}_{T} (GeV/#it{c})";
-std::string title3d = ";#it{m}_{ee} (GeV/#it{c}^{2});#it{p}_{T} (GeV/#it{c});DCA_{ee} (mm)";
+std::string title3d = ";#it{m}_{ee} (GeV/#it{c}^{2});#it{p}_{T,ee} (GeV/#it{c});DCA_{ee} (mm)";
 
 
 
@@ -1772,7 +1772,7 @@ void anaEEstudy(
         }
 
         //apply pt cuts before filling vectors for pairing
-        if (kineCuts(track, iPID_scenario)) continue;
+        if (!kineCuts(track, iPID_scenario)) continue;
 
         // fill track vector
         if (track->Charge < 0) vecNegTracks[iPID_scenario].push_back(track);       //  vector of all reconstructed negative tracks
@@ -1780,6 +1780,7 @@ void anaEEstudy(
 
         if (particle->PID == 11 ) vecElectron[iPID_scenario].push_back(track);       // vector of reconstructed electrons
         else if (particle->PID == -11 ) vecPositron[iPID_scenario].push_back(track); // vector of reconstructed positrons
+        // if (abs(particle->PID) == 11 ) {cout << "After kine cuts: track pt = " << track->PT << ", eta = " << track->Eta <<  endl;}
 
       }
 

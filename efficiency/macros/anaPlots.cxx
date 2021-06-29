@@ -9,7 +9,7 @@ bool bPlotPairHistograms = kTRUE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
-int ith_PIDscenario = 4;
+int ith_PIDscenario = 1;
 TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
 // TString strPIDscenario[] = {"TOF only 0.04<pte", "TOF only 0.08<pte"};
 // TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
@@ -263,7 +263,6 @@ if (bPlotPIDhistograms) {
     vecRICH_PIDplots.push_back(hRec_RICH_NSigma[i]);
   }
 
-
   for (int i = 0; i < 5; ++i) {
     // hNsigmaP_TOF[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF", pname[i]));
     hNsigmaP_TOF_trueElec[i] = (TH2F*) fIn->Get(Form("hNsigmaP_%s_TOF_trueElec", pname[i]));
@@ -456,6 +455,8 @@ if (bPlotPIDhistograms) {
   TH1F* etaRecTrackElePos = (TH1F*) hRec_Track_ElePos_Pt_Eta_Phi->ProjectionY("Rec ElePos afterPIDCuts etaTrack");
   TH1F* phiRecTrackElePos = (TH1F*) hRec_Track_ElePos_Pt_Eta_Phi->ProjectionZ("Rec ElePos afterPIDCuts phiTrack");
 
+  TH2F* ptEtaRecTrackElePos = (TH2F*) hRec_Track_ElePos_Pt_Eta_Phi->Project3D("yx o");
+
   TH1F* ptRecTrackEle  = (TH1F*) hRec_Track_Ele_Pt_Eta_Phi->ProjectionX("Rec electrons ptTrack");
   TH1F* etaRecTrackEle = (TH1F*) hRec_Track_Ele_Pt_Eta_Phi->ProjectionY("Rec electrons etaTrack");
   TH1F* phiRecTrackEle = (TH1F*) hRec_Track_Ele_Pt_Eta_Phi->ProjectionZ("Rec electrons phiTrack");
@@ -499,6 +500,8 @@ if (bPlotPIDhistograms) {
   TH1F* ptGenTrackElePos  = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionX("Gen ElePos ptTrack");
   TH1F* etaGenTrackElePos = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionY("Gen ElePos etaTrack");
   TH1F* phiGenTrackElePos = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionZ("Gen ElePos phiTrack");
+
+  TH2F* ptEtaGenTrackElePos = (TH2F*) hGen_Track_ElePos_Pt_Eta_Phi->Project3D("yx o");
 
   TH1F* ptGenTrackAll   = (TH1F*) hGen_Track_All_Pt_Eta_Phi->ProjectionX("Gen All ptTrack");
   TH1F* ptGenTrackMuon  = (TH1F*) hGen_Track_Muon_Pt_Eta_Phi->ProjectionX("Gen Muon ptTrack");
@@ -974,6 +977,8 @@ if (bPlotPIDhistograms) {
   // TH1F* phiEffPosCC;
   // TH1F* phiEffPosBB;
 
+  TH2F* ptEtaEffElePos;
+
   TH1F* ptPairEffULS;
   TH1F* massPairEffULS;
 
@@ -1073,7 +1078,6 @@ if (bPlotPIDhistograms) {
     ptEffElePosGen_woPID->Sumw2();
     ptEffElePosGen_woPID->Divide(ptEffElePosGen_woPID,ptGenTrackElePos_rebin,1,1,"B");
 
-
     ptEffEle = (TH1F*) ptRecTrackEle_rebin->Clone("eff_pT_singleElectrons");
     ptEffEle->Sumw2();
     // ptEffEle->Divide(ptEffEle,ptGenSmearedTrackEle_rebin,1,1,"B");
@@ -1102,6 +1106,10 @@ if (bPlotPIDhistograms) {
     // phiEffPos->Divide(phiEffPos,phiGenSmearedTrackPos,1,1,"B");
     phiEffPos->Divide(phiEffPos,phiGenTrackPos,1,1,"B");
 
+    // single track efficiency TH2 as function of pt and eta
+    ptEtaEffElePos = (TH2F*) ptEtaRecTrackElePos->Clone("eff_ptEta_singleElePos");
+    ptEtaEffElePos->Sumw2();
+    ptEtaEffElePos->Divide(ptEtaEffElePos,ptEtaGenTrackElePos,1,1,"B");
 
    // pair efficiencies
    // // ptPairEffULS = (TH1F*) proj_recULS_Ptee->Clone();
@@ -2215,8 +2223,26 @@ if (bPlotTrackContamination) {
     legGenRecPos_top->Draw("same");
     cGenRecPosPt->SaveAs("./plots/GenRecPos_Pt.png");
 
-    Int_t ptGenTrackEleEntries = ptGenTrackEle_rebin->Integral();
-    Int_t ptRecTrackEleEntries = ptRecTrackEle_rebin->Integral();
+
+
+    auto cEffElePosPtEta = new TCanvas("cEffElePosPtEta","cEffElePosPtEta",800,800);
+    gStyle->SetOptStat(0); // <- das hier macht dies box rechts oben weg
+    cEffElePosPtEta->SetLogz();
+    cEffElePosPtEta->SetLogx();
+    cEffElePosPtEta->SetTopMargin(0.03);
+    cEffElePosPtEta->SetRightMargin(0.13);
+    cEffElePosPtEta->SetLeftMargin(0.13);
+    ptEtaEffElePos->SetTitle("");
+    ptEtaEffElePos->GetYaxis()->SetTitle("#eta");
+    ptEtaEffElePos->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
+    ptEtaEffElePos->GetZaxis()->SetTitle("track efficiency");
+    // ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,0.4);
+    ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.2);
+    ptEtaEffElePos->GetZaxis()->SetRangeUser(0,1.0);
+    ptEtaEffElePos->Draw("Colz");
+    // legTrackEle_top->Draw("same");
+    cEffElePosPtEta->SaveAs("./plots/EffElePosPtEta.png");
 
 
 
@@ -2331,7 +2357,10 @@ if (bPlotTrackContamination) {
   //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
   //   }
   // }
-  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+
+  // TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("TOF 20cm, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+
   TLegendEntry *entryInfo3=legendInfo->AddEntry("PID",Form("%s PID",strPIDscenario[ith_PIDscenario-1].Data()),"");
   legendInfo->SetBorderSize(0);
   legendInfo->SetFillColorAlpha(0, 0.0);
@@ -2403,7 +2432,7 @@ if (bPlotTrackContamination) {
       cPID_logx->SetRightMargin(0.07);
       cPID_logx->SetLeftMargin(0.13);
       vecTOF_PIDplots.at(i)->GetYaxis()->SetRangeUser(-15,25);
-      vecTOF_PIDplots.at(i)->GetXaxis()->SetRangeUser(0.04,10);
+      vecTOF_PIDplots.at(i)->GetXaxis()->SetRangeUser(0.01,10);
       vecTOF_PIDplots.at(i)->Draw("COL ");
 
       if(i % 2 == 0) legendInfoNoPIDtof->Draw("same");
@@ -2540,7 +2569,8 @@ if (bPlotTrackContamination) {
     cContaminationPt->SetLeftMargin(0.13);
     hMuonContaminationRecPt->GetYaxis()->SetTitle("contamination");
     hMuonContaminationRecPt->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
-    hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
+    hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,0.4);
+    // hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
     hMuonContaminationRecPt->SetMaximum(0.12);
     hMuonContaminationRecPt->SetMinimum(0.);
     hMuonContaminationRecPt->Draw("hist p e1");
@@ -2570,12 +2600,14 @@ if (bPlotTrackContamination) {
   cRejectionFactorPt->SetLogy();
   hPionRejectionFactorPt->GetYaxis()->SetTitle("rejection factor");
   hPionRejectionFactorPt->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
-  hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,4.0);
+  // hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,4.0);
   // hPionRejectionFactorPt->SetMaximum(10*std::max({hMuonRejectionFactorPt->GetMaximum(),hPionRejectionFactorPt->GetMaximum(),hKaonRejectionFactorPt->GetMaximum(),hProtonRejectionFactorPt->GetMaximum()/*,hTotalRejectionFactorPt->GetMaximum()*/}));
   // hPionRejectionFactorPt->SetMaximum(1.1);
   // hPionRejectionFactorPt->SetMinimum(0.1*std::min({hMuonRejectionFactorPt->GetMinimum(),hPionRejectionFactorPt->GetMinimum(),hKaonRejectionFactorPt->GetMinimum(),hProtonRejectionFactorPt->GetMinimum()/*,hTotalRejectionFactorPt->GetMaximum()*/}));
-  hPionRejectionFactorPt->SetMaximum(100000000000);
+  // hPionRejectionFactorPt->SetMaximum(100000000000);
+  hPionRejectionFactorPt->SetMaximum(100000000);
   hPionRejectionFactorPt->SetMinimum(0.1);
+  hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,0.4);
   hMuonRejectionFactorPt->SetMinimum(0.1);
   hPionRejectionFactorPt->Draw("hist p e1");
   hMuonRejectionFactorPt->Draw("same hist p e1");
@@ -2590,7 +2622,7 @@ if (bPlotTrackContamination) {
   cRejectionFactorPt->SaveAs("./plots/PID_Pt_RejectionFactor.pdf");
   hPionRejectionFactorPt->SetMinimum(1000);
   hPionRejectionFactorPt->SetMaximum(100000000);
-  hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,3.5);
+  // hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,3.5);
   hPionRejectionFactorPt->Draw("hist p e1");
   TLine* line = new TLine(0.,100000.,4.,100000.);
   line->SetLineStyle(2);
@@ -2618,6 +2650,7 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_TOF->SetLeftMargin(0.13);
       cNSigmaSeparatePID_TOF->SetLogx();
       // hNsigmaP_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      // hNsigmaP_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,0.4);
       hNsigmaP_TOF_truePion[iNSig]->GetYaxis()->SetRangeUser(-15.,25.);
       hNsigmaP_TOF_truePion[iNSig]->Draw("");
       hNsigmaP_TOF_trueElec[iNSig]->Draw("same");
@@ -2633,6 +2666,7 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_TOF_afterCuts->SetLeftMargin(0.13);
       cNSigmaSeparatePID_TOF_afterCuts->SetLogx();
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetXaxis()->SetRangeUser(0.0,0.4);
       hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetYaxis()->SetRangeUser(-15.,25.);
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMaximum(1.1);
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMinimum(0.);
