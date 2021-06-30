@@ -10,8 +10,8 @@ bool bPlotPairHistograms = kTRUE;
   bool bPlotLS = kTRUE;
 
 int ith_PIDscenario = 1;
-TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
-// TString strPIDscenario[] = {"TOF only 0.04<pte", "TOF only 0.08<pte"};
+// TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
+TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, TOF only", "0.2 < #it{p}_{T,e}, TOF only"};
 // TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -19,7 +19,8 @@ std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0
 std::vector<Double_t> vec_proj_bin_mass = {0.0, 3.0}; // Intervalls for projection in mass slices
 
 // Double_t pt_bin_proj[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
-Double_t pt_bin_proj[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,4.0};
+// Double_t pt_bin_proj[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,4.0};
+Double_t pt_bin_proj[]  = {0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
 // Double_t pt_bin_proj[]  = {0.0,0.1,0.5,1.,4};
 Int_t nbinspt_proj  = sizeof(pt_bin_proj)/sizeof(*pt_bin_proj) -1;
 
@@ -361,7 +362,7 @@ if (bPlotPIDhistograms) {
   // TH3F* hMPtDCA_ULS_HF_rec = (TH3F*) fIn->Get(Form("%s/hMPtDCA_ULS_rec_heavy_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   // TH3F* hMPtDCA_ULS_CC_rec = (TH3F*) fIn->Get(Form("%s/hMPtDCA_ULS_rec_charm_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   // TH3F* hMPtDCA_ULS_BB_rec = (TH3F*) fIn->Get(Form("%s/hMPtDCA_ULS_rec_beauty_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
-  // TH3F* hMPtDCA_ULS_rec_MCpidEle = (TH3F*) fIn->Get(Form("%s/hMPtDCA_ULS_rec_MCpidEle_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hMPtDCA_ULS_rec_MCpidEle = (TH3F*) fIn->Get(Form("%s/hMPtDCA_ULS_rec_MCpidEle_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
 
   TH3F* hMPtDCA_LS_rec = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   // TH3F* hMPtDCA_LS_primary_rec = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_primary_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
@@ -662,6 +663,7 @@ if (bPlotPIDhistograms) {
 
     // TH1F* proj_recULS_MCpidEle_Mee = (TH1F*) hMPtDCA_ULS_rec_MCpidEle->ProjectionX("proj_recULS_MCpidEle_Mee");
     // TH1F* proj_recULS_MCpidEle_Ptee = (TH1F*) hMPtDCA_ULS_rec_MCpidEle->ProjectionY("proj_recULS_MCpidEle_Ptee");
+    TH2F* mptRecTrackElePos = (TH2F*) hMPtDCA_ULS_rec_MCpidEle->Project3D("yx o");
 
     TH1F* proj_recLS_Mee = (TH1F*) hMPtDCA_LS_rec->ProjectionX("proj_recLS_Mee");
     TH1F* proj_recLS_Ptee = (TH1F*) hMPtDCA_LS_rec->ProjectionY("proj_recLS_Ptee");
@@ -670,6 +672,8 @@ if (bPlotPIDhistograms) {
     TH1F* proj_genULS_Mee = (TH1F*) hMPtDCA_ULS_gen->ProjectionX("proj_genULS_Mee");
     TH1F* proj_genULS_Ptee = (TH1F*) hMPtDCA_ULS_gen->ProjectionY("proj_genULS_Ptee");
     TH1F* proj_genULS_DCA = (TH1F*) hMPtDCA_ULS_gen->ProjectionZ("proj_genULS_DCA");
+
+    TH2F* mptGenTrackElePos = (TH2F*) hMPtDCA_ULS_gen->Project3D("yx o");
 
     TH1F* proj_genLS_Mee = (TH1F*) hMPtDCA_LS_gen->ProjectionX("proj_genLS_Mee");
     TH1F* proj_genLS_Ptee = (TH1F*) hMPtDCA_LS_gen->ProjectionY("proj_genLS_Ptee");
@@ -978,6 +982,7 @@ if (bPlotPIDhistograms) {
   // TH1F* phiEffPosBB;
 
   TH2F* ptEtaEffElePos;
+  TH2F* mPtPairEffElePos;
 
   TH1F* ptPairEffULS;
   TH1F* massPairEffULS;
@@ -1120,6 +1125,11 @@ if (bPlotPIDhistograms) {
    // massPairEffULS->Sumw2();
    // ptPairEffULS->Divide(ptPairEffULS,proj_genULS_Ptee,1,1,"B");
    // massPairEffULS->Divide(massPairEffULS,proj_genULS_Mee,1,1,"B");
+
+   mPtPairEffElePos = (TH2F*) mptRecTrackElePos->Clone("pairEff_mPt_ElePos");
+   mPtPairEffElePos->Sumw2();
+   mPtPairEffElePos->Divide(mPtPairEffElePos,mptGenTrackElePos,1,1,"B");
+
   }
 
 
@@ -1416,11 +1426,11 @@ if (bPlotTrackContamination) {
   // makeHistNice(ptGenSmearedTrackElePos_beforeKineCuts_rebin,kRed+3);
   // ptGenSmearedTrackElePos_beforeKineCuts_rebin->SetMarkerStyle(28);
 
-  // normalizeToBinWidth(ptGenTrackElePos_rebin);
-  // normalizeToBinWidth(ptGenSmearedTrackElePos_rebin);
-  // normalizeToBinWidth(ptRecTrackElePos_rebin);
+  normalizeToBinWidth(ptGenTrackElePos_rebin);
+  normalizeToBinWidth(ptGenSmearedTrackElePos_rebin);
+  normalizeToBinWidth(ptRecTrackElePos_rebin);
   //
-  // normalizeToBinWidth(ptGenTrackElePos_beforeKineCuts_rebin);
+  normalizeToBinWidth(ptGenTrackElePos_beforeKineCuts_rebin);
   // normalizeToBinWidth(ptGenSmearedTrackElePos_beforeKineCuts_rebin);
 
 
@@ -1504,9 +1514,9 @@ if (bPlotTrackContamination) {
   make3HistNice(etaRecTrackElePos,kBlue+1);
   make3HistNice(phiRecTrackElePos,kBlue+1);
 
-  // normalizeToBinWidth(ptRecTrackBeforeSmearing_rebin);
-  // normalizeToBinWidth(ptRecTrackAfterSmearing_rebin);
-  // normalizeToBinWidth(ptRecTrackAfterKineCuts_rebin);
+  normalizeToBinWidth(ptRecTrackBeforeSmearing_rebin);
+  normalizeToBinWidth(ptRecTrackAfterSmearing_rebin);
+  normalizeToBinWidth(ptRecTrackAfterKineCuts_rebin);
 
   // make3HistNice(ptRecTrackEtaCut_1,kOrange-5);
   // make3HistNice(ptRecTrackEtaCut_2,kOrange-4);
@@ -1680,7 +1690,7 @@ if (bPlotTrackContamination) {
   legGenGenSmearRecElePos_top->AddEntry(ptGenSmearedTrackElePos,"gen smeared tracks","p");
   legGenGenSmearRecElePos_top->AddEntry(ptRecTrackElePos,"rec tracks","p");
 
-  auto legGenGenSmearRecElePos_Plus = new TLegend(legPosBottomLeft[0],legPosBottomLeft[1],legPosBottomLeft[2],legPosBottomLeft[3]);
+  auto legGenGenSmearRecElePos_Plus = new TLegend(legPosBottomLeft[0]+0.07,legPosBottomLeft[1],legPosBottomLeft[2],legPosBottomLeft[3]);
   legGenGenSmearRecElePos_Plus->SetBorderSize(0);
   legGenGenSmearRecElePos_Plus->SetFillStyle(0);
   legGenGenSmearRecElePos_Plus->AddEntry(ptGenTrackElePos_beforeKineCuts_rebin,"gen","p");
@@ -1800,6 +1810,96 @@ if (bPlotTrackContamination) {
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_6," |#eta| < 6.0","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_8," |#eta| < 8.0","p");
   // legSmearLabel->AddEntry(etaRecTrackEtaCut_10," |#eta| < 10.0","p");
+
+
+
+  Double_t lx_low; Double_t lx_high; Double_t ly_low; Double_t ly_high;
+  lx_low = 0.1; ly_low = 0.74; lx_high = 0.35; ly_high = 0.95;
+  auto legendInfo = new TLegend(lx_low,ly_low,lx_high,ly_high);
+  TLegendEntry *entryInfo0=legendInfo->AddEntry("ALICE 3","ALICE 3 Study","");
+  TLegendEntry *entryInfo1=legendInfo->AddEntry("collisionSystem",Form("0-10%s %s, #sqrt{#it{s}_{NN}} = 5.02 TeV","%",collSystem.Data()),"");
+  // TLegendEntry *entryInfo4=legendInfo->AddEntry("Generator",Form("Phythia8 Angantyr, #it{B} = %g T",BField),"");
+  // TLegendEntry *entryInfo2;
+  // // TLegendEntry *entryInfo3;
+  // if(BField == 0.2){
+  //   if(ith_PIDscenario == 1){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  //   if(ith_PIDscenario == 2){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  // }
+  // else if (BField == 0.5){
+  //   if(ith_PIDscenario == 1){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  //   if(ith_PIDscenario >= 2){
+  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
+  //   }
+  // }
+
+  // TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("TOF 20cm, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+
+  TLegendEntry *entryInfo3=legendInfo->AddEntry("PID",Form("%s PID",strPIDscenario[ith_PIDscenario-1].Data()),"");
+  legendInfo->SetBorderSize(0);
+  legendInfo->SetFillColorAlpha(0, 0.0);
+  // legendInfo->SetTextSize(0.025);
+  legendInfo->SetTextFont(43);
+  legendInfo->SetTextSize(25);
+
+  auto legendInfoTOF = new TLegend(0.4, 0.12, 0.87, 0.3);
+  legendInfoTOF->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoTOF->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoTOF->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoTOF->AddEntry(entryInfo3,entryInfo3->GetLabel(),"");
+  legendInfoTOF->SetBorderSize(0);
+  legendInfoTOF->SetFillColorAlpha(0, 0.0);
+  // legendInfoTOF->SetTextSize(0.025);
+  legendInfoTOF->SetTextFont(43);
+  legendInfoTOF->SetTextSize(25);
+
+  auto legendInfoNoPID = new TLegend(lx_low, ly_low, lx_high, ly_high);
+  legendInfoNoPID->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoNoPID->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoNoPID->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoNoPID->AddEntry("noPID","no PID cuts","");
+  legendInfoNoPID->SetBorderSize(0);
+  legendInfoNoPID->SetFillColorAlpha(0, 0.0);
+  legendInfoNoPID->SetTextFont(43);
+  legendInfoNoPID->SetTextSize(25);
+
+  auto legendInfoNoPIDtof = new TLegend(0.4, 0.12, 0.87, 0.3);
+  legendInfoNoPIDtof->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoNoPIDtof->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoNoPIDtof->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoNoPIDtof->AddEntry("noPID","no PID cuts","");
+  legendInfoNoPIDtof->SetBorderSize(0);
+  legendInfoNoPIDtof->SetFillColorAlpha(0, 0.0);
+  legendInfoNoPIDtof->SetTextFont(43);
+  legendInfoNoPIDtof->SetTextSize(25);
+
+  auto legendInfoCont = (TLegend*)legendInfo->Clone();
+  legendInfoCont->AddEntry("Generator","Phythia8 Angantyr","");
+
+  auto legendInfoTrackEff = new TLegend(0.35, 0.77, 0.87, 0.97);
+  legendInfoTrackEff->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
+  legendInfoTrackEff->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
+  legendInfoTrackEff->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
+  legendInfoTrackEff->SetBorderSize(0);
+  legendInfoTrackEff->SetFillColorAlpha(0, 0.0);
+  // legendInfoTrackEff->SetTextSize(0.025);
+  legendInfoTrackEff->SetTextFont(43);
+  legendInfoTrackEff->SetTextSize(24);
+
+  auto legendInfoPairEff = (TLegend*)legendInfoTrackEff->Clone();
+  legendInfoPairEff->AddEntry(entryInfo3,entryInfo3->GetLabel(),"");
+
+
 
 
 
@@ -1948,7 +2048,8 @@ if (bPlotTrackContamination) {
     cEffAddedElePosPt->SetLeftMargin(0.13);
     ptEffElePosGen->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
     ptEffElePosGen->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
-    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,0.4);
+    // ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum(),ptEffElePosGenSmeared->GetMaximum()}));
     // ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum()}));
     // ptEffElePosGenSmeared->SetMaximum(1.1*std::max({ptEffElePosGenSmeared->GetMaximum()}));
@@ -1957,7 +2058,7 @@ if (bPlotTrackContamination) {
     ptEffElePosGenSmeared->Draw("hist p e1 same");
     legEff_GenGenSmear->Draw("same");
     textBField->Draw("same");
-    textPIDScenario->Draw("same");
+    // textPIDScenario->Draw("same");
     cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_GenGenSmear.png");
     ptEffElePosGen->Draw("hist p e1 ");
     legEff_Gen->Draw("same");
@@ -2184,7 +2285,7 @@ if (bPlotTrackContamination) {
     ptGenSmearedTrackElePos_rebin->Draw("hist p e1 same");
     ptRecTrackElePos_rebin->Draw("hist p e1 same");
     textBField->Draw("same");
-    textPIDScenario->Draw("same");
+    // textPIDScenario->Draw("same");
     legGenGenSmearRecElePos_Plus->Draw("same");
     ptGenTrackElePos_beforeKineCuts_rebin->Draw("hist p e1 same");
     // ptGenSmearedTrackElePos_beforeKineCuts_rebin->Draw("hist p e1 same");
@@ -2227,7 +2328,7 @@ if (bPlotTrackContamination) {
 
     auto cEffElePosPtEta = new TCanvas("cEffElePosPtEta","cEffElePosPtEta",800,800);
     gStyle->SetOptStat(0); // <- das hier macht dies box rechts oben weg
-    cEffElePosPtEta->SetLogz();
+    // cEffElePosPtEta->SetLogz();
     cEffElePosPtEta->SetLogx();
     cEffElePosPtEta->SetTopMargin(0.03);
     cEffElePosPtEta->SetRightMargin(0.13);
@@ -2236,11 +2337,14 @@ if (bPlotTrackContamination) {
     ptEtaEffElePos->GetYaxis()->SetTitle("#eta");
     ptEtaEffElePos->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     ptEtaEffElePos->GetZaxis()->SetTitle("track efficiency");
+    ptEtaEffElePos->GetZaxis()->SetTitleOffset(1.2);
+    ptEtaEffElePos->GetZaxis()->RotateTitle(kTRUE);
     // ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,0.4);
-    ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.2);
+    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,0.6);
+    ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.6);
     ptEtaEffElePos->GetZaxis()->SetRangeUser(0,1.0);
     ptEtaEffElePos->Draw("Colz");
+    legendInfoTrackEff->Draw("same");
     // legTrackEle_top->Draw("same");
     cEffElePosPtEta->SaveAs("./plots/EffElePosPtEta.png");
 
@@ -2260,6 +2364,24 @@ if (bPlotTrackContamination) {
     // cPairEffULSPt->SaveAs("./plots/Eff_ULSPair_Pt.png");
 
 
+    auto cPairEffElePosMPt = new TCanvas("cPairEffElePosMPt","cPairEffElePosMPt",800,800);
+    gStyle->SetOptStat(0); // <- das hier macht dies box rechts oben weg
+    cPairEffElePosMPt->SetLogz();
+    // cPairEffElePosMPt->SetLogy();
+    cPairEffElePosMPt->SetTopMargin(0.03);
+    cPairEffElePosMPt->SetRightMargin(0.13);
+    cPairEffElePosMPt->SetLeftMargin(0.13);
+    mPtPairEffElePos->SetTitle("");
+    mPtPairEffElePos->GetYaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c})");
+    mPtPairEffElePos->GetXaxis()->SetTitle("m_{ee} (GeV/#it{c}^{2})");
+    mPtPairEffElePos->GetZaxis()->SetTitle("pair efficiency");
+    mPtPairEffElePos->GetZaxis()->RotateTitle(kTRUE);
+    mPtPairEffElePos->GetXaxis()->SetRangeUser(0.0,0.7);
+    mPtPairEffElePos->GetYaxis()->SetRangeUser(0.0,0.7);
+    mPtPairEffElePos->GetZaxis()->SetRangeUser(0,1.0);
+    mPtPairEffElePos->Draw("Colz");
+    legendInfoPairEff->Draw("same");
+    cPairEffElePosMPt->SaveAs("./plots/PairEffElePosMPt.png");
 
   }
 
@@ -2272,9 +2394,10 @@ if (bPlotTrackContamination) {
     cBeforeAfterSmearing->cd(i)->SetRightMargin(0.03);
   }
   cBeforeAfterSmearing->cd(1)->SetLogy();
-  ptRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(0.,8);
+  // ptRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(0.,4.);
+  ptRecTrackBeforeSmearing_rebin->GetXaxis()->SetRangeUser(0.,0.4);
   // ptRecTrackBeforeSmearing->SetMinimum(0.01);
-  ptRecTrackBeforeSmearing->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing_rebin->GetMaximum(),ptRecTrackAfterSmearing_rebin->GetMaximum(),ptRecTrackElePos_rebin->GetMaximum()}));
+  ptRecTrackBeforeSmearing_rebin->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing_rebin->GetMaximum(),ptRecTrackAfterSmearing_rebin->GetMaximum(),ptRecTrackElePos_rebin->GetMaximum()}));
   ptRecTrackBeforeSmearing_rebin->Draw("pe1");
   ptRecTrackAfterSmearing_rebin->Draw("pe1 same");
   ptRecTrackAfterKineCuts_rebin->Draw("pe1 same");
@@ -2328,80 +2451,6 @@ if (bPlotTrackContamination) {
   // phiRecTrackEtaCut_1->Draw("pe1 same");
   phiRecTrackElePos->Draw("pe1 same");
   cBeforeAfterSmearing->SaveAs("./plots/RecPtEtaPhiBeforeAfterSmearing.png");
-
-  Double_t lx_low; Double_t lx_high; Double_t ly_low; Double_t ly_high;
-  lx_low = 0.1; ly_low = 0.74; lx_high = 0.35; ly_high = 0.95;
-  auto legendInfo = new TLegend(lx_low,ly_low,lx_high,ly_high);
-  TLegendEntry *entryInfo0=legendInfo->AddEntry("ALICE 3","ALICE 3 Study","");
-  TLegendEntry *entryInfo1=legendInfo->AddEntry("collisionSystem",Form("0-10%s %s, #sqrt{#it{s}_{NN}} = 5.02 TeV","%",collSystem.Data()),"");
-  // TLegendEntry *entryInfo4=legendInfo->AddEntry("Generator",Form("Phythia8 Angantyr, #it{B} = %g T",BField),"");
-  // TLegendEntry *entryInfo2;
-  // // TLegendEntry *entryInfo3;
-  // if(BField == 0.2){
-  //   if(ith_PIDscenario == 1){
-  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.04 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //   }
-  //   if(ith_PIDscenario == 2){
-  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //   }
-  // }
-  // else if (BField == 0.5){
-  //   if(ith_PIDscenario == 1){
-  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.2 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //   }
-  //   if(ith_PIDscenario >= 2){
-  //     // entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.08 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //     entryInfo2=legendInfo->AddEntry("SinglePt","#font[12]{p}_{T,e} > 0.03 GeV/#font[12]{c}, |#it{#eta}_{e}| < 1.1","");
-  //   }
-  // }
-
-  // TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
-  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("TOF 20cm, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
-
-  TLegendEntry *entryInfo3=legendInfo->AddEntry("PID",Form("%s PID",strPIDscenario[ith_PIDscenario-1].Data()),"");
-  legendInfo->SetBorderSize(0);
-  legendInfo->SetFillColorAlpha(0, 0.0);
-  // legendInfo->SetTextSize(0.025);
-  legendInfo->SetTextFont(43);
-  legendInfo->SetTextSize(25);
-
-  auto legendInfoTOF = new TLegend(0.4, 0.12, 0.87, 0.3);
-  legendInfoTOF->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
-  legendInfoTOF->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
-  legendInfoTOF->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
-  legendInfoTOF->AddEntry(entryInfo3,entryInfo3->GetLabel(),"");
-  legendInfoTOF->SetBorderSize(0);
-  legendInfoTOF->SetFillColorAlpha(0, 0.0);
-  // legendInfoTOF->SetTextSize(0.025);
-  legendInfoTOF->SetTextFont(43);
-  legendInfoTOF->SetTextSize(25);
-
-  auto legendInfoNoPID = new TLegend(lx_low, ly_low, lx_high, ly_high);
-  legendInfoNoPID->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
-  legendInfoNoPID->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
-  legendInfoNoPID->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
-  legendInfoNoPID->AddEntry("noPID","no PID cuts","");
-  legendInfoNoPID->SetBorderSize(0);
-  legendInfoNoPID->SetFillColorAlpha(0, 0.0);
-  legendInfoNoPID->SetTextFont(43);
-  legendInfoNoPID->SetTextSize(25);
-
-  auto legendInfoNoPIDtof = new TLegend(0.4, 0.12, 0.87, 0.3);
-  legendInfoNoPIDtof->AddEntry(entryInfo0,entryInfo0->GetLabel(),"");
-  legendInfoNoPIDtof->AddEntry(entryInfo1,entryInfo1->GetLabel(),"");
-  legendInfoNoPIDtof->AddEntry(entryInfo5,entryInfo5->GetLabel(),"");
-  legendInfoNoPIDtof->AddEntry("noPID","no PID cuts","");
-  legendInfoNoPIDtof->SetBorderSize(0);
-  legendInfoNoPIDtof->SetFillColorAlpha(0, 0.0);
-  legendInfoNoPIDtof->SetTextFont(43);
-  legendInfoNoPIDtof->SetTextSize(25);
-
-  auto legendInfoCont = (TLegend*)legendInfo->Clone();
-  legendInfoCont->AddEntry("Generator","Phythia8 Angantyr","");
-
 
 
   if (bPlotPIDhistograms) {

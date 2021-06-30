@@ -37,12 +37,14 @@ double EtaCut = 1.1;
 // double EtaCut = 10.;    // open cuts
 
 // --- binning ---
-Double_t pt_binning[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
+// Double_t pt_binning[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
+Double_t pt_binning[]  = {0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
 // Double_t eta_binning[]  = {-5.0,-4.9,-4.8,-4.7,-4.6,-4.5,-4.4,-4.3,-4.2,-4.1,-4.0,-3.9,-3.8,-3.7,-3.6,-3.5,-3.4,-3.3,-3.2,-3.1,-3.0,-2.9,-2.8,-2.7,-2.6,-2.5,-2.4,-2.3,-2.2,-2.1,-2.0,-1.9,-1.8,-1.7,-1.6,-1.5,-1.4,-1.3,-1.2,-1.1,-1.0,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5.0};
 Int_t nEtaBins = 100;    Double_t maxEta = 5.;
 Int_t nPhiBins = 180;    Double_t maxPhi = 2*TMath::Pi();
 // ptee
-const Int_t n_ptee_bin_c = 202;
+// const Int_t n_ptee_bin_c = 202;
+const Int_t n_ptee_bin_c = 214;
 Double_t ptee_bin_c[n_ptee_bin_c+1] = {};
 // mee
 Double_t mee_bin_c[401];
@@ -98,7 +100,7 @@ double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,   
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
 double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04,   0.04};
-double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.08,    0.2 };
+double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.08,    0.0};
 
 
 
@@ -569,21 +571,38 @@ void anaEEstudy(
   for (int iBin = 0; iBin < nPhiBins+1; iBin++) {phi_binning[iBin] = 0. + iBin * maxPhi/nPhiBins;      /* std::cout << phi_binning[iBin] << " phi bin border " << std::endl;  */}
 
   // ptee
-  for(Int_t i=0  ;i<4   ;i++) {
-    ptee_bin_c[i] = 0.025 * (i-  0) +  0.0;//from 0 to 0.075 GeV/c, every 0.025 GeV/c
+  // for(Int_t i=0  ;i<4   ;i++) {
+  //   ptee_bin_c[i] = 0.025 * (i-  0) +  0.0;//from 0 to 0.075 GeV/c, every 0.025 GeV/c
+  //   //printf("bin %f for %d\n",ptee_bin_c[i],i);
+  // }
+  // for(Int_t i=4 ;i<=202  ;i++) {
+  //   ptee_bin_c[i] = 0.05  * (i- 4) +  0.1;//from 0.1 to 10 GeV/c, evety 0.05 GeV/c
+  //   //printf("bin %f for %d\n",ptee_bin_c[i],i);
+  // }
+
+  for(Int_t i=0  ;i<10   ;i++) {
+    ptee_bin_c[i] = 0.01 * (i-  0) +  0.0;//from 0 to 0.1 GeV/c, every 0.01 GeV/c
     //printf("bin %f for %d\n",ptee_bin_c[i],i);
+    cout << i << "th pt bin = " << ptee_bin_c[i] << endl;
   }
-  for(Int_t i=4 ;i<=202  ;i++) {
-    ptee_bin_c[i] = 0.05  * (i- 4) +  0.1;//from 0.1 to 10 GeV/c, evety 0.05 GeV/c
+  for(Int_t i=10 ;i<20  ;i++) {
+    ptee_bin_c[i] = 0.02  * (i- 10) +  0.1;//from 0.1 to 0.3 GeV/c, evety 0.02 GeV/c
     //printf("bin %f for %d\n",ptee_bin_c[i],i);
+    cout << i << "th pt bin = " << ptee_bin_c[i] << endl;
   }
+  for(Int_t i=20 ;i<215  ;i++) {
+    ptee_bin_c[i] = 0.05  * (i- 20) +  0.3;//from 0.3 to 1010 GeV/c, evety 0.05 GeV/c
+    //printf("bin %f for %d\n",ptee_bin_c[i],i);
+    cout << i << "th pt bin = " << ptee_bin_c[i] << endl;
+  }
+
   // mee
   for(Int_t k = 0 ; k < 401; k++){
     mee_bin_c[k] = k*0.01; // 4./400.
   }
   // DCA
   for(int k = 0 ; k < 201; k++){
-    dca_bin_c[k] = k*0.1; // 4./400.
+    dca_bin_c[k] = k*0.1;
   }
 
 
@@ -682,8 +701,8 @@ void anaEEstudy(
   auto hSmearing_For_Eff_eta = new TH2F("hSmearing_For_Eff_eta","#eta_{gen}-#eta_{rec};#it{p}_{T} (GeV/#it{c})",400,0.,4.,500,-0.1,0.1);
 
   // Track histograms
-  auto hBeforeSmearing_Pt_Eta_Phi_rec = new TH3F("hBeforeSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  auto hAfterSmearing_Pt_Eta_Phi_rec = new TH3F("hAfterSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  auto hBeforeSmearing_Pt_Eta_Phi_rec = new TH3F("hBeforeSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  auto hAfterSmearing_Pt_Eta_Phi_rec = new TH3F("hAfterSmearing_Pt_Eta_Phi_rec", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
   TH3F* hAfterKineCuts_Pt_Eta_Phi_rec[nPIDscenarios];
   TH3F* hTrack_ElePos_Rec_Pt_Eta_Phi[nPIDscenarios];
   TH3F* hNegTrack_Rec_Pt_Eta_Phi[nPIDscenarios];
@@ -709,29 +728,29 @@ void anaEEstudy(
   // TH3F* hPt_Eta_Phi_beauty_Pos_rec[nPIDscenarios];
 
   for (int j = 0; j < nPIDscenarios; ++j){
-    hAfterKineCuts_Pt_Eta_Phi_rec[j] = new TH3F(Form("hAfterKineCuts_Pt_Eta_Phi_rec_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_ElePos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hNegTrack_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hNegTrack_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hPosTrack_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hPosTrack_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hAllTracks_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hAllTracks_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_Ele_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_Pos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_Muon_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Muon_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_Pion_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pion_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_Kaon_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Kaon_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    hTrack_Proton_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Proton_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_primary_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_primary_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_Ele_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_primary_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_Pos_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_hf_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_hf_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_hf_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_charm_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_charm_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_charm_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_beauty_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_beauty_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-    // hPt_Eta_Phi_beauty_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hAfterKineCuts_Pt_Eta_Phi_rec[j] = new TH3F(Form("hAfterKineCuts_Pt_Eta_Phi_rec_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_ElePos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hNegTrack_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hNegTrack_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hPosTrack_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hPosTrack_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hAllTracks_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hAllTracks_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_Ele_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_Pos_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_Muon_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Muon_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_Pion_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pion_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_Kaon_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Kaon_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_Proton_Rec_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Proton_Rec_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_primary_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_primary_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_Ele_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_primary_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_primary_Pos_rec_sce%i",j+1), ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_hf_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_hf_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_hf_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_hf_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_charm_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_charm_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_charm_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_charm_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_beauty_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_beauty_Ele_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Ele_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    // hPt_Eta_Phi_beauty_Pos_rec[j] = new TH3F(Form("hPt_Eta_Phi_beauty_Pos_rec_sce%i",j+1), ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
   }
 
 
@@ -836,8 +855,8 @@ void anaEEstudy(
   }
 
 
-  TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts  = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  TH3F* hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts  = new TH3F("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts  = new TH3F("hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  TH3F* hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts  = new TH3F("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts",";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
 
 
   TH3F* hTrack_All_Gen_Pt_Eta_Phi[nPIDscenarios];
@@ -851,17 +870,17 @@ void anaEEstudy(
   TH3F* hTrack_ElePos_GenSmeared_Pt_Eta_Phi[nPIDscenarios];
   TH3F* hTrack_Ele_GenSmeared_Pt_Eta_Phi[nPIDscenarios];
   TH3F* hTrack_Pos_GenSmeared_Pt_Eta_Phi[nPIDscenarios];
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_All_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_All_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_ElePos_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Muon_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Muon_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pion_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pion_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Kaon_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Kaon_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Proton_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Proton_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Ele_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pos_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_ElePos_GenSmeared_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Ele_GenSmeared_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_GenSmeared_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pos_GenSmeared_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_GenSmeared_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_All_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_All_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_ElePos_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Muon_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Muon_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pion_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pion_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Kaon_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Kaon_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Proton_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Proton_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Ele_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pos_Gen_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_Gen_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_ElePos_GenSmeared_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Ele_GenSmeared_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Ele_GenSmeared_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  for (int j = 0; j < nPIDscenarios; ++j) hTrack_Pos_GenSmeared_Pt_Eta_Phi[j] = new TH3F(Form("hTrack_Pos_GenSmeared_Pt_Eta_Phi_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
 
 
   TList* lGenPIDscenario[nPIDscenarios];
@@ -899,18 +918,18 @@ void anaEEstudy(
     vecTListGenPIDscenarios.push_back(lGenPIDscenario[iPIDscenario]);
   }
 
-  // auto hPt_Eta_Phi_primary_gen = new TH3F("hPt_Eta_Phi_primary_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_primary_Ele_gen = new TH3F("hPt_Eta_Phi_primary_Ele_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_primary_Pos_gen = new TH3F("hPt_Eta_Phi_primary_Pos_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_hf_gen = new TH3F("hPt_Eta_Phi_hf_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_hf_Ele_gen = new TH3F("hPt_Eta_Phi_hf_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_hf_Pos_gen = new TH3F("hPt_Eta_Phi_hf_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_charm_gen = new TH3F("hPt_Eta_Phi_charm_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_charm_Ele_gen = new TH3F("hPt_Eta_Phi_charm_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_charm_Pos_gen = new TH3F("hPt_Eta_Phi_charm_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_beauty_gen = new TH3F("hPt_Eta_Phi_beauty_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_beauty_Ele_gen = new TH3F("hPt_Eta_Phi_beauty_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
-  // auto hPt_Eta_Phi_beauty_Pos_gen = new TH3F("hPt_Eta_Phi_beauty_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", nPtBins, pt_binning, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_primary_gen = new TH3F("hPt_Eta_Phi_primary_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_primary_Ele_gen = new TH3F("hPt_Eta_Phi_primary_Ele_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_primary_Pos_gen = new TH3F("hPt_Eta_Phi_primary_Pos_gen", ";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_hf_gen = new TH3F("hPt_Eta_Phi_hf_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_hf_Ele_gen = new TH3F("hPt_Eta_Phi_hf_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_hf_Pos_gen = new TH3F("hPt_Eta_Phi_hf_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_charm_gen = new TH3F("hPt_Eta_Phi_charm_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_charm_Ele_gen = new TH3F("hPt_Eta_Phi_charm_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_charm_Pos_gen = new TH3F("hPt_Eta_Phi_charm_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_beauty_gen = new TH3F("hPt_Eta_Phi_beauty_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_beauty_Ele_gen = new TH3F("hPt_Eta_Phi_beauty_Ele_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+  // auto hPt_Eta_Phi_beauty_Pos_gen = new TH3F("hPt_Eta_Phi_beauty_Pos_gen", ";p_{T} (GeV/c);#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
 
   //
   // auto hPrimaryM = new TH1F("hPrimaryM",";MotherPDG",1000,0.5,1000.5);
