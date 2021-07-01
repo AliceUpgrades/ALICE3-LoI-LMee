@@ -49,7 +49,7 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=7        # number of max parallel runs
+NJOBS=5        # number of max parallel runs
 NRUNS=10        # number of runs
 
 NEVENTS=10    # number of events in a run
@@ -60,8 +60,8 @@ SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="werner"     # detector setup
-# BFIELD=2       # magnetic field  [kG]
-BFIELD=5       # magnetic field  [kG]
+BFIELD=2       # magnetic field  [kG]
+# BFIELD=5       # magnetic field  [kG]
 
 RADIUS=20
 

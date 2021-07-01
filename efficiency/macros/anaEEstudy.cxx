@@ -99,7 +99,7 @@ double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,   
 double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */    99.,    99.};
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
-double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04,   0.04};
+double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04,    0.0};
 double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.08,    0.0};
 
 
@@ -583,17 +583,14 @@ void anaEEstudy(
   for(Int_t i=0  ;i<10   ;i++) {
     ptee_bin_c[i] = 0.01 * (i-  0) +  0.0;//from 0 to 0.1 GeV/c, every 0.01 GeV/c
     //printf("bin %f for %d\n",ptee_bin_c[i],i);
-    cout << i << "th pt bin = " << ptee_bin_c[i] << endl;
   }
   for(Int_t i=10 ;i<20  ;i++) {
     ptee_bin_c[i] = 0.02  * (i- 10) +  0.1;//from 0.1 to 0.3 GeV/c, evety 0.02 GeV/c
     //printf("bin %f for %d\n",ptee_bin_c[i],i);
-    cout << i << "th pt bin = " << ptee_bin_c[i] << endl;
   }
   for(Int_t i=20 ;i<215  ;i++) {
     ptee_bin_c[i] = 0.05  * (i- 20) +  0.3;//from 0.3 to 1010 GeV/c, evety 0.05 GeV/c
     //printf("bin %f for %d\n",ptee_bin_c[i],i);
-    cout << i << "th pt bin = " << ptee_bin_c[i] << endl;
   }
 
   // mee
