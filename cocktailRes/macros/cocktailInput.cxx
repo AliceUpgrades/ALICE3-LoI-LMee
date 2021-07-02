@@ -281,7 +281,7 @@ void cocktailInput(
       deltaPhi   = phiGen-phiRec;
       // fill histograms
 
-      if (!kineCuts(track)) continue;
+      // if (!kineCuts(track)) continue;
       nTracksCounter++;
       if (particle->PID == 11 )
       {
