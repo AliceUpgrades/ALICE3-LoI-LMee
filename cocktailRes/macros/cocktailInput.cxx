@@ -201,7 +201,7 @@ void cocktailInput(
 
   // smearer
   o2::delphes::TrackSmearer smearer;
-  // smearer.useEfficiency(false);  // check wich version this is needed in
+  smearer.useEfficiency(false);  // check wich version this is needed in
   if(smear){
       smearer.loadTable(11,   "./lutCovm.el.dat");
       smearer.loadTable(13,   "./lutCovm.mu.dat");
