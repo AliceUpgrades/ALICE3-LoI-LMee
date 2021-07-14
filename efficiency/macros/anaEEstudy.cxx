@@ -61,8 +61,8 @@ double tof_sigmat = 0.02; // [ns]
 double tof_sigma0 = 0.20; // [ns]
 
 // inner TOF (20 cm)
-double inner_tof_radius = 20.;  // [cm]
-double inner_tof_length = 40.;  // [cm]
+double inner_tof_radius = 19.;  // [cm]
+double inner_tof_length = 38.;  // [cm]
 double inner_tof_sigmat = 0.05; // [ns]
 double inner_tof_sigma0 = 0.20; // [ns]
 
@@ -86,21 +86,19 @@ double rich_PionRejection_p_cut = 1.0; // [GeV/c]
 
 
 // PID Scenarios           different pt cuts           different PID scenarios              added second TOF layer
-bool useInnerTOFPID[]   = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kTRUE,   kTRUE};
-bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE,  kTRUE,   kTRUE   */   kTRUE,   kTRUE};
-bool useRICHPID_B2[]    = {/*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE,  kFALSE};
-bool useRICHPID_B5[]    = {/*kTRUE,   kTRUE,     */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE,  kFALSE};
-bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kFALSE,  kFALSE};
-// TOF cuts on tracks
-double nSigmaTOFEle[]   = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0,    3.0};
-double nSigmaTOFPi[]    = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0,    3.0};
-// RICH cuts on tracks
-double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    0.0,    0.0};
-double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */    99.,    99.};
+bool useInnerTOFPID[]   = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kTRUE,   kTRUE   };
+bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE,  kTRUE,   kTRUE   */   kTRUE,   kTRUE   };
+bool useRICHPID_B2[]    = {/*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE,  kFALSE  };
+bool useRICHPID_B5[]    = {/*kTRUE,   kTRUE,     */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   kFALSE,  kFALSE  };
+bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   kFALSE,  kFALSE  };
+double nSigmaTOFEle[]   = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0,    3.0     };
+double nSigmaTOFPi[]    = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    3.0,    3.0     };
+double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */    0.0,    0.0     };
+double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */    99.,    99.     };
+double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04,   0.0     };
+double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.08,   0.0     };
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
-double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.04,    0.0};
-double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */    0.08,    0.0};
 
 
 
@@ -542,6 +540,10 @@ TH3F* hMPtDCA_LS_rec_misIDtwoLeg[3];
 TH3F* hMPtDCA_LS_rec_misIDPion[3];
 TH3F* hMPtDCA_LS_rec_misIDhf[3];
 
+TH3F* hMPtDCA_LS_rec_charmTOe[3];
+TH3F* hMPtDCA_LS_rec_beautyTOe[3];
+TH3F* hMPtDCA_LS_rec_hfTOe[3];
+
 
 void anaEEstudy(
     const char *inputFile = "delphes100k.root", // one fo the LF and charm part. Has 1M charm+beauty events
@@ -789,6 +791,10 @@ void anaEEstudy(
     hMPtDCA_LS_rec_misIDtwoLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDtwoLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
     hMPtDCA_LS_rec_misIDPion[j]        = new TH3F(Form("hMPtDCA_LS_rec_misIDPion_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
     hMPtDCA_LS_rec_misIDhf[j]          = new TH3F(Form("hMPtDCA_LS_rec_misIDhf_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+
+    hMPtDCA_LS_rec_charmTOe[j]        = new TH3F(Form("hMPtDCA_LS_rec_charmTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_beautyTOe[j]       = new TH3F(Form("hMPtDCA_LS_rec_beautyTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    hMPtDCA_LS_rec_hfTOe[j]           = new TH3F(Form("hMPtDCA_LS_rec_hfTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   }
 
 
@@ -848,6 +854,10 @@ void anaEEstudy(
     lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDtwoLeg[iPIDscenario]);
     lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDPion[iPIDscenario]);
     lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDhf[iPIDscenario]);
+
+    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_charmTOe[iPIDscenario]);
+    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_beautyTOe[iPIDscenario]);
+    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_hfTOe[iPIDscenario]);
     // listRecTracks->Add(lRecPIDscenario);
   }
 
@@ -2102,6 +2112,10 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)&&(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDtwoLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
       if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) == 211)&&(fabs(particle2->PID)==211) ))  hMPtDCA_LS_rec_misIDPion[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
       if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) != 11) && (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)!=11) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_misIDhf[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+
+      if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) == 11) && (hasCharmAncestor(particle1, particles))  ) || ((fabs(particle2->PID)==11) && (hasCharmAncestor(particle2, particles))  )) )  hMPtDCA_LS_rec_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+      if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) == 11) && (hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)==11) && (hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+      if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) == 11) && (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)==11) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_hfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
 
       // if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)){ // same mother and neutral LF particle, pion or eta
       //   if(pairULS && !MCpidEle)  hMPtDCA_ULS_rec_primary[iSce]->Fill(LV.Mag(),LV.Pt(),dca);

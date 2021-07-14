@@ -63,17 +63,23 @@ SCENARIO="werner"     # detector setup
 BFIELD=2       # magnetic field  [kG]
 # BFIELD=5       # magnetic field  [kG]
 
-RADIUS=20
+RADIUS=10
+# RADIUS=100
 
-SIGMAT=0.020      # time resolution [ns]
+# SIGMAT=0.020      # time resolution [ns]
+SIGMAT=0.050      # time resolution [ns]
 SIGMA0=0.200      # vertex time spread [ns]
-BARRELRAD=20.    # barrel radius      [cm] (right now equal to TOF)
-BARRELLEN=40.    # barrel half length [cm] (right now equal to TOF)
+BARRELRAD=19.    # barrel radius      [cm] (right now equal to TOF)
+BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
+# BARRELRAD=100.    # barrel radius      [cm] (right now equal to TOF)
+# BARRELLEN=200.    # barrel half length [cm] (right now equal to TOF)
 BARRELETA=1.443   # barrel max pseudorapidity
 TAILLX=1.0        # tail on left    [q]
 TAILRX=1.3        # tail on right   [q]
-TOFRAD=20.       # TOF radius      [cm]
-TOFLEN=40.       # TOF half length [cm]
+TOFRAD=19.       # TOF radius      [cm]
+TOFLEN=38.       # TOF half length [cm]
+# TOFRAD=100.       # TOF radius      [cm]
+# TOFLEN=200.       # TOF half length [cm]
 RICHRAD=100.      # RICH radius      [cm]
 RICHLEN=200.      # RICH half length [cm]
 
