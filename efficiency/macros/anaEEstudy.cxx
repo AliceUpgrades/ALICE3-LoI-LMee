@@ -102,52 +102,53 @@ double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,  
 
 
 
+bool doPID(Track * track, bool useTOF, bool useRICH, bool usePreSh, double p_tofMaxAcc, double p_tofPionRej, double p_richPionRej, double nSigmaTOFele, double nSigmaTOFpi, double nSigmaRICHele, double nSigmaRICHpi, o2::delphes::TOFLayer toflayer, o2::delphes::RICHdetector richdetector, std::array<float, 5> PIDnsigmaTOF, std::array<float, 5> PIDnsigmaRICH){
+  double p = track->P;
 
-// bool doPID(Track * tr, bool useTOF, bool useRICH, bool usePreSh, double p_tofMaxAcc, double p_tofPionRej, double p_richPionRej, double nSigmaTOFele, double nSigmaTOFpi, double nSigmaRICHele, double nSigmaRICHpi, o2::delphes::TOFLayer toflayer, o2::delphes::RICHdetector richdetector, std::array<float, 5> PIDnsigmaTOF, std::array<float, 5> PIDnsigmaRICH){
-//   double p = tr->P;
-//
-//   bool TOFpid = kFALSE;
-//   bool RICHpid = kFALSE;
-//   //apply TOF PID cuts
-//   // require hasTOF and p < 0.6
-//   if(useTOF && (toflayer.hasTOF(*tr)) && (p < p_tofMaxAcc)) {
-//     // electron acceptance
-//     // If  p > 0.4 GeV/c
-//     if (p > p_tofPionRej) {
-//       if( (fabs(PIDnsigmaTOF[0]) < nSigmaTOFele) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID) ) TOFpid = true; // is within 3 sigma of the electron band (TOF+RICH)
-//     }
-//     // If p < 0.4 GeV/c
-//     else if(p <= p_tofPionRej){  // p_tofPionRej = 0.4
-//       if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFele) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-//     }
-//     else cout << "!!! something is going wrong !!! " << endl;
-//
-//     // pion rejection
-//     if(fabs(PIDnsigmaTOF[2]) < nSigmaTOFpi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
-//   }
-//
-//   //apply RICH PID cuts, require hasRICH
-//   if(useRICH && richdetector.hasRICH(*tr)) {
-//     // electron acceptance
-//     if(fabs(PIDnsigmaRICH[0]) < nSigmaRICHele) RICHpid = true; // is within 3 sigma of the electron band (RICH)
-//     // pion rejection (p > 1.0 GeV/c)
-//     if( (fabs(PIDnsigmaRICH[2]) < nSigmaRICHpi) && (p > p_richPionRej) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
-//   }
-//
-//   // if ((TOFpid || RICHpid) && (p > 0.6 && fabs(PIDnsigmaRICH[0] > 3)) ) {
-//   //   cout << __LINE__ << " bool of TOF = " << TOFpid  << ", bool of RICH = " << RICHpid << endl;
-//   //   cout << " track p = " << p << endl;
-//   //   cout << " track pt = " << tr->PT << endl;
-//   //   cout << " PIDnsigmaTOF[0] = " << PIDnsigmaTOF[0] << endl;
-//   //   cout << " PIDnsigmaTOF[2] = " << PIDnsigmaTOF[2] << endl;
-//   //   cout << " PIDnsigmaRICH[0] = " <<  PIDnsigmaRICH[0] << endl;
-//   //   cout << " PIDnsigmaRICH[2] = " << PIDnsigmaRICH[2] << endl << endl;
-//   // }
-//
-//   if (!(RICHpid || TOFpid) /*&& !PreShpid*/) return false; // check if TOF or RICH signal is true.
-//   else return true;
-//   // ################## end of PID selection ##################
-// }
+  bool TOFpid = kFALSE;
+  bool RICHpid = kFALSE;
+  //TOF PID
+  if(useTOF && (toflayer.hasTOF(*track)) && (p < p_tofMaxAcc)) {
+    if (p > p_tofPionRej && richdetector.hasRICH(*track)) {
+      if((fabs(PIDnsigmaTOF[0]) < nSigmaTOFele) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID))
+        TOFpid = true; // is within 3 sigma of the electron band (TOF)
+    } else if(p <= p_tofPionRej){
+      if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFele)
+        TOFpid = true; // is within 3 sigma of the electron band (TOF)
+    }
+    else TOFpid = false; // This is rejecting all the heavier partilces which do not have a RICH signal in the pt area of 0.4-0.6 GeV/c
+
+
+    if(fabs(PIDnsigmaTOF[2]) < nSigmaTOFpi)
+      TOFpid = false; // is within 3 sigma of the pion band (TOF)
+  }
+  else TOFpid = false;
+
+  //RICH PID
+  if(useRICH && richdetector.hasRICH(*track)) {
+    if(fabs(PIDnsigmaRICH[0]) < nSigmaRICHele) RICHpid = true; // is within 3 sigma of the electron band (RICH)
+    if((fabs(PIDnsigmaRICH[2]) < nSigmaRICHpi) && (p > p_richPionRej) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
+  }
+  else RICHpid = false;
+
+  // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
+  // bool b = fabs(track->ZOuter * 0.1) < 200;
+  // if(p < 0.1) {
+  //   cout << " TOFpid = " << TOFpid << ", RICHpid = " << RICHpid << endl;
+  //   cout << " PDG = " << track->PID << ", p = " << p << endl;
+  //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
+  //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
+  //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
+  //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
+  //   cout << endl;
+  // }
+
+  return RICHpid || TOFpid;
+
+  // if (!(RICHpid || TOFpid) /*&& !PreShpid*/) return false; // check if TOF or RICH signal is true.
+  // else return true;
+  // ################## end of PID selection ##################
+}
 
 bool doTOFPID(Track * track, bool useTOF, double p_tofMaxAcc, double p_tofPionRej, double nSigmaTOFele, double nSigmaTOFpi, o2::delphes::TOFLayer toflayer, std::array<float, 5> PIDnsigmaTOF){
   double p = track->P;
@@ -1529,14 +1530,13 @@ void anaEEstudy(
       std::array<float, 5> PIDdeltaangleRICH, PIDnsigmaRICH;
       richdetector.makePID(*track, PIDdeltaangleRICH, PIDnsigmaRICH);
 
-      // if(iPID_scenario == 1){ //Note: 0=Sce1, 1=Sce2 etc... only fill those histograms once, here no PID selection was done yet
-        // fill nsigma TOF   (before PID selection is applied)
-        hTrackPt->Fill(track->PT);
-        hTrackP->Fill(track->P);
-        if (toflayer.hasTOF(*track) || richdetector.hasRICH(*track)){
-          hTrackPt_hasTOForRICH->Fill(track->PT);
-          hTrackP_hasTOForRICH->Fill(track->P);
-        }
+      // fill nsigma TOF   (before PID selection is applied)
+      hTrackPt->Fill(track->PT);
+      hTrackP->Fill(track->P);
+      if (toflayer.hasTOF(*track) || richdetector.hasRICH(*track)){
+        hTrackPt_hasTOForRICH->Fill(track->PT);
+        hTrackP_hasTOForRICH->Fill(track->P);
+      }
 
       // apply eta acceptance cut
       if(!etaCut(track)) continue;
@@ -1602,18 +1602,8 @@ void anaEEstudy(
             else if (abs(particle->PID) == 321)   hNsigmaP_RICH_trueKaon[i]->Fill(p, PIDnsigmaRICH[i]);
             else if (abs(particle->PID) == 2212)  hNsigmaP_RICH_trueProton[i]->Fill(p, PIDnsigmaRICH[i]);
           }
-          // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-          // bool b = fabs(track->ZOuter * 0.1) < 200;
-          // if(p < 0.1) {
-          //   cout << " PDG = " << track->PID << ", p = " << p << endl;
-          //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-          //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
-          //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
-          //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-          //   cout << endl;
-          // }
         }
-        // }
+      }
 
 
 
@@ -1641,70 +1631,70 @@ void anaEEstudy(
         double i_SigmaRICHEle = nSigmaRICHEle[iPID_scenario];
         double i_SigmaRICHPi = nSigmaRICHPi[iPID_scenario];
 
-        // ################## PID selection ##################
-        // PID selection, identifying particles by using TOF "OR" RICH.
-        // using TOF  electron inclusion and pion rejection
-        // using RICH electron inclusion and pion rejection
-        bool TOFpid = false;
-        bool RICHpid = false;
-        // bool PreShpid = false;
-
-        // Preshower PID
-        // check if track is identified as an electron by the Preshower
-        // auto pdg  = std::abs(track->PID);
-        // auto pbin = hPreshowerEff[pidmap[pdg]]->FindBin(p);
-        // auto eff  = hPreshowerEff[pidmap[pdg]]->GetBinContent(pbin);
-        // if (i_usePreShPID && (gRandom->Uniform() < eff) ){
-        //   PreShpid = true;
-        //   // and fill some QA histograms for Preshower PID
-        //   if(!pidmap[pdg]) hPreShElectronPt[iPID_scenario]->Fill(track->PT);
-        //   else hPreShPionPt[iPID_scenario]->Fill(track->PT);
-        // }  // select primaries based on 3 sigma DCA cuts
+        // // ################## PID selection ##################
+        // // PID selection, identifying particles by using TOF "OR" RICH.
+        // // using TOF  electron inclusion and pion rejection
+        // // using RICH electron inclusion and pion rejection
+        // bool TOFpid = false;
+        // bool RICHpid = false;
+        // // bool PreShpid = false;
         //
-
-
-<<<<<<< HEAD
-        //TOF PID
-        if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_p_cut)) {
-          if (p > tof_PionRej_p_cut && richdetector.hasRICH(*track)) {
-            if((fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID)) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-          }
-          else if(p <= tof_PionRej_p_cut){
-            if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-          }
-          else TOFpid = false; // This is rejecting all the heavier partilces which do not have a RICH signal in the pt area of 0.4-0.6 GeV/c
-
-
-          if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
-        }
-        else TOFpid = false;
-
-        //RICH PID
-        if(i_useRICHPID && richdetector.hasRICH(*track)) {
-          if(fabs(PIDnsigmaRICH[0]) < i_SigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
-          if((fabs(PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_p_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
-        }
-        else RICHpid = false;
-
-        // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-        // bool b = fabs(track->ZOuter * 0.1) < 200;
-        // if(p < 0.1) {
-        //   cout << " TOFpid = " << TOFpid << ", RICHpid = " << RICHpid << endl;
-        //   cout << " PDG = " << track->PID << ", p = " << p << endl;
-        //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-        //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
-        //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
-        //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-        //   cout << endl;
+        // // Preshower PID
+        // // check if track is identified as an electron by the Preshower
+        // // auto pdg  = std::abs(track->PID);
+        // // auto pbin = hPreshowerEff[pidmap[pdg]]->FindBin(p);
+        // // auto eff  = hPreshowerEff[pidmap[pdg]]->GetBinContent(pbin);
+        // // if (i_usePreShPID && (gRandom->Uniform() < eff) ){
+        // //   PreShpid = true;
+        // //   // and fill some QA histograms for Preshower PID
+        // //   if(!pidmap[pdg]) hPreShElectronPt[iPID_scenario]->Fill(track->PT);
+        // //   else hPreShPionPt[iPID_scenario]->Fill(track->PT);
+        // // }  // select primaries based on 3 sigma DCA cuts
+        // //
+        //
+        //
+        // //TOF PID
+        // if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_p_cut)) {
+        //   if (p > tof_PionRej_p_cut && richdetector.hasRICH(*track)) {
+        //     if((fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID)) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+        //   }
+        //   else if(p <= tof_PionRej_p_cut){
+        //     if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
+        //   }
+        //   else TOFpid = false; // This is rejecting all the heavier partilces which do not have a RICH signal in the pt area of 0.4-0.6 GeV/c
+        //
+        //
+        //   if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
         // }
+        // else TOFpid = false;
+        //
+        // //RICH PID
+        // if(i_useRICHPID && richdetector.hasRICH(*track)) {
+        //   if(fabs(PIDnsigmaRICH[0]) < i_SigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
+        //   if((fabs(PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_p_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
+        // }
+        // else RICHpid = false;
+        //
+        // // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
+        // // bool b = fabs(track->ZOuter * 0.1) < 200;
+        // // if(p < 0.1) {
+        // //   cout << " TOFpid = " << TOFpid << ", RICHpid = " << RICHpid << endl;
+        // //   cout << " PDG = " << track->PID << ", p = " << p << endl;
+        // //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
+        // //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
+        // //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
+        // //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
+        // //   cout << endl;
+        // // }
+        //
+        //
+        // if (!(RICHpid || TOFpid) /*&& !PreShpid*/) continue; // check if TOF or RICH signal is true.
+        // // ################## end of PID selection ##################
 
-=======
+
         // if(!doPID(track, i_useTOFPID, i_useRICHPID, bUsePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, toflayer, richdetector, PIDnsigmaTOF, PIDnsigmaRICH)) continue;
         if(!doTOFPID(track, i_useTOFPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, toflayer, PIDnsigmaTOF)) continue;
->>>>>>> new doTOFPID function
 
-        if (!(RICHpid || TOFpid) /*&& !PreShpid*/) continue; // check if TOF or RICH signal is true.
-        // ################## end of PID selection ##################
 
         // fill nsigma after PID cuts histograms    (after PID selection has been applied)
         for (int i = 0; i < 5; ++i) {
@@ -1736,7 +1726,6 @@ void anaEEstudy(
             else if (abs(particle->PID) == 2212) hNsigmaP_afterPIDcuts_RICH_trueProton[i][iPID_scenario]->Fill(p, PIDnsigmaRICH[i]);
           }
         }
-        // if(!doPID(track, i_useTOFPID, i_useRICHPID, bUsePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, toflayer, richdetector, PIDnsigmaTOF, PIDnsigmaRICH)) continue;
 
         // fill histograms
                                     hAllTracks_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec); // Pt Eta Phi of all type of reconstructed particles
