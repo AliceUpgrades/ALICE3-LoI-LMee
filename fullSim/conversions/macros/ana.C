@@ -10,16 +10,6 @@
 #include "DetectorsCommonDataFormats/DetID.h"
 #include "SimulationDataFormat/MCTrack.h"
 
-bool isStrange(MCTrack *track)
-{
-	auto motherId = track.getMotherTrackId();
-	if (motherId < 0) return false;
-	auto mTrack = (*mcTracks)[motherId];
-	int mpid = fabs(mTrack.GetPdgCode());
-	switch (mpid) {
-		case /* value */:
-	}
-}
 
 void ana()
 {
