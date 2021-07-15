@@ -60,14 +60,14 @@ SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="werner"     # detector setup
-BFIELD=2       # magnetic field  [kG]
-# BFIELD=5       # magnetic field  [kG]
+# BFIELD=2       # magnetic field  [kG]
+BFIELD=5       # magnetic field  [kG]
 
-RADIUS=10
-# RADIUS=100
+# RADIUS=10
+RADIUS=100
 
-# SIGMAT=0.020      # time resolution [ns]
-SIGMAT=0.050      # time resolution [ns]
+SIGMAT=0.020      # time resolution [ns]
+ITOFSIGMAT=0.050      # time resolution [ns]
 SIGMA0=0.200      # vertex time spread [ns]
 BARRELRAD=19.    # barrel radius      [cm] (right now equal to TOF)
 BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
@@ -76,10 +76,10 @@ BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
 BARRELETA=1.443   # barrel max pseudorapidity
 TAILLX=1.0        # tail on left    [q]
 TAILRX=1.3        # tail on right   [q]
+ITOFRAD=19.       # TOF radius      [cm]
+ITOFLEN=38.       # TOF half length [cm]
 TOFRAD=19.       # TOF radius      [cm]
 TOFLEN=38.       # TOF half length [cm]
-# TOFRAD=100.       # TOF radius      [cm]
-# TOFLEN=200.       # TOF half length [cm]
 RICHRAD=100.      # RICH radius      [cm]
 RICHLEN=200.      # RICH half length [cm]
 
@@ -122,11 +122,11 @@ cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 # LUTS
 if [[ $SCENARIO = "werner" ]]
 then
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 elif [[ $SCENARIO = "default" ]]
 then
   cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.el.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.el.dat
@@ -144,9 +144,11 @@ sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${BARRELRAD}e\-2/" propagate.tcl
 sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
 ### set TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${BARRELLEN}e\-2/" propagate.tcl
 sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${BARRELETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
@@ -155,6 +157,8 @@ sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
 sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_sigmat = .*$/double inner_tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_sigma0 = .*$/double inner_tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
 ### set RICH radius
 sed -i -e "s/double rich_radius = .*$/double rich_radius = ${RICHRAD}\;/" anaEEstudy.cxx
 ### set RICH length

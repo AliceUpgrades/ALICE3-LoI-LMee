@@ -1447,7 +1447,9 @@ void anaEEstudy(
 
       // smear track if requested
       if(abs(particle->PID) == 11 ) hBeforeSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec);
+      cout << __LINE__ <<  "track pt " << track->PT << endl;
       if (bSmear) if (!smearer.smearTrack(*track)) continue; // strange syntax, but works
+      cout << __LINE__ <<  "smeared track pt " << track->PT << endl;
 
 
       // cut away tracks that are way off.
@@ -1694,7 +1696,7 @@ void anaEEstudy(
 
         // if(!doPID(track, i_useTOFPID, i_useRICHPID, bUsePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, toflayer, richdetector, PIDnsigmaTOF, PIDnsigmaRICH)) continue;
         if(!doTOFPID(track, i_useTOFPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, toflayer, PIDnsigmaTOF)) continue;
-
+        // cout << "### passed doTOFPID() ###" << endl;
 
         // fill nsigma after PID cuts histograms    (after PID selection has been applied)
         for (int i = 0; i < 5; ++i) {
@@ -1804,7 +1806,7 @@ void anaEEstudy(
     }
     vecPIDtracks.clear();
 
-
+    cout << "Number of tracks in vecNegTracks[0] = " <<  vecNegTracks[0].size() << endl;
 
     //##################################################
     //############   ULS and LS pairing   ##############
