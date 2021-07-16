@@ -29,7 +29,7 @@ double Bz = 0.5;            // becomes overwritten by the generateEfficiencies.s
 double eMass = 0.000511;
 
 
-// Cinematic cuts on tracks
+// Kinematic cuts on tracks
 // double PtCut = 0.0;     // open cuts
 // double PtCut = 0.04;    // right now pt cut in cut variations below // if B=0.2T becomes overwritten by the generateEfficiencies.sh skript
 // double PtCut = 0.08;    // right now pt cut in cut variations below // if B=0.5T becomes overwritten by the generateEfficiencies.sh skript
@@ -609,7 +609,7 @@ void anaEEstudy(
   // Get pointers to branches used in this analysis
   auto events = treeReader->UseBranch("Event");
   auto tracks = treeReader->UseBranch("Track");
-  auto innertracks = treeReader->UseBranch("InnerTrack");
+  // auto innertracks = treeReader->UseBranch("InnerTrack");
   auto particles = treeReader->UseBranch("Particle");
 
 
@@ -1227,7 +1227,7 @@ void anaEEstudy(
     // accept event if event has more then X particles within the FIT detector accaptance (2.2<eta&&eta< 5.0) || (-3.4<eta&&eta<-2.3)
     nParticlesFIT->Fill(numParticlesFIT);
     nParticlesMidRapidity->Fill(numParticlesMidRapidity);
-    if( numParticlesFIT < 5179 ) {
+    if( numParticlesFIT < 5179 ) {   // PbPb: 5179,   pp: 58
       vecGen.clear();
     continue;
     }
@@ -1447,9 +1447,7 @@ void anaEEstudy(
 
       // smear track if requested
       if(abs(particle->PID) == 11 ) hBeforeSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec);
-      cout << __LINE__ <<  "track pt " << track->PT << endl;
       if (bSmear) if (!smearer.smearTrack(*track)) continue; // strange syntax, but works
-      cout << __LINE__ <<  "smeared track pt " << track->PT << endl;
 
 
       // cut away tracks that are way off.
@@ -1806,7 +1804,7 @@ void anaEEstudy(
     }
     vecPIDtracks.clear();
 
-    cout << "Number of tracks in vecNegTracks[0] = " <<  vecNegTracks[0].size() << endl;
+    // cout << "Number of tracks in vecNegTracks[0] = " <<  vecNegTracks[0].size() << endl;
 
     //##################################################
     //############   ULS and LS pairing   ##############

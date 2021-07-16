@@ -49,7 +49,7 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=5        # number of max parallel runs
+NJOBS=10        # number of max parallel runs
 NRUNS=10        # number of runs
 
 NEVENTS=10    # number of events in a run
@@ -60,11 +60,11 @@ SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="werner"     # detector setup
-# BFIELD=2       # magnetic field  [kG]
-BFIELD=5       # magnetic field  [kG]
+BFIELD=2       # magnetic field  [kG]
+# BFIELD=5       # magnetic field  [kG]
 
-# RADIUS=10
-RADIUS=100
+RADIUS=10
+# RADIUS=100
 
 SIGMAT=0.020      # time resolution [ns]
 ITOFSIGMAT=0.050      # time resolution [ns]
@@ -84,7 +84,7 @@ RICHRAD=100.      # RICH radius      [cm]
 RICHLEN=200.      # RICH half length [cm]
 
 ### calculate max eta from geometry
-BARRELETA=`awk -v a=$TOFRAD -v b=$TOFLEN 'BEGIN {th=atan2(a,b)*0.5; sth=sin(th); cth=cos(th); print -log(sth/cth)}'`
+BARRELETA=`awk -v a=$ITOFRAD -v b=$ITOFLEN 'BEGIN {th=atan2(a,b)*0.5; sth=sin(th); cth=cos(th); print -log(sth/cth)}'`
 
 #how many events are generated
 echo " --- generating with scenario $SCENARIO setup"
@@ -122,11 +122,11 @@ cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 # LUTS
 if [[ $SCENARIO = "werner" ]]
 then
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
-  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG_new/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 elif [[ $SCENARIO = "default" ]]
 then
   cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.el.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.el.dat
@@ -143,21 +143,21 @@ sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${BARRELRAD}e\-2/" propagate.tcl
-sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
-sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
+sed -i -e "s/double tof_radius = .*$/double tof_radius = ${ITOFRAD}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${ITOFRAD}\;/" anaEEstudy.cxx
 ### set TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${BARRELLEN}e\-2/" propagate.tcl
-sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
-sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
+sed -i -e "s/double tof_length = .*$/double tof_length = ${ITOFLEN}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${ITOFLEN}\;/" anaEEstudy.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${BARRELETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
 sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
 sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
-sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
+sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${ITOFSIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
-sed -i -e "s/double inner_tof_sigmat = .*$/double inner_tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_sigmat = .*$/double inner_tof_sigmat = ${ITOFSIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double inner_tof_sigma0 = .*$/double inner_tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
 ### set RICH radius
 sed -i -e "s/double rich_radius = .*$/double rich_radius = ${RICHRAD}\;/" anaEEstudy.cxx
