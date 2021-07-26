@@ -19,6 +19,9 @@ double rich_length = 200.; // [cm]
 double PtCut = 0.08;
 double EtaCut = 1.1;
 
+// Squeeze dca the resolution for systematic studies
+double Ksqueeze = 0.9;
+
 // charm pair clasification
 enum charmPairType {kIsNoCharm = 0, kIsDzeroPair,kIsDplusPair,kIsDmixedPair,kIncludsBaryon,kIsDzeroBaryon,kIsDplusBaryon,kIsBaryonPair};
 
@@ -240,6 +243,10 @@ void dca(
   auto hCharmMm = new TH1F("hCharmMm",";MotherPDG",101,399.5,500.5);
   auto hCharmMb = new TH1F("hCharmMb",";MotherPDG",1001,3099.5,5000.5);
 
+  // have a quick look at the pT distribution of the D0 and Lambda_c
+  auto hSpectrumD = new TH2F("SpectrumD",";p_{T} (GeV/c);p_{T,e} (GeV/c)",140,0,14,100,0.,5.);
+  auto hSpectrumL = new TH2F("SpectrumL",";p_{T} (GeV/c);p_{T,e} (GeV/c)",140,0,14,100,0.,5.);
+
   auto hCharmGM = new TH1F("hCharmGM",";MotherPDG",1000,0,10000);
   auto hBeautyM = new TH1F("hBeautyM",";MotherPDG",1000,0,10000);
   auto hBeautyGM = new TH1F("hBeautyGM",";MotherPDG",1000,0,10000);
@@ -333,6 +340,9 @@ void dca(
       auto gmPid    = 0;
       if(gmother) gmPid = gmother->PID;
 
+
+      // just check the pT spectra...
+
       // smear track if requested
       if (smear) if (!smearer.smearTrack(*track)) continue; // strange syntax, but works
       // kinatic cuts on tracks
@@ -343,9 +353,12 @@ void dca(
       if (particle->PID == 11 ) vecElectron.push_back(track);
       else if (particle->PID == -11 ) vecPositron.push_back(track);
 
+      if(abs(mPid) == 421) hSpectrumD->Fill(mother->PT,particle->PT);
+      if(abs(mPid) == 4122) hSpectrumL->Fill(mother->PT,particle->PT);
+
       //fill track histograms
       auto D0 = track->D0;
-      if (nsigma) D0 /= track->ErrorD0;
+      if (nsigma) D0 /= track->ErrorD0*Ksqueeze;
 
       // fill histograms
       hDCAxy->Fill(track->PT, D0);
@@ -354,7 +367,7 @@ void dca(
         hPrimaryGM->Fill(gmother->PID);
         hDCAxy_primary->Fill(track->PT, D0);
         hPt_Eta_Phi_primary->Fill(track->PT, track->Eta, track->Phi);
-        hPt_DCARes_primary->Fill(track->PT,track->ErrorD0);
+        hPt_DCARes_primary->Fill(track->PT,track->ErrorD0*Ksqueeze);
         hPt_DCAAbs_primary->Fill(track->PT,track->D0);
         // if(abs(track->D0) > 1.) cout << "\t>>> LF Mother: "<< mPid << "\t>>> LF GrandMother: " << gmPid << "\n";
       }
@@ -370,7 +383,7 @@ void dca(
             hCharmGM->Fill(gmother->PID);
             hPt_Eta_Phi_charm->Fill(track->PT, track->Eta, track->Phi);
             hDCAxy_secondary_charm->Fill(track->PT, D0);
-            hPt_DCARes_charm->Fill(track->PT,track->ErrorD0);
+            hPt_DCARes_charm->Fill(track->PT,track->ErrorD0*Ksqueeze);
             hPt_DCAAbs_charm->Fill(track->PT,track->D0);
             // Fill track distributions for different species
             switch (abs(mPid)) {
@@ -394,7 +407,7 @@ void dca(
             hBeautyGM->Fill(gmother->PID);
             hPt_Eta_Phi_beauty->Fill(track->PT, track->Eta, track->Phi);
             hDCAxy_secondary_beauty->Fill(track->PT, D0);
-            hPt_DCARes_beauty->Fill(track->PT,track->ErrorD0);
+            hPt_DCARes_beauty->Fill(track->PT,track->ErrorD0*Ksqueeze);
             hPt_DCAAbs_beauty->Fill(track->PT,track->D0);
           }
           else if (hasStrangeAncestor(particle, particles)) continue;
@@ -415,14 +428,16 @@ void dca(
       auto mother1 = imother1 != -1 ? (GenParticle *)particles->At(imother1) : (GenParticle *)nullptr;
       auto m1Pid = mother1->PID;
       LV1.SetPtEtaPhiM(track1->PT,track1->Eta,track1->Phi,eMass);
-      dca1 = track1->D0/track1->ErrorD0;
+      printf("dca1: %2.3f w/o  sqeeze: %2.3f\n", track1->D0/(track1->ErrorD0),track1->D0/(track1->ErrorD0));
+      
+      dca1 = track1->D0/(track1->ErrorD0*Ksqueeze);
       for (auto track2 : vecPositron) {
         auto particle2 = (GenParticle *)track2->Particle.GetObject();
         auto imother2 = particle2->M1;
         auto mother2 = imother2 != -1 ? (GenParticle *)particles->At(imother2) : (GenParticle *)nullptr;
         auto m2Pid = mother2->PID;
         LV2.SetPtEtaPhiM(track2->PT,track2->Eta,track2->Phi,eMass);
-        dca2 = track2->D0/track2->ErrorD0;
+        dca2 = track2->D0/(track2->ErrorD0*Ksqueeze);
         LV = LV1 + LV2;
         dca = sqrt( (dca1*dca1 + dca2*dca2)/2 );
         auto deltaPhi = TMath::Abs(track1->Phi - track2->Phi);
@@ -439,7 +454,6 @@ void dca(
         // if(mother1 != mother2  && hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles))
           {
           hM_Pt_DCAcharm->Fill(LV.Mag(),LV.Pt(),dca);
-          printf("mpid1: %d\t mpid2: %d\n",m1Pid,m2Pid);
           if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDzeroPair)  {hM_Pt_DCAcharm_Dzero->Fill(LV.Mag(),LV.Pt(),dca);}
           if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDplusPair)  {hM_Pt_DCAcharm_Dplus->Fill(LV.Mag(),LV.Pt(),dca);}
           if (charmPair(abs(m1Pid),abs(m2Pid)) == charmPairType::kIsDmixedPair) {hM_Pt_DCAcharm_Dmixed->Fill(LV.Mag(),LV.Pt(),dca);}
@@ -496,6 +510,8 @@ void dca(
   hCharmGM->Write();
   hBeautyM->Write();
   hBeautyGM->Write();
+  hSpectrumD->Write();
+  hSpectrumL->Write();
   hPt_Eta_Phi_primary->Write();
   hPt_Eta_Phi_hf->Write();
   hPt_Eta_Phi_charm->Write();
