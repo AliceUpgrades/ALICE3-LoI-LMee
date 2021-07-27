@@ -22,6 +22,7 @@ enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 void ana(TString generator = "hijing")
 {
 	TChain mcTree("o2sim");
+	cTree.AddFile(Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root",generator.Data()));
 	mcTree.SetBranchStatus("*", 0);
 	mcTree.SetBranchStatus("MCTrack*", 1);
 
