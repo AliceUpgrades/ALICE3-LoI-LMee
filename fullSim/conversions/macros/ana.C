@@ -18,10 +18,10 @@ bool isInFITacc(double eta);
 
 enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 
-void ana(TString generator = "pythia8hi")
+void ana(TString generator = "hijing")
 {
 	TChain mcTree("o2sim");
-	mcTree.AddFile(Form("../input/%s/o2sim_Kine.root",generator.Data()));
+	mcTree.AddFile(Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root",generator.Data()));
 	mcTree.SetBranchStatus("*", 0);
 	mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -59,7 +59,7 @@ void ana(TString generator = "pythia8hi")
 		int nConv = 0;
 		int Ntracks = 0;
 		for (const auto track : *mcTracks) {
-			if (!track.isPrimary()) continue; //only tracks from generator, not geant
+			// if (!track.isPrimary()) continue; //only tracks from generator, not geant
 			const auto r_vtx = std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) + std::pow(track.GetStartVertexCoordinatesY(), 2));
 			if (r_vtx > 0.1) continue; // additional 'primary' selection
 			auto pdg = track.GetPdgCode();
@@ -77,7 +77,6 @@ void ana(TString generator = "pythia8hi")
 			if (abs(track.GetEta()) > 0.5)  continue;
 			// if (abs(track.GetPt()) < ptCut)  continue;
 			Ntracks++; // check that we are in the right eta range
-			printf("pdg code filled: %d\n",pdg);
 		}
 		hMult.Fill(Ntracks);
 
