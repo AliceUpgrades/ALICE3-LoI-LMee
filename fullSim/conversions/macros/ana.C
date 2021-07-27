@@ -15,13 +15,13 @@
 
 bool isStable(int pdg);
 bool isInFITacc(double eta);
+bool isHF(int pdg);
 
 enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 
 void ana(TString generator = "hijing")
 {
 	TChain mcTree("o2sim");
-	mcTree.AddFile(Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root",generator.Data()));
 	mcTree.SetBranchStatus("*", 0);
 	mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -41,8 +41,12 @@ void ana(TString generator = "hijing")
 
 	TH1D hLS1 {"hLS1","Like Sign spectrum of -- pairs from all particles;m_{ee} (GeV/c^{2})", 400,0,4};
 	TH1D hLS2 {"hLS2","Like Sign spectrum of ++ pairs from all particles;m_{ee} (GeV/c^{2})", 400,0,4};
+	TH1D hLS1conv {"hLS1conv","Like Sign spectrum of -- pairs including at least one conversion electron;m_{ee} (GeV/c^{2})", 400,0,4};
+	TH1D hLS2conv {"hLS2conv","Like Sign spectrum of ++ pairs including at least one conversion electron;m_{ee} (GeV/c^{2})", 400,0,4};
 	TH1D hLS1prim {"hLS1prim","Like Sign spectrum of -- pairs from primary particles;m_{ee} (GeV/c^{2})", 400,0,4};
 	TH1D hLS2prim {"hLS2prim","Like Sign spectrum of ++ pairs from primary particles;m_{ee} (GeV/c^{2})", 400,0,4};
+	TH1D hLS1primHF {"hLS1primHF","Like Sign spectrum of -- pairs from primary electrons including at least one HFe;m_{ee} (GeV/c^{2})", 400,0,4};
+	TH1D hLS2primHF {"hLS2primHF","Like Sign spectrum of ++ pairs from primary electrons including at least one HFe;m_{ee} (GeV/c^{2})", 400,0,4};
 
 
 	double eMass = 0.000511;
@@ -150,22 +154,41 @@ void ana(TString generator = "hijing")
 		{
 			TLorentzVector LV1;
 			track1->Get4Momentum(LV1);
+			auto motherId1 = track1->getMotherTrackId();
+			if (motherId1 < 0) continue;
+			auto mTrack1 = (*mcTracks)[motherId1];
+			int mpdg1 = abs(mTrack1.GetPdgCode());
+
 			for (auto track2 = track1+1; track2!=em.end(); ++track2)
 			{
 				TLorentzVector LV2;
 				track2->Get4Momentum(LV2);
 				hLS1.Fill((LV1+LV2).M());
+				auto motherId2 = track2->getMotherTrackId();
+				if (motherId2 < 0) continue;
+				auto mTrack2 = (*mcTracks)[motherId2];
+				int mpdg2 = abs(mTrack2.GetPdgCode());
+				if((mpdg1 == 22) || (mpdg2 == 22)) hLS1conv.Fill((LV1+LV2).M());
 			}
 		}
 		for (auto track1 = ep.begin(); track1!=ep.end(); ++track1)
 		{
 			TLorentzVector LV1;
 			track1->Get4Momentum(LV1);
+			auto motherId1 = track1->getMotherTrackId();
+			if (motherId1 < 0) continue;
+			auto mTrack1 = (*mcTracks)[motherId1];
+			int mpdg1 = abs(mTrack1.GetPdgCode());
 			for (auto track2 = track1+1; track2!=ep.end(); ++track2)
 			{
 				TLorentzVector LV2;
 				track2->Get4Momentum(LV2);
 				hLS2.Fill((LV1+LV2).M());
+				auto motherId2 = track2->getMotherTrackId();
+				if (motherId2 < 0) continue;
+				auto mTrack2 = (*mcTracks)[motherId2];
+				int mpdg2 = abs(mTrack2.GetPdgCode());
+				if((mpdg1 == 22) || (mpdg2 == 22)) hLS2conv.Fill((LV1+LV2).M());
 			}
 		}
 
@@ -173,22 +196,40 @@ void ana(TString generator = "hijing")
 		{
 			TLorentzVector LV1;
 			track1->Get4Momentum(LV1);
+			auto motherId1 = track1->getMotherTrackId();
+			if (motherId1 < 0) continue;
+			auto mTrack1 = (*mcTracks)[motherId1];
+			int mpdg1 = abs(mTrack1.GetPdgCode());
 			for (auto track2 = track1+1; track2!=em_prim.end(); ++track2)
 			{
 				TLorentzVector LV2;
 				track2->Get4Momentum(LV2);
 				hLS1prim.Fill((LV1+LV2).M());
+				auto motherId2 = track2->getMotherTrackId();
+				if (motherId2 < 0) continue;
+				auto mTrack2 = (*mcTracks)[motherId2];
+				int mpdg2 = abs(mTrack2.GetPdgCode());
+				if (isHF(mpdg1) || isHF(mpdg2)) hLS1primHF.Fill((LV1+LV2).M());
 			}
 		}
 		for (auto track1 = ep_prim.begin(); track1!=ep_prim.end(); ++track1)
 		{
 			TLorentzVector LV1;
 			track1->Get4Momentum(LV1);
+			auto motherId1 = track1->getMotherTrackId();
+			if (motherId1 < 0) continue;
+			auto mTrack1 = (*mcTracks)[motherId1];
+			int mpdg1 = abs(mTrack1.GetPdgCode());
 			for (auto track2 = track1+1; track2!=ep_prim.end(); ++track2)
 			{
 				TLorentzVector LV2;
 				track2->Get4Momentum(LV2);
 				hLS2prim.Fill((LV1+LV2).M());
+				auto motherId2 = track2->getMotherTrackId();
+				if (motherId2 < 0) continue;
+				auto mTrack2 = (*mcTracks)[motherId2];
+				int mpdg2 = abs(mTrack2.GetPdgCode());
+				if (isHF(mpdg1) || isHF(mpdg2)) hLS2primHF.Fill((LV1+LV2).M());
 			}
 		}
 
@@ -248,6 +289,10 @@ void ana(TString generator = "hijing")
 	f->WriteTObject(&hLS2);
 	f->WriteTObject(&hLS1prim);
 	f->WriteTObject(&hLS2prim);
+	f->WriteTObject(&hLS1conv);
+	f->WriteTObject(&hLS2conv);
+	f->WriteTObject(&hLS1primHF);
+	f->WriteTObject(&hLS2primHF);
 }
 
 bool isStable(int pdg)
@@ -284,4 +329,9 @@ bool isInFITacc(double eta)
 	if ((2.2 < eta) && (eta< 5.0)) return true;
 	if ((-3.4 < eta) && (eta< -2.3)) return true;
 	else return false;
+}
+
+bool isHF(int pdg)
+{
+	return (((pdg > 400) && pdg < (600)) || ((pdg > 4000) && pdg < (6000)));
 }
