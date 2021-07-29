@@ -60,31 +60,31 @@ SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="werner"     # detector setup
-BFIELD=2       # magnetic field  [kG]
-# BFIELD=5       # magnetic field  [kG]
+# BFIELD=2       # magnetic field  [kG]
+BFIELD=5       # magnetic field  [kG]
 
-RADIUS=10
-# RADIUS=100
+# RADIUS=10
+RADIUS=100
 
 SIGMAT=0.020      # time resolution [ns]
 ITOFSIGMAT=0.050      # time resolution [ns]
 SIGMA0=0.200      # vertex time spread [ns]
-BARRELRAD=19.    # barrel radius      [cm] (right now equal to TOF)
-BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
-# BARRELRAD=100.    # barrel radius      [cm] (right now equal to TOF)
-# BARRELLEN=200.    # barrel half length [cm] (right now equal to TOF)
+# BARRELRAD=19.    # barrel radius      [cm] (right now equal to TOF)
+# BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
+BARRELRAD=100.    # barrel radius      [cm] (right now equal to TOF)
+BARRELLEN=200.    # barrel half length [cm] (right now equal to TOF)
 BARRELETA=1.443   # barrel max pseudorapidity
 TAILLX=1.0        # tail on left    [q]
 TAILRX=1.3        # tail on right   [q]
 ITOFRAD=19.       # TOF radius      [cm]
 ITOFLEN=38.       # TOF half length [cm]
-TOFRAD=19.       # TOF radius      [cm]
-TOFLEN=38.       # TOF half length [cm]
+TOFRAD=100.       # TOF radius      [cm]
+TOFLEN=200.       # TOF half length [cm]
 RICHRAD=100.      # RICH radius      [cm]
 RICHLEN=200.      # RICH half length [cm]
 
 ### calculate max eta from geometry
-BARRELETA=`awk -v a=$ITOFRAD -v b=$ITOFLEN 'BEGIN {th=atan2(a,b)*0.5; sth=sin(th); cth=cos(th); print -log(sth/cth)}'`
+BARRELETA=`awk -v a=$TOFRAD -v b=$TOFLEN 'BEGIN {th=atan2(a,b)*0.5; sth=sin(th); cth=cos(th); print -log(sth/cth)}'`
 
 #how many events are generated
 echo " --- generating with scenario $SCENARIO setup"
@@ -141,13 +141,13 @@ fi
 # make sure B field is set right
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
-### set TOF radius
+### set (i)TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${BARRELRAD}e\-2/" propagate.tcl
-sed -i -e "s/double tof_radius = .*$/double tof_radius = ${ITOFRAD}\;/" anaEEstudy.cxx
-sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${ITOFRAD}\;/" anaEEstudy.cxx
-### set TOF length
+sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
+### set (i)TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${BARRELLEN}e\-2/" propagate.tcl
-sed -i -e "s/double tof_length = .*$/double tof_length = ${ITOFLEN}\;/" anaEEstudy.cxx
+sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
 sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${ITOFLEN}\;/" anaEEstudy.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${BARRELETA} \}/" propagate.tcl
@@ -155,9 +155,9 @@ sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs
 sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
 sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
-sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${ITOFSIGMAT}\;/" anaEEstudy.cxx
+sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
-sed -i -e "s/double inner_tof_sigmat = .*$/double inner_tof_sigmat = ${ITOFSIGMAT}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_sigmat = .*$/double inner_tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double inner_tof_sigma0 = .*$/double inner_tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
 ### set RICH radius
 sed -i -e "s/double rich_radius = .*$/double rich_radius = ${RICHRAD}\;/" anaEEstudy.cxx

@@ -9,10 +9,11 @@ bool bPlotPairHistograms = kTRUE;
   bool bPlotULS = kTRUE;
   bool bPlotLS = kTRUE;
 
-int ith_PIDscenario = 1;
+int ith_PIDscenario = 3;
 // TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
 // TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, TOF only", "0.0 < #it{p}_{T,e}, TOF only"};
-TString strPIDscenario[] = {"0.04 < #it{p}_{T,e}, iTOF only", "0.0 < #it{p}_{T,e}, iTOF only"};
+// TString strPIDscenario[] = {"0.04 < #it{p}_{T,e}, iTOF only", "0.0 < #it{p}_{T,e}, iTOF only"};
+TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF", "0.2 < #it{p}_{T,e}, RICH", "0.2 < #it{p}_{T,e}, TOF+RICH"};
 // TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -1844,7 +1845,8 @@ if (bPlotTrackContamination) {
   // }
 
   // TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
-  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("iTOF 19cm, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
+  TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("Layout v1, |#it{#eta}_{e}| < 0.8, #it{B} = %g T",BField),"");
+  // TLegendEntry *entryInfo5=legendInfo->AddEntry("Layout",Form("iTOF 19cm, |#it{#eta}_{e}| < 1.1, #it{B} = %g T",BField),"");
 
   TLegendEntry *entryInfo3=legendInfo->AddEntry("PID",Form("%s PID",strPIDscenario[ith_PIDscenario-1].Data()),"");
   legendInfo->SetBorderSize(0);
@@ -2049,8 +2051,8 @@ if (bPlotTrackContamination) {
     cEffAddedElePosPt->SetLeftMargin(0.13);
     ptEffElePosGen->GetYaxis()->SetTitle("#it{p}_{T}^{rec}/#it{p}_{T}^{gen}");
     ptEffElePosGen->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
-    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,0.4);
-    // ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,4.0);
+    // ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,0.4);
+    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,4.0);
     ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum(),ptEffElePosGenSmeared->GetMaximum()}));
     // ptEffElePosGen->SetMaximum(1.1*std::max({ptEffElePosGen->GetMaximum()}));
     // ptEffElePosGenSmeared->SetMaximum(1.1*std::max({ptEffElePosGenSmeared->GetMaximum()}));
@@ -2340,8 +2342,8 @@ if (bPlotTrackContamination) {
     ptEtaEffElePos->GetZaxis()->SetTitle("track efficiency");
     ptEtaEffElePos->GetZaxis()->SetTitleOffset(1.2);
     ptEtaEffElePos->GetZaxis()->RotateTitle(kTRUE);
-    // ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,0.6);
+    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
+    // ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,0.6);
     ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.8);
     ptEtaEffElePos->GetZaxis()->SetRangeUser(0,1.0);
     ptEtaEffElePos->Draw("Colz");
@@ -2395,8 +2397,8 @@ if (bPlotTrackContamination) {
     cBeforeAfterSmearing->cd(i)->SetRightMargin(0.03);
   }
   cBeforeAfterSmearing->cd(1)->SetLogy();
-  // ptRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(0.,4.);
-  ptRecTrackBeforeSmearing_rebin->GetXaxis()->SetRangeUser(0.,0.4);
+  ptRecTrackBeforeSmearing->GetXaxis()->SetRangeUser(0.,4.);
+  // ptRecTrackBeforeSmearing_rebin->GetXaxis()->SetRangeUser(0.,0.4);
   // ptRecTrackBeforeSmearing->SetMinimum(0.01);
   ptRecTrackBeforeSmearing_rebin->SetMaximum(1.1*std::max({ptRecTrackBeforeSmearing_rebin->GetMaximum(),ptRecTrackAfterSmearing_rebin->GetMaximum(),ptRecTrackElePos_rebin->GetMaximum()}));
   ptRecTrackBeforeSmearing_rebin->Draw("pe1");
@@ -2619,8 +2621,8 @@ if (bPlotTrackContamination) {
     cContaminationPt->SetLeftMargin(0.13);
     hMuonContaminationRecPt->GetYaxis()->SetTitle("contamination");
     hMuonContaminationRecPt->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
-    hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,0.4);
-    // hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
+    // hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,0.4);
+    hMuonContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
     hMuonContaminationRecPt->SetMaximum(1.1);
     hMuonContaminationRecPt->SetMinimum(0.);
     hMuonContaminationRecPt->Draw("hist p e1");
@@ -2657,7 +2659,8 @@ if (bPlotTrackContamination) {
   // hPionRejectionFactorPt->SetMaximum(100000000000);
   hPionRejectionFactorPt->SetMaximum(100000000);
   hPionRejectionFactorPt->SetMinimum(0.1);
-  hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,0.4);
+  hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,4.0);
+  // hPionRejectionFactorPt->GetXaxis()->SetRangeUser(0.0,0.4);
   hMuonRejectionFactorPt->SetMinimum(0.1);
   hPionRejectionFactorPt->Draw("hist p e1");
   hMuonRejectionFactorPt->Draw("same hist p e1");
@@ -2715,8 +2718,8 @@ if (bPlotTrackContamination) {
       cNSigmaSeparatePID_TOF_afterCuts->SetRightMargin(0.03);
       cNSigmaSeparatePID_TOF_afterCuts->SetLeftMargin(0.13);
       cNSigmaSeparatePID_TOF_afterCuts->SetLogx();
-      // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
-      hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetXaxis()->SetRangeUser(0.0,0.4);
+      hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->GetXaxis()->SetRangeUser(0.0,4.0);
+      // hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetXaxis()->SetRangeUser(0.0,0.4);
       hNsigmaP_afterPIDcuts_TOF_trueElec[iNSig]->GetYaxis()->SetRangeUser(-15.,25.);
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMaximum(1.1);
       // hNsigmaP_afterPIDcuts_TOF_truePion[iNSig]->SetMinimum(0.);
@@ -3149,37 +3152,45 @@ if (bPlotTrackContamination) {
   }
 
 
-//   TString nameEffRootFile = inputFile.Data();
-//   TString endDirName = "5.6.21_largeStat";
-//   if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
-//   if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-//   if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-//   if (inputFile.Contains("B2_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-//   if (inputFile.Contains("B5_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-//   nameEffRootFile.ReplaceAll(".root", "");
-//   TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
-//
-//   if (bPlotEfficiency) {
-//     ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
-//     ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
-//     ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
-//     ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
-//     ptEffEle->Write();
-//     ptEffPos->Write();
-//     ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
-//     ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
-//     ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
-//     ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
-//     ptEffElePosGen->Write();
-//     ptEffElePosGenSmeared->Write();
-//   }
-//
-//   if (bPlotTrackContamination) {
-//     hTotalPureContaminationRecPt->SetTitle("Total Contamination");
-//     hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
-//     hTotalPureContaminationRecPt->Write();
-//   }
-//   fOut->Close();
+  TString nameEffRootFile = inputFile.Data();
+  TString endDirName = "5.6.21_largeStat";
+  if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
+  if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  if (inputFile.Contains("B2_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  if (inputFile.Contains("B5_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  if (inputFile.Contains("B=0.5_2M_502TeV")) nameEffRootFile.ReplaceAll("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/prod/anaEEstudy.", "");
+  if (inputFile.Contains("B=0.5_100k_502TeV")) nameEffRootFile.ReplaceAll("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B5_100k_502TeV_28.7.21_100cmTOF_0.2ptcut_tof_rich_both/anaEEstudy.", "");
+  nameEffRootFile.ReplaceAll(".root", "");
+  TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
+
+  if (bPlotEfficiency) {
+    ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
+    ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
+    ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffEle->Write();
+    ptEffPos->Write();
+    ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
+    ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
+    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
+    ptEffElePosGen->Write();
+    ptEffElePosGenSmeared->Write();
+
+    ptEtaEffElePos->SetTitle("eff_pteta_2D");
+    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.2);
+    ptEtaEffElePos->Write();
+
+  }
+
+  if (bPlotTrackContamination) {
+    hTotalPureContaminationRecPt->SetTitle("Total Contamination");
+    hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
+    hTotalPureContaminationRecPt->Write();
+  }
+  fOut->Close();
 
 
 }
