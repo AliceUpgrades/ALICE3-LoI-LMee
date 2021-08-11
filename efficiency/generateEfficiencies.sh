@@ -49,10 +49,12 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=10        # number of max parallel runs
-NRUNS=10        # number of runs
 
-NEVENTS=10    # number of events in a run
+
+NJOBS=10        # number of max parallel runs                   50
+NRUNS=10        # number of runs                               100
+
+NEVENTS=10    # number of events in a run                       1000
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
@@ -148,7 +150,7 @@ sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${TOFRAD}\;
 ### set (i)TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${BARRELLEN}e\-2/" propagate.tcl
 sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
-sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${ITOFLEN}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${BARRELETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
@@ -215,16 +217,23 @@ for I in $(seq 1 $NRUNS); do
     touch .running.$I
 
     runDelphes $I $NEVENTS $NEVENTSCC $NEVENTSBB $SYSTEM &&
-    (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I completed") ||
-    (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I crashed") &
+    (#rm -rf delphes.$I.root && 
+     rm -rf .running.$I && echo " --- run $I completed") ||
+    (#rm -rf delphes.$I.root && 
+     rm -rf .running.$I && echo " --- run $I crashed") &
 
 done
 
 
 wait
+
+hadd delphes.$(expr $NEVENTS \* $NRUNS).root delphes.*.root
+mv delphes.$(expr $NEVENTS \* $NRUNS).root ./data/delphes_files/
+rm -rf delphes.*.root
+
 echo " Finished running Delphes "
 ### merge runs when all done
-hadd -f anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
+hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
 # cp ./macros/anaPlots.cxx anaPlots.cxx &&
 # root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
@@ -233,7 +242,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 ### clean up
 rm lutCovm*
 rm propagate.tcl
-rm *.root
+# rm *.root
 # rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
