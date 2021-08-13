@@ -1,0 +1,50 @@
+# simulate and analyse Delphes on the fly
+
+Executable = "/alice/cern.ch/user/f/feisenhu/grid/Delphes//generateDelphes_FE.sh";
+Validationcommand = "/alice/cern.ch/user/f/feisenhu/grid/Delphes/validation_FE.sh";
+#submit in following order: Nevents System BField OutputDir
+Arguments = "$1 $2 $3 $4 $5";
+Packages = {
+	"VO_ALICE@DelphesO2::v20210427-2"
+};
+
+JDLVariables = {
+	"Packages",
+	"OutputDir"
+};
+
+Type = "Job";
+User = "feisenhu";
+Jobtag = {
+	"comment: DelphesO2 Simulation + dielectron analysis jdl"
+};
+EMail = "florian.eisenhut@cern.ch";
+TTL = "86400";
+Price = 1;
+Workdirectorysize = {
+	"12000MB"
+};
+
+Split = "production:1-100";
+SplitArguments = "";
+
+
+InputFile = {
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/LUTs/lutCovm.werner.rmin100.$3kG//lutCovm.el.werner.rmin100.$3kG.dat",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/LUTs/lutCovm.werner.rmin100.$3kG//lutCovm.mu.werner.rmin100.$3kG.dat",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/LUTs/lutCovm.werner.rmin100.$3kG//lutCovm.pi.werner.rmin100.$3kG.dat",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/LUTs/lutCovm.werner.rmin100.$3kG//lutCovm.ka.werner.rmin100.$3kG.dat",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/LUTs/lutCovm.werner.rmin100.$3kG//lutCovm.pr.werner.rmin100.$3kG.dat",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/corrWeights//hfe_weights.root",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/corrWeights//lfe_weights.root",
+	"LF:/alice/cern.ch/user/f/feisenhu/grid/resolutionfiles//resolution_test_$3kG.root",
+	"LF:/alice/cern.ch/user/f/feisenhu/grid/pythia//pythia8_$2_$4TeV.cfg",
+  "LF:/alice/cern.ch/user/f/feisenhu/grid/Delphes//anaEEstudy.cxx"
+};
+
+OutputArchive = {
+    "log_archive.zip:stdout,stderr,*.log,*.sh@",
+    "root_archive.zip:anaEEstudy.root@"
+};
+
+OutputDir = "/alice/cern.ch/user/f/feisenhu/grid/Delphes//output/$5/#alien_counter_03i#";

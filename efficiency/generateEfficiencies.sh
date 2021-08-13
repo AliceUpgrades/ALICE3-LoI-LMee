@@ -121,6 +121,10 @@ echo " --- selected RADIUS:   $RADIUS"
 # code
 cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 
+# LF and HF weights
+cp ./corrWeights/hfe_weights.root hfe_weights.root
+cp ./corrWeights/lfe_weights.root lfe_weights.root
+
 # LUTS
 if [[ $SCENARIO = "werner" ]]
 then
@@ -217,9 +221,9 @@ for I in $(seq 1 $NRUNS); do
     touch .running.$I
 
     runDelphes $I $NEVENTS $NEVENTSCC $NEVENTSBB $SYSTEM &&
-    (#rm -rf delphes.$I.root && 
+    (#rm -rf delphes.$I.root &&
      rm -rf .running.$I && echo " --- run $I completed") ||
-    (#rm -rf delphes.$I.root && 
+    (#rm -rf delphes.$I.root &&
      rm -rf .running.$I && echo " --- run $I crashed") &
 
 done

@@ -417,6 +417,14 @@ Bool_t IsStable(Int_t pdg, Bool_t &ischarged)
   return isStable;
 }
 
+// function to get the corresponding weight for a track
+Double_t GetWeight(TH1* h, Double_t pt){
+  Int_t iBin = h->GetXaxis()->FindBin(pt);
+  Double_t weight = 1.;
+  weight = h->GetBinContent(iBin);
+  return weight;
+}
+
 
 // Resolution
 // TObjArray *fArrResoPt = 0x0;
@@ -543,14 +551,14 @@ TLorentzVector  ApplySmearing(TObjArray* fArrResoPt, TObjArray* fArrResoEta, TOb
 }
 
 
+
 // Pair histograms ULS
 std::string title2d = ";#it{m}_{ee} (GeV/#it{c}^{2});#it{p}_{T} (GeV/#it{c})";
 std::string title3d = ";#it{m}_{ee} (GeV/#it{c}^{2});#it{p}_{T,ee} (GeV/#it{c});DCA_{ee} (mm)";
 
 
-
-void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> vec_track_pos, bool pairULS, bool MCpidEle, TClonesArray *particles, Int_t iSce);
-void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<GenParticle *> vec_track_pos, bool pairULS, TClonesArray *particles, Int_t iSce);
+void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> vec_track_pos, bool pairULS, bool MCpidEle, TClonesArray *particles, Int_t iSce, TH1F* hf_weight_low_pt, TH1F* hf_weight_high_pt, TH1F* hlf_weight);
+void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<GenParticle *> vec_track_pos, bool pairULS, TClonesArray *particles, Int_t iSce, TH1F* hf_weight_low_pt, TH1F* hf_weight_high_pt, TH1F* hlf_weight);
 
 // Pair histograms
 TH3F* hMPtDCA_ULS_gen[3];
@@ -586,10 +594,10 @@ TH3F* hMPtDCA_LS_rec_MCpidEle[3];
 // TH3F* hMPtDCA_LS_rec_MCpidEle_heavy[3];
 // TH3F* hMPtDCA_LS_rec_MCpidEle_charm[3];
 // TH3F* hMPtDCA_LS_rec_MCpidEle_beauty[3];
-TH3F* hMPtDCA_LS_rec_misIDoneLeg[3];
-TH3F* hMPtDCA_LS_rec_misIDtwoLeg[3];
-TH3F* hMPtDCA_LS_rec_misIDPion[3];
-TH3F* hMPtDCA_LS_rec_misIDhf[3];
+// TH3F* hMPtDCA_LS_rec_misIDoneLeg[3];
+// TH3F* hMPtDCA_LS_rec_misIDtwoLeg[3];
+// TH3F* hMPtDCA_LS_rec_misIDPion[3];
+// TH3F* hMPtDCA_LS_rec_misIDhf[3];
 
 TH3F* hMPtDCA_LS_rec_charmTOe[3];
 TH3F* hMPtDCA_LS_rec_beautyTOe[3];
@@ -690,6 +698,15 @@ void anaEEstudy(
   }
 
 
+  // read file with weigthing corrections for leight and heavy flavor TrackSmearer
+  TFile* fOutputWeightsHF = TFile::Open("hfe_weights.root", "READ");
+  TH1F* hweightHFtoe_lowerPt = (TH1F*) fOutputWeightsHF->Get("hftoe_weights_cocktail_data_ratio");   // weigths for tracks with pt below 0.6 GeV/c
+  TH1F* hweightHFtoe_higherPt = (TH1F*) fOutputWeightsHF->Get("hftoe_weights_paper_data_ratio");  // weights for tracks with pt equal higher than 0.6 GeV/c
+
+  TFile* fOutputWeightsLF = TFile::Open("lfe_weights.root", "READ");
+  TH1F* hweightLFtoe = (TH1F*) fOutputWeightsLF->Get("lftoe_weights_paper_data_ratio");
+
+
   // inner TOF layer
   o2::delphes::TOFLayer innertoflayer;
   innertoflayer.setup(inner_tof_radius, inner_tof_length, inner_tof_sigmat,inner_tof_sigma0);
@@ -705,6 +722,11 @@ void anaEEstudy(
   richdetector.setRadiatorLength(2.);
   richdetector.setEfficiency(0.4);
   richdetector.setSigma(7.e-3);
+
+  // // PreShower detector
+  // o2::delphes::PreShower preshower;
+  // preshower.setup();
+
 
   // smearer
   // look up tables are selected in generateEfficiencies.sh script
@@ -856,10 +878,10 @@ void anaEEstudy(
     // hMPtDCA_LS_rec_MCpidEle_heavy[j]   = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_heavy_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
     // hMPtDCA_LS_rec_MCpidEle_charm[j]   = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_charm_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
     // hMPtDCA_LS_rec_MCpidEle_beauty[j]  = new TH3F(Form("hMPtDCA_LS_rec_MCpidEle_beauty_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-    hMPtDCA_LS_rec_misIDoneLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDoneLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-    hMPtDCA_LS_rec_misIDtwoLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDtwoLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-    hMPtDCA_LS_rec_misIDPion[j]        = new TH3F(Form("hMPtDCA_LS_rec_misIDPion_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
-    hMPtDCA_LS_rec_misIDhf[j]          = new TH3F(Form("hMPtDCA_LS_rec_misIDhf_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_misIDoneLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDoneLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_misIDtwoLeg[j]      = new TH3F(Form("hMPtDCA_LS_rec_misIDtwoLeg_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_misIDPion[j]        = new TH3F(Form("hMPtDCA_LS_rec_misIDPion_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+    // hMPtDCA_LS_rec_misIDhf[j]          = new TH3F(Form("hMPtDCA_LS_rec_misIDhf_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
 
     hMPtDCA_LS_rec_charmTOe[j]        = new TH3F(Form("hMPtDCA_LS_rec_charmTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
     hMPtDCA_LS_rec_beautyTOe[j]       = new TH3F(Form("hMPtDCA_LS_rec_beautyTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
@@ -930,10 +952,10 @@ void anaEEstudy(
     // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_MCpidEle_heavy[iPIDscenario]);
     // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_MCpidEle_charm[iPIDscenario]);
     // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_MCpidEle_beauty[iPIDscenario]);
-    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDoneLeg[iPIDscenario]);
-    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDtwoLeg[iPIDscenario]);
-    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDPion[iPIDscenario]);
-    lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDhf[iPIDscenario]);
+    // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDoneLeg[iPIDscenario]);
+    // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDtwoLeg[iPIDscenario]);
+    // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDPion[iPIDscenario]);
+    // lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_misIDhf[iPIDscenario]);
 
     lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_charmTOe[iPIDscenario]);
     lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_LS_rec_beautyTOe[iPIDscenario]);
@@ -1262,6 +1284,7 @@ void anaEEstudy(
 
 
   for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry) {
+    // if(ientry % (numberOfEntries/100) == 0) printf("events processed: %i of %i \n", ientry,numberOfEntries);
 
     // Load selected branches with data from specified event
     treeReader->ReadEntry(ientry);
@@ -1367,6 +1390,21 @@ void anaEEstudy(
       // cout << " mother PID  = " << mPid << endl;
       // cout << " gmother PID = " << gmPid << endl << endl;
 
+      // get weight to weight the contribution of LF and HF tracks
+      Double_t weight;
+      if ( abs(pPID) == 11 && hasHeavyAncestor(particle, particles) ) {
+        if (particle->PT < 0.1)                             weight = 1.;
+        else if (particle->PT >= 0.1 && particle->PT < 0.6) weight = GetWeight(hweightHFtoe_lowerPt, particle->PT);
+        else                                                weight = GetWeight(hweightHFtoe_higherPt, particle->PT);
+      }
+      else if ( abs(pPID) == 11 && !hasHeavyAncestor(particle, particles) ) {
+        if(mother->PT < 0.1) weight = 0.7;
+        else                 weight = GetWeight(hweightLFtoe, mother->PT);
+        // printf("weight: %f, pt: %f \n", weight, mother->PT);
+      }
+      else weight = GetWeight(hweightLFtoe, particle->PT);
+
+
       double phiGen = TVector2::Phi_0_2pi(particle->Phi);
 
 
@@ -1376,21 +1414,21 @@ void anaEEstudy(
       Double_t charge = -particle->PID;
       LV_smeared = ApplySmearing(fArrResoPt,fArrResoEta,fArrResoPhi_Pos,fArrResoPhi_Neg,LV,charge);
 
-      //Filling suport histograms to see effect of smearing
-      if(charge > 0.)  hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
-      if(charge < 0.)  hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi());
-                       hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta());
-      if(LV.Pt() > 0.) hSmearing_For_Eff_pt->Fill(particle->PT, (LV.Pt() - LV_smeared.Pt())/LV.Pt());
+      //ing suport histograms to see effect of smearing
+      if(charge > 0.)  hSmearing_For_Eff_phi_pos->Fill(particle->PT, LV.Phi() - LV_smeared.Phi(),weight);
+      if(charge < 0.)  hSmearing_For_Eff_phi_neg->Fill(particle->PT, LV.Phi() - LV_smeared.Phi(),weight);
+                       hSmearing_For_Eff_eta->Fill(particle->PT, LV.Eta() - LV_smeared.Eta(),weight);
+      if(LV.Pt() > 0.) hSmearing_For_Eff_pt->Fill(particle->PT, (LV.Pt() - LV_smeared.Pt())/LV.Pt(),weight);
 
       // Filling TH3 before kinematic cuts are applied
-      if (abs(particle->PID) == 11 )  hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-      if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
+      if (abs(particle->PID) == 11 )  hTrack_ElePos_Gen_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
+      if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
 
 
       for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
       if (abs(particle->PID) == 211 )  {
         double rap = etatorap(particle->PT,particle->Eta, 0.13957018); // use charged pion mass
-        if(abs(rap) <= 0.5) hTrack_Pion_Gen_Pt_Rap_Phi[iPID_scenario]->Fill(particle->PT,rap,phiGen); // Pt Eta Phi of generated electrons + positrons
+        if(abs(rap) <= 0.5) hTrack_Pion_Gen_Pt_Rap_Phi[iPID_scenario]->Fill(particle->PT,rap,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
       }
 
         // apply eta acceptance cut
@@ -1401,16 +1439,16 @@ void anaEEstudy(
 
           // Filling TH3 histograms for generated  Tracks
           //---------------------------------------------
-                                            hTrack_All_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of all generated tracks
-          if (abs(particle->PID) == 11 )    hTrack_ElePos_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-          if (abs(particle->PID) == 13 )    hTrack_Muon_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-          if (abs(particle->PID) == 211 )   hTrack_Pion_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-          if (abs(particle->PID) == 321 )   hTrack_Kaon_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-          if (abs(particle->PID) == 2212 )  hTrack_Proton_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen); // Pt Eta Phi of generated electrons + positrons
-          if (particle->PID == 11)        hTrack_Ele_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated electrons
-          else if (particle->PID == -11)  hTrack_Pos_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen);    // Pt Eta Phi of generated positrons
+                                            hTrack_All_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of all generated tracks
+          if (abs(particle->PID) == 11 )    hTrack_ElePos_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
+          if (abs(particle->PID) == 13 )    hTrack_Muon_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
+          if (abs(particle->PID) == 211 )   hTrack_Pion_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
+          if (abs(particle->PID) == 321 )   hTrack_Kaon_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
+          if (abs(particle->PID) == 2212 )  hTrack_Proton_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
+          if (particle->PID == 11)        hTrack_Ele_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight);    // Pt Eta Phi of generated electrons
+          else if (particle->PID == -11)  hTrack_Pos_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight);    // Pt Eta Phi of generated positrons
 
-          if((abs(particle->PID) == 11) && (hasHeavyAncestor(particle, particles))) hTrack_ElePos_HF_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen);
+          if((abs(particle->PID) == 11) && (hasHeavyAncestor(particle, particles))) hTrack_ElePos_HF_Gen_Pt_Eta_Phi[iPID_scenario]->Fill(particle->PT,particle->Eta,phiGen,weight);
         }
 
         // fill generated vectors
@@ -1431,9 +1469,9 @@ void anaEEstudy(
           // Filling TH3 histograms for generated smeared Tracks
           //----------------------------------------------------
           // look only at electrons
-          if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear); // Pt Eta Phi of generated smeared electrons + positrons
-          if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear);    // Pt Eta Phi of generated smeared electrons
-          else if (particle->PID == -11)  hTrack_Pos_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear);    // Pt Eta Phi of generated smeared positrons
+          if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear,weight); // Pt Eta Phi of generated smeared electrons + positrons
+          if (particle->PID == 11)        hTrack_Ele_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear,weight);    // Pt Eta Phi of generated smeared electrons
+          else if (particle->PID == -11)  hTrack_Pos_GenSmeared_Pt_Eta_Phi[iPID_scenario]->Fill(LV_smeared.Pt(),LV_smeared.Eta(),phiGenSmear,weight);    // Pt Eta Phi of generated smeared positrons
 
 
           // fill histograms
@@ -1535,7 +1573,30 @@ void anaEEstudy(
       auto particle = (GenParticle *)track->Particle.GetObject();
       // if(std::find(vecCorrespGenPar.begin(), vecCorrespGenPar.end(), particle) != vecCorrespGenPar.end()) {cout << __LINE__ << "continue same GenParticle in InnerTrack list" << endl; continue;}
 
+      //Get mother
+      auto imother  = particle->M1;
+      auto mother   = imother != -1 ? (GenParticle *)particles->At(imother) : (GenParticle *)nullptr;
+      auto mPid     = mother->PID;
+      //Get grandmother
+      auto igmother = mother->M1;
+      auto gmother  = igmother != -1 ? (GenParticle *)particles->At(igmother) : (GenParticle *)nullptr;
+      auto gmPid    = 0;
+      if(gmother) gmPid = gmother->PID;
+
       double phiRec = TVector2::Phi_0_2pi(track->Phi);
+
+      // get weight to weight the contribution of LF and HF tracks
+      Double_t weight;
+      if ( abs(particle->PID) == 11 && hasHeavyAncestor(particle, particles) ) {
+        if (track->PT < 0.1)                          weight = 1.;
+        else if (track->PT >= 0.1 && track->PT < 0.6) weight = GetWeight(hweightHFtoe_lowerPt, track->PT);
+        else                                          weight = GetWeight(hweightHFtoe_higherPt, track->PT);
+      }
+      else if ( abs(particle->PID) == 11 && !hasHeavyAncestor(particle, particles) ) {
+        if(mother->PT < 0.1) weight = 0.7;
+        else                 weight = GetWeight(hweightLFtoe, mother->PT);
+      }
+      else weight = GetWeight(hweightLFtoe, track->PT);
 
       auto p = track->P;
 
@@ -1558,7 +1619,7 @@ void anaEEstudy(
       }
 
       // smear track if requested
-      if(abs(particle->PID) == 11 ) hBeforeSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec);
+      if(abs(particle->PID) == 11 ) hBeforeSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec,weight);
       if (bSmear) if (!smearer.smearTrack(*track)) continue; // strange syntax, but works
 
 
@@ -1602,8 +1663,6 @@ void anaEEstudy(
       auto track = (Track *)vecPIDtracks.at(itrack);
       auto particle = (GenParticle *)track->Particle.GetObject();
 
-      if( (particle->Eta > -0.5 && particle->Eta<0.5) && particle->Charge != 0 ) hdNdeta_midrap_rec->Fill(particle->Eta);
-
       //Get mother
       auto imother  = particle->M1;
       auto mother   = imother != -1 ? (GenParticle *)particles->At(imother) : (GenParticle *)nullptr;
@@ -1614,10 +1673,26 @@ void anaEEstudy(
       auto gmPid    = 0;
       if(gmother) gmPid = gmother->PID;
 
+      // get weight to weight the contribution of LF and HF tracks
+      Double_t weight;
+      if ( abs(particle->PID) == 11 && hasHeavyAncestor(particle, particles) ) {
+        if (particle->PT < 0.1)                             weight = 1.;
+        else if (particle->PT >= 0.1 && particle->PT < 0.6) weight = GetWeight(hweightHFtoe_lowerPt, track->PT);
+        else                                                weight = GetWeight(hweightHFtoe_higherPt, track->PT);
+      }
+      else if ( abs(particle->PID) == 11 && !hasHeavyAncestor(particle, particles) ) {
+        if(mother->PT < 0.1) weight = 0.7;
+        else                 weight = GetWeight(hweightLFtoe, mother->PT);
+      }
+      else weight = GetWeight(hweightLFtoe, track->PT);
+
+
+      if( (particle->Eta > -0.5 && particle->Eta<0.5) && particle->Charge != 0 ) hdNdeta_midrap_rec->Fill(particle->Eta,weight);
+
       double phiRec = TVector2::Phi_0_2pi(track->Phi);
 
 
-      if(abs(particle->PID) == 11 ) hAfterSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec);
+      if(abs(particle->PID) == 11 ) hAfterSmearing_Pt_Eta_Phi_rec->Fill(track->PT,track->Eta,phiRec,weight);
 
 
       auto p = track->P;
@@ -1643,11 +1718,11 @@ void anaEEstudy(
       richdetector.makePID(*track, PIDdeltaangleRICH, PIDnsigmaRICH);
 
       // fill nsigma TOF   (before PID selection is applied)
-      hTrackPt->Fill(track->PT);
-      hTrackP->Fill(track->P);
+      hTrackPt->Fill(track->PT,weight);
+      hTrackP->Fill(track->P,weight);
       if (toflayer.hasTOF(*track) || richdetector.hasRICH(*track)){
-        hTrackPt_hasTOForRICH->Fill(track->PT);
-        hTrackP_hasTOForRICH->Fill(track->P);
+        hTrackPt_hasTOForRICH->Fill(track->PT,weight);
+        hTrackP_hasTOForRICH->Fill(track->P,weight);
       }
 
       // apply eta acceptance cut
@@ -1718,11 +1793,11 @@ void anaEEstudy(
       }
 
       if(abs(particle->PID) == 11 ) {
-        if(abs(mPid) == 111)            hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed electrons + positrons from Pi0 before PID
+        if(abs(mPid) == 111)            hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec,weight);  // Pt Eta Phi of reconstructed electrons + positrons from Pi0 before PID
         if(abs(mPid) == 111 || abs(mPid) == 221 || abs(mPid) == 331 || abs(mPid) == 223 || abs(mPid) == 333 || abs(mPid) == 113)
-                                      hTrack_ElePos_LF_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec);   // Pt Eta Phi of reconstructed electrons + positrons from LF before PID (pi0,eta,etaprime,omega,phi,rho)
+                                      hTrack_ElePos_LF_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec,weight);   // Pt Eta Phi of reconstructed electrons + positrons from LF before PID (pi0,eta,etaprime,omega,phi,rho)
         if(hasHeavyAncestor(particle, particles))
-                                      hTrack_ElePos_HF_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec);   // Pt Eta Phi of reconstructed electrons + positrons from HF before PID
+                                      hTrack_ElePos_HF_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec,weight);   // Pt Eta Phi of reconstructed electrons + positrons from HF before PID
       }
 
       for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
@@ -1730,7 +1805,7 @@ void anaEEstudy(
         // // kinatic cuts on tracks        (no pt cut on single electrons)
         // if (!kineCuts(track, iPID_scenario)) continue;
 
-        if(abs(particle->PID) == 11 ) hAfterKineCuts_Pt_Eta_Phi_rec[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
+        if(abs(particle->PID) == 11 ) hAfterKineCuts_Pt_Eta_Phi_rec[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
 
         // look only at electrons
         // if(abs(particle->PID) != 11 ) continue;
@@ -1848,29 +1923,29 @@ void anaEEstudy(
         }
 
         // fill histograms
-                                    hAllTracks_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec); // Pt Eta Phi of all type of reconstructed particles
-        if     (track->Charge < 0)  hNegTrack_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed negative tracks
-        else if(track->Charge > 0)  hPosTrack_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed positive tracks
+                                    hAllTracks_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight); // Pt Eta Phi of all type of reconstructed particles
+        if     (track->Charge < 0)  hNegTrack_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);  // Pt Eta Phi of reconstructed negative tracks
+        else if(track->Charge > 0)  hPosTrack_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);  // Pt Eta Phi of reconstructed positive tracks
 
         // Pt Eta Phi plots for different type of particles
-        if      (abs(particle->PID) == 13)    hTrack_Muon_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
-        else if (abs(particle->PID) == 211)   hTrack_Pion_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
-        else if (abs(particle->PID) == 321)   hTrack_Kaon_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
-        else if (abs(particle->PID) == 2212)  hTrack_Proton_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);
+        if      (abs(particle->PID) == 13)    hTrack_Muon_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
+        else if (abs(particle->PID) == 211)   hTrack_Pion_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
+        else if (abs(particle->PID) == 321)   hTrack_Kaon_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
+        else if (abs(particle->PID) == 2212)  hTrack_Proton_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
         else if (abs(particle->PID) == 11)  sleep(0);
         else std::cout << "Particle not identified!    Particle PID: " << abs(particle->PID) << std::endl;
 
 
         // look only at electrons
         if(abs(particle->PID) == 11 ) {   // considering only electrons & positrons
-                                          hTrack_ElePos_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed electrons + positrons
-          if (particle->PID == 11)        hTrack_Ele_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);     // Pt Eta Phi of reconstructed electrons
-          else if (particle->PID == -11)  hTrack_Pos_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);     // Pt Eta Phi of reconstructed positrons
-          if(abs(mPid) == 111)                 hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_afterPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);  // Pt Eta Phi of reconstructed electrons + positrons from Pi0
+                                          hTrack_ElePos_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);  // Pt Eta Phi of reconstructed electrons + positrons
+          if (particle->PID == 11)        hTrack_Ele_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);     // Pt Eta Phi of reconstructed electrons
+          else if (particle->PID == -11)  hTrack_Pos_Rec_Pt_Eta_Phi[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);     // Pt Eta Phi of reconstructed positrons
+          if(abs(mPid) == 111)                 hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_afterPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);  // Pt Eta Phi of reconstructed electrons + positrons from Pi0
           if(abs(mPid) == 111 || abs(mPid) == 221 || abs(mPid) == 331 || abs(mPid) == 223 || abs(mPid) == 333 || abs(mPid) == 113)
-                                          hTrack_ElePos_LF_Rec_Pt_Eta_Phi_afterPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);   // Pt Eta Phi of reconstructed electrons + positrons from LF (pi0,eta,etaprime,omega,phi,rho)
+                                          hTrack_ElePos_LF_Rec_Pt_Eta_Phi_afterPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);   // Pt Eta Phi of reconstructed electrons + positrons from LF (pi0,eta,etaprime,omega,phi,rho)
           if(hasHeavyAncestor(particle, particles))
-                                          hTrack_ElePos_HF_Rec_Pt_Eta_Phi_afterPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec);   // Pt Eta Phi of reconstructed electrons + positrons from HF
+                                          hTrack_ElePos_HF_Rec_Pt_Eta_Phi_afterPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);   // Pt Eta Phi of reconstructed electrons + positrons from HF
 
           // // separate electrons & positrons originating from different light flavour (priamary), charm (cc) and buty (bb) decays
           // if (!hasStrangeAncestor(particle, particles) && !hasHeavyAncestor(particle, particles)) {
@@ -1939,12 +2014,12 @@ void anaEEstudy(
     bool MCpidEle = kTRUE;
 
     for (Int_t iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
-      dileptonPairingRec(vecNegTracks[iPIDscenario], vecPosTracks[iPIDscenario],  pairULS, !MCpidEle, particles, iPIDscenario);
-      dileptonPairingRec(vecNegTracks[iPIDscenario], vecNegTracks[iPIDscenario], !pairULS, !MCpidEle, particles, iPIDscenario);
-      dileptonPairingRec(vecPosTracks[iPIDscenario], vecPosTracks[iPIDscenario], !pairULS, !MCpidEle, particles, iPIDscenario);
-      dileptonPairingRec(vecElectron[iPIDscenario],  vecPositron[iPIDscenario],   pairULS,  MCpidEle, particles, iPIDscenario);
-      dileptonPairingRec(vecElectron[iPIDscenario],  vecElectron[iPIDscenario],  !pairULS,  MCpidEle, particles, iPIDscenario);
-      dileptonPairingRec(vecPositron[iPIDscenario],  vecPositron[iPIDscenario],  !pairULS,  MCpidEle, particles, iPIDscenario);
+      dileptonPairingRec(vecNegTracks[iPIDscenario], vecPosTracks[iPIDscenario],  pairULS, !MCpidEle, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingRec(vecNegTracks[iPIDscenario], vecNegTracks[iPIDscenario], !pairULS, !MCpidEle, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingRec(vecPosTracks[iPIDscenario], vecPosTracks[iPIDscenario], !pairULS, !MCpidEle, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingRec(vecElectron[iPIDscenario],  vecPositron[iPIDscenario],   pairULS,  MCpidEle, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingRec(vecElectron[iPIDscenario],  vecElectron[iPIDscenario],  !pairULS,  MCpidEle, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingRec(vecPositron[iPIDscenario],  vecPositron[iPIDscenario],  !pairULS,  MCpidEle, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
 
       vecNegTracks[iPIDscenario].clear();
       vecPosTracks[iPIDscenario].clear();
@@ -1952,9 +2027,9 @@ void anaEEstudy(
       vecPositron[iPIDscenario].clear();
 
 
-      dileptonPairingGen(vecElectronGen[iPIDscenario], vecPositronGen[iPIDscenario], pairULS, particles, iPIDscenario);
-      dileptonPairingGen(vecElectronGen[iPIDscenario], vecElectronGen[iPIDscenario], !pairULS, particles, iPIDscenario);
-      dileptonPairingGen(vecPositronGen[iPIDscenario], vecPositronGen[iPIDscenario], !pairULS, particles, iPIDscenario);
+      dileptonPairingGen(vecElectronGen[iPIDscenario], vecPositronGen[iPIDscenario], pairULS, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingGen(vecElectronGen[iPIDscenario], vecElectronGen[iPIDscenario], !pairULS, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
+      dileptonPairingGen(vecPositronGen[iPIDscenario], vecPositronGen[iPIDscenario], !pairULS, particles, iPIDscenario, hweightHFtoe_lowerPt, hweightHFtoe_higherPt, hweightLFtoe);
 
       vecElectronGen[iPIDscenario].clear();
       vecPositronGen[iPIDscenario].clear();
@@ -1963,6 +2038,7 @@ void anaEEstudy(
     }
 
   }
+
 
   auto fout = TFile::Open(outputFile, "RECREATE");
   // TList* listGenerated;
@@ -2188,7 +2264,7 @@ void anaEEstudy(
 
 
 // function to ULS or LS pair reconstructed particles
-void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> vec_track_pos, bool pairULS, bool MCpidEle, TClonesArray *particles, Int_t iSce){
+void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> vec_track_pos, bool pairULS, bool MCpidEle, TClonesArray *particles, Int_t iSce, TH1F* hf_weight_low_pt, TH1F* hf_weight_high_pt, TH1F* hlf_weight){
   // pairing reconstructed ULS or LS pairs
   double vec_track_neg_size = vec_track_neg.size();
   double vec_track_pos_size = vec_track_pos.size();
@@ -2221,35 +2297,63 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       dca2 = (track2->D0/track2->ErrorD0);
       dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
 
+
+      // get weights for both particles to weight the contribution of LF and HF tracks
+      Double_t weight_neg = 1.;
+      Double_t weight_pos = 1.;
+      // weight for negative particle
+      if (abs(particle1->PID) == 11 && hasHeavyAncestor(particle1, particles)) {
+        if (track1->PT < 0.1)                           weight_neg = 1.;
+        else if (track1->PT >= 0.1 && track1->PT < 0.6) weight_neg = GetWeight(hf_weight_low_pt, track1->PT);
+        else                                            weight_neg = GetWeight(hf_weight_high_pt, track1->PT);
+      }
+      else if (abs(particle1->PID) == 11 && !hasHeavyAncestor(particle1, particles)) {
+        if(mother1->PT < 0.1) weight_neg = 0.7;
+        else                  weight_neg = GetWeight(hlf_weight, mother1->PT);
+      }
+      else weight_neg = GetWeight(hlf_weight, track1->PT);
+
+      // weight for positive particle
+      if ( abs(particle2->PID) == 11 && hasHeavyAncestor(particle2, particles) ) {
+        if (track2->PT < 0.1)                           weight_pos = 1.;
+        else if (track2->PT >= 0.1 && track2->PT < 0.6) weight_pos = GetWeight(hf_weight_low_pt, track2->PT);
+        else                                            weight_pos = GetWeight(hf_weight_high_pt, track2->PT);
+      }
+      else if (abs(particle2->PID) == 11 && !hasHeavyAncestor(particle2, particles) ) {
+        if(mother2->PT < 0.1) weight_pos = 0.7;
+        else                  weight_pos = GetWeight(hlf_weight, mother2->PT);
+      }
+      else weight_pos = GetWeight(hlf_weight, track2->PT);
+
       std::vector<Int_t> vecLFpdgs = {111,221,331,223,333,113};
-      if(pairULS && !MCpidEle)  hMPtDCA_ULS_rec[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if(!pairULS && !MCpidEle) hMPtDCA_LS_rec[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if(pairULS && MCpidEle)  hMPtDCA_ULS_rec_MCpidEle[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_ULS_rec_MCpidEle_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_ULS_rec_MCpidEle_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles) ) || (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_ULS_rec_MCpidEle_hfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) )  hMPtDCA_ULS_rec_MCpidEle_lfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && ( hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles) ) )  hMPtDCA_ULS_rec_MCpidEle_ccTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && ( hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) ) )  hMPtDCA_ULS_rec_MCpidEle_bbTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) ) )  hMPtDCA_ULS_rec_MCpidEle_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+      if(pairULS && !MCpidEle)  hMPtDCA_ULS_rec[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if(!pairULS && !MCpidEle) hMPtDCA_LS_rec[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if(pairULS && MCpidEle)  hMPtDCA_ULS_rec_MCpidEle[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_ULS_rec_MCpidEle_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_ULS_rec_MCpidEle_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles) ) || (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_ULS_rec_MCpidEle_hfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) )  hMPtDCA_ULS_rec_MCpidEle_lfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && ( hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles) ) )  hMPtDCA_ULS_rec_MCpidEle_ccTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && ( hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) ) )  hMPtDCA_ULS_rec_MCpidEle_bbTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) ) )  hMPtDCA_ULS_rec_MCpidEle_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
-      if(!pairULS && MCpidEle) hMPtDCA_LS_rec_MCpidEle[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)||(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDoneLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)&&(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDtwoLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) == 211)&&(fabs(particle2->PID)==211) ))  hMPtDCA_LS_rec_misIDPion[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) != 11) && (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)!=11) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_misIDhf[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+      if(!pairULS && MCpidEle) hMPtDCA_LS_rec_MCpidEle[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)||(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDoneLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)&&(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDtwoLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) == 211)&&(fabs(particle2->PID)==211) ))  hMPtDCA_LS_rec_misIDPion[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) != 11) && (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)!=11) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_misIDhf[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
-      if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_LS_rec_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles) ) || (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_hfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+      if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_LS_rec_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles) ) || (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_hfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
-      if((!pairULS && MCpidEle) && ( hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles) ) )  hMPtDCA_LS_rec_ccTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && MCpidEle) && ( hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) ) )  hMPtDCA_LS_rec_bbTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      // if((!pairULS && MCpidEle) && ( ((hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles)) || (hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) ) )  hMPtDCA_LS_rec_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && MCpidEle) && ( ((!hasCharmAncestor(particle1, particles)&&!hasCharmAncestor(particle2, particles)) && (!hasBeautyAncestor(particle1, particles)&&!hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_lfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if((!pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) ) hMPtDCA_LS_rec_lfTOee_selectPDG[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      // if((!pairULS && MCpidEle) && ( ((abs(m1Pid) == 111 && abs(m2Pid) == 111) || (abs(m1Pid) == 221 && abs(m2Pid) == 221) || (abs(m1Pid) == 331 && abs(m2Pid) == 331) || (abs(m1Pid) == 223 && abs(m2Pid) == 223) || (abs(m1Pid) == 333 && abs(m2Pid) == 333) || (abs(m1Pid) == 113 && abs(m2Pid) == 113))) ) hMPtDCA_LS_rec_lfTOee_selectPDG[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+      if((!pairULS && MCpidEle) && ( hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles) ) )  hMPtDCA_LS_rec_ccTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && ( hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) ) )  hMPtDCA_LS_rec_bbTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // if((!pairULS && MCpidEle) && ( ((hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles)) || (hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) ) )  hMPtDCA_LS_rec_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && ( ((!hasCharmAncestor(particle1, particles)&&!hasCharmAncestor(particle2, particles)) && (!hasBeautyAncestor(particle1, particles)&&!hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_lfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) ) hMPtDCA_LS_rec_lfTOee_selectPDG[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // if((!pairULS && MCpidEle) && ( ((abs(m1Pid) == 111 && abs(m2Pid) == 111) || (abs(m1Pid) == 221 && abs(m2Pid) == 221) || (abs(m1Pid) == 331 && abs(m2Pid) == 331) || (abs(m1Pid) == 223 && abs(m2Pid) == 223) || (abs(m1Pid) == 333 && abs(m2Pid) == 333) || (abs(m1Pid) == 113 && abs(m2Pid) == 113))) ) hMPtDCA_LS_rec_lfTOee_selectPDG[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
 
       // if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)){ // same mother and neutral LF particle, pion or eta
@@ -2283,7 +2387,7 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
 }
 
 // function to ULS or LS pair geneated particles
-void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<GenParticle *> vec_track_pos, bool pairULS, TClonesArray *particles, Int_t iSce){
+void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<GenParticle *> vec_track_pos, bool pairULS, TClonesArray *particles, Int_t iSce, TH1F* hf_weight_low_pt, TH1F* hf_weight_high_pt, TH1F* hlf_weight){
   // pairing reconstructed ULS or LS pairs
   double vec_track_neg_size = vec_track_neg.size();
   double vec_track_pos_size = vec_track_pos.size();
@@ -2297,18 +2401,18 @@ void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<Gen
   for (int iEle = 0; iEle < iNeg_end; iEle++){
     auto track1 = (Track *) vec_track_neg.at(iEle);
     auto particle1 = (GenParticle *) vec_track_neg.at(iEle);
-    // auto imother1 = particle1->M1;
-    // auto mother1 = imother1 != -1 ? (GenParticle *)particles->At(imother1) : (GenParticle *)nullptr;
-    // auto m1Pid = mother1->PID;
+    auto imother1 = particle1->M1;
+    auto mother1 = imother1 != -1 ? (GenParticle *)particles->At(imother1) : (GenParticle *)nullptr;
+    auto m1Pid = mother1->PID;
     LV1.SetPtEtaPhiM(particle1->PT,particle1->Eta,particle1->Phi,eMass);
 
     if(!pairULS) iPos_start = iEle+1;
     for (int iPos = iPos_start; iPos < vec_track_pos_size; iPos++){
       auto track2 = (Track *) vec_track_pos.at(iPos);
       auto particle2 = (GenParticle *) vec_track_pos.at(iPos);
-      // auto imother2 = particle2->M1;
-      // auto mother2 = imother2 != -1 ? (GenParticle *)particles->At(imother2) : (GenParticle *)nullptr;
-      // auto m2Pid = mother2->PID;
+      auto imother2 = particle2->M1;
+      auto mother2 = imother2 != -1 ? (GenParticle *)particles->At(imother2) : (GenParticle *)nullptr;
+      auto m2Pid = mother2->PID;
       LV2.SetPtEtaPhiM(particle2->PT,particle2->Eta,particle2->Phi,eMass);
       LV = LV1 + LV2;
 
@@ -2316,8 +2420,38 @@ void dileptonPairingGen(std::vector<GenParticle *> vec_track_neg,std::vector<Gen
       dca2 = (track2->D0/track2->ErrorD0);
       dca = sqrt((dca1*dca1 + dca2*dca2) / 2);
 
-      if(pairULS)  hMPtDCA_ULS_gen[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
-      if(!pairULS) hMPtDCA_LS_gen[iSce]->Fill(LV.Mag(),LV.Pt(),dca);
+
+      // get weights for both particles to weight the contribution of LF and HF tracks
+      Double_t weight_neg = 1.;
+      Double_t weight_pos = 1.;
+      // weight for negative particle
+      if ( abs(particle1->PID) == 11 && hasHeavyAncestor(particle1, particles) ) {
+        if (particle1->PT < 0.1)                              weight_neg = 1.;
+        else if (particle1->PT >= 0.1 && particle1->PT < 0.6) weight_neg = GetWeight(hf_weight_low_pt, particle1->PT);
+        else                                                  weight_neg = GetWeight(hf_weight_high_pt, particle1->PT);
+      }
+      else if ( abs(particle1->PID) == 11 && !hasHeavyAncestor(particle1, particles) ) {
+        if(mother1->PT < 0.1) weight_neg = 0.7;
+        else                  weight_neg = GetWeight(hlf_weight, mother1->PT);
+      }
+      else weight_neg = GetWeight(hlf_weight, particle1->PT);
+
+      // weight for positive particle
+      if (abs(particle2->PID) == 11 && hasHeavyAncestor(particle2, particles) ) {
+        if (particle2->PT < 0.1)                              weight_pos = 1.;
+        else if (particle2->PT >= 0.1 && particle2->PT < 0.6) weight_pos = GetWeight(hf_weight_low_pt, particle2->PT);
+        else                                                  weight_pos = GetWeight(hf_weight_high_pt, particle2->PT);
+      }
+      else if ( abs(particle2->PID) == 11 && !hasHeavyAncestor(particle2, particles) ) {
+        if(mother2->PT < 0.1) weight_pos = 0.7;
+        else                  weight_pos = GetWeight(hlf_weight, mother2->PT);
+      }
+      else weight_pos = GetWeight(hlf_weight, particle2->PT);
+
+
+
+      if(pairULS)  hMPtDCA_ULS_gen[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if(!pairULS) hMPtDCA_LS_gen[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
       // if (mother1 == mother2 && !hasHeavyAncestor(particle1, particles) && !hasStrangeAncestor(particle1, particles)) // same mother and neutral LF particle, pion or eta
       // {

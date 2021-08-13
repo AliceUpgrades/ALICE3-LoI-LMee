@@ -15,6 +15,9 @@ bool bUseAdditionalFiles = kTRUE;
   bool bCocktailFile = kTRUE;
   bool bReadSingleElectronSepc = kTRUE;
 
+bool bwriteFileLFHFweights = kFALSE;
+bool bGenerateBackground = kTRUE;
+
 int ith_PIDscenario = 1;
 // TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
 // TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, TOF only", "0.0 < #it{p}_{T,e}, TOF only"};
@@ -122,7 +125,7 @@ void invariantYield(TH1* h){
 Double_t ComputeIntegral(TH1 *g,Double_t low,Double_t high) {
   Double_t step = (high-low)/1000;
   Double_t sum = 0.;
-  
+
   for(Int_t k=0; k < 1000; k++){
     Double_t xb = low + step/2. + k*step;
     Double_t evalvalue = g->Interpolate(xb);
@@ -136,9 +139,9 @@ TH1F *RatioToTheoryy(TH1 *ffit, TH1 *ginput) {
   // Ratio of TGraphAsymmErrors to fit function
   //
 
-  
+
   TH1F *graphh = (TH1F *) ginput->Clone(Form("Ratio_%s",ginput->GetName()));
-  
+
   Int_t npoints = graphh->GetNbinsX();
   TAxis *ptaxis = ginput->GetXaxis();
 
@@ -157,11 +160,11 @@ TH1F *RatioToTheoryy(TH1 *ffit, TH1 *ginput) {
 
     graphh->SetBinContent(k+1,y/evalfit);
     graphh->SetBinError(k+1,error/evalfit);
- 
+
   }
 
   return graphh;
-  
+
 }
 //__________________________________________________
 
@@ -732,7 +735,7 @@ if (bPlotPIDhistograms) {
   TH1F* phiGenTrackElePos = (TH1F*) hGen_Track_ElePos_Pt_Eta_Phi->ProjectionZ("Gen ElePos phiTrack");
 
   TH2F* ptEtaGenTrackElePos = (TH2F*) hGen_Track_ElePos_Pt_Eta_Phi->Project3D("yx o");
-  
+
   TH1F* ptGenTrackElePos_HF  = (TH1F*) hGen_Track_ElePos_HF_Pt_Eta_Phi->ProjectionX("Gen ElePos from HF ptTrack");
 
   TH1F* ptGenTrackAll   = (TH1F*) hGen_Track_All_Pt_Eta_Phi->ProjectionX("Gen All ptTrack");
@@ -820,6 +823,7 @@ if (bPlotPIDhistograms) {
     TH1F* hParticlesFITCent = (TH1F*) fIn->Get("nParticlesFITCent");
     TH1F* hParticlesMidRapidity = (TH1F*) fIn->Get("nParticlesMidRapidity");
     TH1F* hParticlesMidRapidityCent = (TH1F*) fIn->Get("nParticlesMidRapidityCent");
+
 
     hParticlesFITCent->Sumw2();
     hParticlesMidRapidity->Sumw2();
@@ -951,54 +955,6 @@ if (bPlotPIDhistograms) {
     TH1F* proj_genLS_DCA = (TH1F*) hMPtDCA_LS_gen->ProjectionZ("proj_genLS_DCA");
 
 
-    proj_recULS_Mee->Sumw2();
-    proj_recULS_Ptee->Sumw2();
-    proj_recULS_DCA->Sumw2();
-
-    proj_recLS_Mee->Sumw2();
-    proj_recLS_Ptee->Sumw2();
-    proj_recLS_DCA->Sumw2();
-
-    proj_recULS_MCpidEle_charmTOe_Mee->Sumw2();
-    proj_recULS_MCpidEle_beautyTOe_Mee->Sumw2();
-    proj_recULS_MCpidEle_hfTOe_Mee->Sumw2();
-    proj_recULS_MCpidEle_lfTOee_Mee->Sumw2();
-    proj_recULS_MCpidEle_ccTOee_Mee->Sumw2();
-    proj_recULS_MCpidEle_bbTOee_Mee->Sumw2();
-    proj_recULS_MCpidEle_hfTOee_Mee->Sumw2();
-
-    proj_recLS_Ctoe_Mee->Sumw2();
-    proj_recLS_Ctoe_Ptee->Sumw2();
-    proj_recLS_Ctoe_DCA->Sumw2();
-    proj_recLS_Btoe_Mee->Sumw2();
-    proj_recLS_Btoe_Ptee->Sumw2();
-    proj_recLS_Btoe_DCA->Sumw2();
-    proj_recLS_HFtoe_Mee->Sumw2();
-    proj_recLS_HFtoe_Ptee->Sumw2();
-    proj_recLS_HFtoe_DCA->Sumw2();
-    proj_recLS_MCpidEle_Mee->Sumw2();
-    proj_recLS_MCpidEle_Ptee->Sumw2();
-    proj_recLS_MCpidEle_DCA->Sumw2();
-
-    proj_recLS_LFtoee_Mee->Sumw2();
-    proj_recLS_LFtoee_Ptee->Sumw2();
-    proj_recLS_LFtoee_DCA->Sumw2();
-    proj_recLS_HFtoee_Mee->Sumw2();
-    proj_recLS_HFtoee_Ptee->Sumw2();
-    proj_recLS_HFtoee_DCA->Sumw2();
-
-    proj_recLS_ccTOee_Mee->Sumw2();
-    proj_recLS_bbTOee_Mee->Sumw2();
-
-    proj_genULS_Mee->Sumw2();
-    proj_genULS_Ptee->Sumw2();
-    proj_genULS_DCA->Sumw2();
-    proj_genLS_Mee->Sumw2();
-    proj_genLS_Ptee->Sumw2();
-    proj_genLS_DCA->Sumw2();
-
-
-
     proj_recULS_Mee->Scale(1./nEventsCent);
     proj_recULS_Ptee->Scale(1./nEventsCent);
     proj_recULS_DCA->Scale(1./nEventsCent);
@@ -1061,6 +1017,13 @@ if (bPlotPIDhistograms) {
     normalizeToBinWidth(proj_genLS_Mee);
     normalizeToBinWidth(proj_genLS_Ptee);
     normalizeToBinWidth(proj_genLS_DCA);
+    
+    normalizeToBinWidth(proj_recLS_MCpidEle_Ptee);
+    normalizeToBinWidth(proj_recLS_LFtoee_Ptee);
+    normalizeToBinWidth(proj_recLS_HFtoe_Ptee);
+    normalizeToBinWidth(proj_recLS_MCpidEle_DCA);
+    normalizeToBinWidth(proj_recLS_LFtoee_DCA);
+    normalizeToBinWidth(proj_recLS_HFtoe_DCA);
 
 
     make3HistNice(proj_recLS_MCpidEle_Mee,kBlack);
@@ -1076,8 +1039,8 @@ if (bPlotPIDhistograms) {
     make3HistNice(proj_recLS_HFtoe_Ptee,kRed+2);
     make3HistNice(proj_recLS_HFtoe_DCA,kRed+2);
     make3HistNice(proj_recLS_LFtoee_Mee,kCyan+1);
-    make3HistNice(proj_recLS_LFtoee_Ptee,kBlue+1);
-    make3HistNice(proj_recLS_LFtoee_DCA,kBlue+1);
+    make3HistNice(proj_recLS_LFtoee_Ptee,kCyan+1);
+    make3HistNice(proj_recLS_LFtoee_DCA,kCyan+1);
     make3HistNice(proj_recLS_HFtoee_Mee,kRed+2);
     make3HistNice(proj_recLS_HFtoee_Ptee,kRed+2);
     make3HistNice(proj_recLS_HFtoee_DCA,kRed+2);
@@ -1091,6 +1054,7 @@ if (bPlotPIDhistograms) {
     makeHistNice(proj_recULS_MCpidEle_ccTOee_Mee,kOrange+2);
     makeHistNice(proj_recULS_MCpidEle_bbTOee_Mee,kMagenta+1);
     makeHistNice(proj_recULS_MCpidEle_hfTOee_Mee,kRed+2);
+  
 
 
 
@@ -1109,7 +1073,7 @@ if (bPlotPIDhistograms) {
  TH1F* ptGenTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
  // TH1F* ptGenSmearedTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenSmearedTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
  TH1F* ptGenTrackElePos_HF_rebin = (TH1F*) ptGenTrackElePos_HF->Rebin(nbinspt_proj_10,"ptGenTrackElePos_HF_rebin",&pt_bin_proj_10[0]);
- 
+
 
  TH1F* ptRecTrackElePos_Pi0_beforePID_rebin = (TH1F*) ptRecTrackElePos_Pi0_beforePID->Rebin(nbinspt_proj,"ptRecTrackElePos_Pi0_beforePID_rebin",&pt_bin_proj[0]);
  TH1F* ptRecTrackElePos_LF_beforePID_rebin = (TH1F*) ptRecTrackElePos_LF_beforePID->Rebin(nbinspt_proj,"ptRecTrackElePos_LF_beforePID_rebin",&pt_bin_proj[0]);
@@ -1205,24 +1169,6 @@ if (bPlotPIDhistograms) {
     // phiEffPosCC = (TH1F*) phiRecPosTrackCC->Clone();
     // phiEffPosBB = (TH1F*) phiRecPosTrackBB->Clone();
 
-    // ptEffElePrim->Sumw2();
-    // ptEffEleCC->Sumw2();
-    // ptEffEleBB->Sumw2();
-    // etaEffElePrim->Sumw2();
-    // etaEffEleCC->Sumw2();
-    // etaEffEleBB->Sumw2();
-    // phiEffElePrim->Sumw2();
-    // phiEffEleCC->Sumw2();
-    // phiEffEleBB->Sumw2();
-    // ptEffPosPrim->Sumw2();
-    // ptEffPosCC->Sumw2();
-    // ptEffPosBB->Sumw2();
-    // etaEffPosPrim->Sumw2();
-    // etaEffPosCC->Sumw2();
-    // etaEffPosBB->Sumw2();
-    // phiEffPosPrim->Sumw2();
-    // phiEffPosCC->Sumw2();
-    // phiEffPosBB->Sumw2();
 
     // ptEffElePrim->Divide(ptEffElePrim,ptGenEleTrackPrim,1,1,"B");
     // ptEffEleCC->Divide(ptEffEleCC,ptGenEleTrackCC,1,1,"B");
@@ -1269,48 +1215,49 @@ if (bPlotPIDhistograms) {
     // phiGenPos->Add(phiGenPosTrackBB, 1);
 
 
+
     ptEffElePosGen = (TH1F*) ptRecTrackElePos_rebin->Clone("eff_pT_singleElePos_Gen");
-    ptEffElePosGen->Sumw2();
+    // ptEffElePosGen->Sumw2();
     ptEffElePosGen->Divide(ptEffElePosGen,ptGenTrackElePos_rebin,1,1,"B");
     ptEffElePosGenSmeared = (TH1F*) ptRecTrackElePos_rebin->Clone("eff_pT_singleElePos_GenSmeared");
-    ptEffElePosGenSmeared->Sumw2();
+    // ptEffElePosGenSmeared->Sumw2();
     ptEffElePosGenSmeared->Divide(ptEffElePosGenSmeared,ptGenSmearedTrackElePos_rebin,1,1,"B");
 
     ptEffElePosGen_woPID = (TH1F*) ptRecTrackAfterKineCuts_rebin->Clone("eff_pT_singleElePos_Gen_woPID");
-    ptEffElePosGen_woPID->Sumw2();
+    // ptEffElePosGen_woPID->Sumw2();
     ptEffElePosGen_woPID->Divide(ptEffElePosGen_woPID,ptGenTrackElePos_rebin,1,1,"B");
 
     ptEffEle = (TH1F*) ptRecTrackEle_rebin->Clone("eff_pT_singleElectrons");
-    ptEffEle->Sumw2();
+    // ptEffEle->Sumw2();
     // ptEffEle->Divide(ptEffEle,ptGenSmearedTrackEle_rebin,1,1,"B");
     ptEffEle->Divide(ptEffEle,ptGenTrackEle_rebin,1,1,"B");
     etaEffEle = (TH1F*) etaRecTrackEle->Clone("eff_eta_singleElectrons");
-    etaEffEle->Sumw2();
+    // etaEffEle->Sumw2();
     // etaEffEle->Divide(etaEffEle,etaGenSmearedTrackEle,1,1,"B");
     etaEffEle->Divide(etaEffEle,etaGenTrackEle,1,1,"B");
     phiEffEle = (TH1F*) phiRecTrackEle->Clone("eff_phi_singleElectrons");
-    phiEffEle->Sumw2();
+    // phiEffEle->Sumw2();
     // phiEffEle->Divide(phiEffEle,phiGenSmearedTrackEle,1,1,"B");
     phiEffEle->Divide(phiEffEle,phiGenTrackEle,1,1,"B");
     // ptEffPos = (TH1F*) ptRecPosTrackPrim->Clone("eff_pT_singlePositrons");
     // ptEffPos->Add(ptRecPosTrackCC, 1);
     // ptEffPos->Add(ptRecPosTrackBB, 1);
     ptEffPos = (TH1F*) ptRecTrackPos_rebin->Clone("eff_pT_singlePositrons");
-    ptEffPos->Sumw2();
+    // ptEffPos->Sumw2();
     // ptEffPos->Divide(ptEffPos,ptGenSmearedTrackPos_rebin,1,1,"B");
     ptEffPos->Divide(ptEffPos,ptGenTrackPos_rebin,1,1,"B");
     etaEffPos = (TH1F*) etaRecTrackPos->Clone("eff_eta_singlePositrons");
-    etaEffPos->Sumw2();
+    // etaEffPos->Sumw2();
     // etaEffPos->Divide(etaEffPos,etaGenSmearedTrackPos,1,1,"B");
     etaEffPos->Divide(etaEffPos,etaGenTrackPos,1,1,"B");
     phiEffPos = (TH1F*) phiRecTrackPos->Clone("eff_phi_singlePositrons");
-    phiEffPos->Sumw2();
+    // phiEffPos->Sumw2();
     // phiEffPos->Divide(phiEffPos,phiGenSmearedTrackPos,1,1,"B");
     phiEffPos->Divide(phiEffPos,phiGenTrackPos,1,1,"B");
 
     // single track efficiency TH2 as function of pt and eta
     ptEtaEffElePos = (TH2F*) ptEtaRecTrackElePos->Clone("eff_ptEta_singleElePos");
-    ptEtaEffElePos->Sumw2();
+    // ptEtaEffElePos->Sumw2();
     ptEtaEffElePos->Divide(ptEtaEffElePos,ptEtaGenTrackElePos,1,1,"B");
 
    // pair efficiencies
@@ -1324,8 +1271,9 @@ if (bPlotPIDhistograms) {
    // massPairEffULS->Divide(massPairEffULS,proj_genULS_Mee,1,1,"B");
 
    mPtPairEffElePos = (TH2F*) mptRecTrackElePos->Clone("pairEff_mPt_ElePos");
-   mPtPairEffElePos->Sumw2();
+   // mPtPairEffElePos->Sumw2();
    mPtPairEffElePos->Divide(mPtPairEffElePos,mptGenTrackElePos,1,1,"B");
+
 
   }
 
@@ -1347,11 +1295,11 @@ if (bPlotPIDhistograms) {
   hTotalRejectionFactorPt = (TH1F*) ptGenTrackAll_rebin->Clone("pT_Total_Rejectionfactor");
   hTotalRejectionFactorPt->Add(ptGenTrackElePos_rebin,-1);
 
-  hMuonRejectionFactorPt->Sumw2();
-  hPionRejectionFactorPt->Sumw2();
-  hKaonRejectionFactorPt->Sumw2();
-  hProtonRejectionFactorPt->Sumw2();
-  hTotalRejectionFactorPt->Sumw2();
+  // hMuonRejectionFactorPt->Sumw2();
+  // hPionRejectionFactorPt->Sumw2();
+  // hKaonRejectionFactorPt->Sumw2();
+  // hProtonRejectionFactorPt->Sumw2();
+  // hTotalRejectionFactorPt->Sumw2();
 
   hMuonRejectionFactorPt->Divide(hMuonRejectionFactorPt, ptRecMuonTrack_rebin,1,1,"B");
   hPionRejectionFactorPt->Divide(hPionRejectionFactorPt, ptRecPionTrack_rebin,1,1,"B");
@@ -1413,21 +1361,14 @@ if (bPlotTrackContamination) {
   hPurityRecPtPos = (TH1F*)  ptRecPosTrack->Clone();
   hPurityRecEtaPos = (TH1F*) etaRecPosTrack->Clone();
   hPurityRecPhiPos = (TH1F*) phiRecPosTrack->Clone();
-  hTotalRecTrackPt->Sumw2();
-  hTotalRecTrackEta->Sumw2();
-  hTotalRecTrackPhi->Sumw2();
-  hPurityRecPtNeg->Sumw2();
-  hPurityRecEtaNeg->Sumw2();
-  hPurityRecPhiNeg->Sumw2();
-  hPurityRecPtPos->Sumw2();
-  hPurityRecEtaPos->Sumw2();
-  hPurityRecPhiPos->Sumw2();
+
   hPurityRecPtNeg->Divide(ptRecTrackEle,ptRecNegTrack,1,1,"B");
   hPurityRecEtaNeg->Divide(etaRecTrackEle,etaRecNegTrack,1,1,"B");
   hPurityRecPhiNeg->Divide(phiRecTrackEle,phiRecNegTrack,1,1,"B");
   hPurityRecPtPos->Divide(ptRecTrackPos,ptRecPosTrack,1,1,"B");
   hPurityRecEtaPos->Divide(etaRecTrackPos,etaRecPosTrack,1,1,"B");
   hPurityRecPhiPos->Divide(phiRecTrackPos,phiRecPosTrack,1,1,"B");
+
 
   hTotalPureContaminationRecPt = (TH1F*)  ptAllRecTrack_rebin->Clone("TotalContaminationPt");
   hTotalPureContaminationRecEta = (TH1F*) etaAllRecTrack->Clone("TotalContaminationEta");
@@ -1450,24 +1391,7 @@ if (bPlotTrackContamination) {
   hProtonContaminationRecPt = (TH1F*)  ptRecProtonTrack_rebin->Clone();
   hProtonContaminationRecEta = (TH1F*) etaRecProtonTrack->Clone();
   hProtonContaminationRecPhi = (TH1F*) phiRecProtonTrack->Clone();
-  hPureContaminationRecPtNeg->Sumw2();
-  hPureContaminationRecEtaNeg->Sumw2();
-  hPureContaminationRecPhiNeg->Sumw2();
-  hPureContaminationRecPtPos->Sumw2();
-  hPureContaminationRecEtaPos->Sumw2();
-  hPureContaminationRecPhiPos->Sumw2();
-  hMuonContaminationRecPt->Sumw2();
-  hMuonContaminationRecEta->Sumw2();
-  hMuonContaminationRecPhi->Sumw2();
-  hPionContaminationRecPt->Sumw2();
-  hPionContaminationRecEta->Sumw2();
-  hPionContaminationRecPhi->Sumw2();
-  hKaonContaminationRecPt->Sumw2();
-  hKaonContaminationRecEta->Sumw2();
-  hKaonContaminationRecPhi->Sumw2();
-  hProtonContaminationRecPt->Sumw2();
-  hProtonContaminationRecEta->Sumw2();
-  hProtonContaminationRecPhi->Sumw2();
+
   // hTotalPureContaminationRecPt->Add(ptRecTrackElePos_rebin,-1);
   // hTotalPureContaminationRecEta->Add(etaRecTrackElePos,-1);
   // hTotalPureContaminationRecPhi->Add(phiRecTrackElePos,-1);
@@ -1544,6 +1468,7 @@ if (bPlotTrackContamination) {
     // std::cout << " value of contamination in " << iBin <<  "-th Bin: " << binValA/binValB <<  ",  with BinError : " << binError << std::endl;
   }
 }
+
 
 
 
@@ -1967,7 +1892,7 @@ if (bPlotTrackContamination) {
   legChPionPt->SetFillStyle(0);
   legChPionPt->SetTextFont(43);
   legChPionPt->SetTextSize(24);
-  legChPionPt->AddEntry(ptGenTrackPionRapSel,"gen w kin. cuts #pi^{+} + #pi^{-}","p");
+  legChPionPt->AddEntry(ptGenTrackPionRapSel,"fast sim. #pi^{+} + #pi^{-}","p");
   legChPionPt->AddEntry(hPaper_chPi_Pt_0_10_cent_stat_Err,"paper #pi^{+} + #pi^{-}","p");
 
 
@@ -2444,6 +2369,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     TH1F* hdummy = new TH1F("hdummy","", 1, 0.1, 10.); makeHistNice(hdummy,kBlack);
     TH1F* hRatioCocktailFastSim = (TH1F*) RatioToTheoryy(ptGenTrackElePos_HF_rebin,hSingleElefomHF_Cocktail);
     hRatioCocktailFastSim->GetXaxis()->SetRangeUser(0.,0.6);
+    makeHistNice(hRatioCocktailFastSim,kBlue);
     hRatioCocktailFastSim->SetTitle("hftoe_weights_cocktail_data_ratio");
     hRatioCocktailFastSim->SetName("hftoe_weights_cocktail_data_ratio");
     hRatioRecHFPaper->SetTitle("hftoe_weights_paper_data_ratio");
@@ -2451,7 +2377,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     // hRatioRecHFPaper->Add(hRatioCocktailFastSim);
     makeHistNice(hRatioCocktailPaper,kRed);
     makeHistNice(hRatioRecHFPaper,kBlue);
-    hdummy->GetYaxis()->SetTitle("Ratio PLB 804/X"); 
+    hdummy->GetYaxis()->SetTitle("Ratio PLB 804/X");
     hdummy->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hdummy->GetXaxis()->SetRangeUser(0.1,10.0);
     hdummy->GetYaxis()->SetRangeUser(0.,2.5);
@@ -2464,15 +2390,16 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     hdummy->Draw("");
     hRatioCocktailFastSim->Draw("c hist same");
     hRatioRecHFPaper->Draw("c hist same");
-    hRatioCocktailPaper->Draw("c hist same"); 
+    hRatioCocktailPaper->Draw("c hist same");
     cPt_HFtoe->SaveAs("./plots/Pte_HFtoe+Cocktail+Paper.png");
-    
-    TFile *fOutputWeights = TFile::Open("./corrWeights/hfe_weights.root","RECREATE");
-    hRatioCocktailFastSim->Write(); // below 0.6 GeV/c
-    hRatioRecHFPaper->Write();  // above 0.6 GeV/c 
-    fOutputWeights->Close();
-    
-    
+
+    if(bwriteFileLFHFweights){
+      TFile *fOutputWeights = TFile::Open("./corrWeights/hfe_weights.root","RECREATE");
+      hRatioCocktailFastSim->Write(); // below 0.6 GeV/c
+      hRatioRecHFPaper->Write();  // above 0.6 GeV/c
+      fOutputWeights->Close();
+    }
+
 
     auto cPtElePosPi0LFHF = new TCanvas("cPtElePosPi0LFHF","cPtElePosPi0LFHF",800,800);
     cPtElePosPi0LFHF->SetTopMargin(0.03);
@@ -2637,8 +2564,31 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_LFtoee_DCA->Draw("hist p e1 same");
     proj_recLS_HFtoe_DCA->Draw("hist p e1 same");
 
-    cMeePteeDCALFtoeeHFtoe->SaveAs("./plots/MeePteeDCA_LFtoeeHFtoe.png");
+    // cMeePteeDCALFtoeeHFtoe->SaveAs("./plots/MeePteeDCA_LFtoeeHFtoe.png");
 
+    // generate root file with LS background mee ptee and dca LF->ee , HF->e and Sum 
+    if (bGenerateBackground) {
+      TFile *fBackground_weigths = TFile::Open("./plots/MeePteeDCA_LFtoeeHFtoe_noweight.root","RECREATE");
+      proj_recLS_MCpidEle_Mee->SetName("proj_recLS_MCpidEle_Mee");
+      proj_recLS_LFtoee_Mee->SetName("proj_recLS_LFtoee_Mee");
+      proj_recLS_HFtoe_Mee->SetName("proj_recLS_HFtoe_Mee");
+      proj_recLS_MCpidEle_Ptee->SetName("proj_recLS_MCpidEle_Ptee");
+      proj_recLS_LFtoee_Ptee->SetName("proj_recLS_LFtoee_Ptee");
+      proj_recLS_HFtoe_Ptee->SetName("proj_recLS_HFtoe_Ptee");
+      proj_recLS_MCpidEle_Mee->SetMarkerStyle(24);
+      proj_recLS_LFtoee_Mee->SetMarkerStyle(24);
+      proj_recLS_HFtoe_Mee->SetMarkerStyle(24);
+      proj_recLS_MCpidEle_Ptee->SetMarkerStyle(24);
+      proj_recLS_LFtoee_Ptee->SetMarkerStyle(24);
+      proj_recLS_HFtoe_Ptee->SetMarkerStyle(24);
+      proj_recLS_MCpidEle_Mee->Write();
+      proj_recLS_LFtoee_Mee->Write();
+      proj_recLS_HFtoe_Mee->Write();
+      proj_recLS_MCpidEle_Ptee->Write();
+      proj_recLS_LFtoee_Ptee->Write();
+      proj_recLS_HFtoe_Ptee->Write();
+      fBackground_weigths->Close();
+    }
 
 
     // Plot comparison between cocktail and ULS-LS (charm, beauty, hf)
@@ -2703,9 +2653,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
 
 
   }
-    
+
     // plot Pt of single Track charged Pions
-    ptGenTrackPionRapSel->Sumw2();
     ptGenTrackPionRapSel->Scale(1./(nEventsCent));
     normalizeToBinWidth(ptGenTrackPionRapSel);
     make3HistNice(ptGenTrackPionRapSel,kBlue+1);
@@ -2744,7 +2693,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     hPaper_chPi_Pt_0_10_cent_stat_Err->Draw("hist p E1 same");
     legChPionPt->Draw("same");
     pad2->cd();
-    hRatioPlot->GetYaxis()->SetTitle("Ratio paper/gen"); 
+    hRatioPlot->GetYaxis()->SetTitle("Ratio paper/gen");
     hRatioPlot->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hRatioPlot->GetXaxis()->SetRangeUser(0.1,10.0);
     hRatioPlot->GetXaxis()->SetLabelSize(0.1);
@@ -2753,11 +2702,18 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     hRatioPlot->GetYaxis()->SetTitleSize(0.1);
     hRatioPlot->GetXaxis()->SetTitleOffset(0.8);
     hRatioPlot->GetYaxis()->SetTitleOffset(0.4);
-    hRatioPlot->Draw("c hist"); 
+    hRatioPlot->Draw("c hist");
     cChPiPt->SaveAs("./plots/ChPionPt.png");
-    
-    
-    
+
+    if(bwriteFileLFHFweights){
+      TFile *fOutputWeightsLF = TFile::Open("./corrWeights/lfe_weights.root","RECREATE");
+      hRatioPlot->SetName("lftoe_weights_paper_data_ratio");
+      hRatioPlot->Write();
+      fOutputWeightsLF->Close();
+    }
+
+
+
 
 
   if (bPlotEfficiency) {
