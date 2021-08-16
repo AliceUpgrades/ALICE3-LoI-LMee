@@ -137,7 +137,7 @@ void ana(TString generator = "hijing")
 				auto gmpdg = abs(mTrack.GetPdgCode()); // get the pdg code
 				if (((gmpdg > 500) && (gmpdg < 549)) || ((gmpdg > 5000) && (gmpdg < 5499))) {isFromBeauty = true; break;} // if there is beauty, we can stop.
 			}
-			if(isCharmMother && !isFromBeauty) hfePt.Fill(track.GetPt());
+			if(isCharmMother || isFromBeauty) hfePt.Fill(track.GetPt()); // we are looking for HFE, so both are fine
 			if (mpdg != 22)  continue; // conversions will only be taken into account if they are produced in the inner most layer/ Be-foil and come from a photon... no weak decays
 			hVertex.Fill(track.GetStartVertexCoordinatesX(), track.GetStartVertexCoordinatesY());
 			hVertexR.Fill(track.GetStartVertexCoordinatesZ(), r_vtx);
