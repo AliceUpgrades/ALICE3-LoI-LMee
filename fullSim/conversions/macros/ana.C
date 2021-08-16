@@ -39,6 +39,8 @@ void ana(TString generator = "hijing")
 	TH2D hVertexR {"hVertexR", "prod. vertices of e^{+}/e^{-} with photon mother;z (cm);r (cm)", 1000, -20., 20., 1000, 0., 5.};
 	TH1D hInvMass {"hInvMass", "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);N / N_{ev}", 200, 0., 2.};
 	TH1D hInvMassPrim {"hInvMassPrim", "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}", 200, 0., 2.};
+	TH1D hInvMass_dPhi {"hInvMass", "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);N / N_{ev}", 200, 0., 2.,200, 0., 4.};
+	TH1D hInvMass_dPhiPrim {"hInvMassPrim", "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}", 200, 0., 2.,200, 0., 4.};
 
 	TH1D hLS1 {"hLS1","Like Sign spectrum of -- pairs from all particles;m_{ee} (GeV/c^{2})", 400,0,4};
 	TH1D hLS2 {"hLS2","Like Sign spectrum of ++ pairs from all particles;m_{ee} (GeV/c^{2})", 400,0,4};
@@ -50,11 +52,16 @@ void ana(TString generator = "hijing")
 	TH1D hLS2primHF {"hLS2primHF","Like Sign spectrum of ++ pairs from primary electrons including at least one HFe;m_{ee} (GeV/c^{2})", 400,0,4};
 
 
+
+
+
+
 	double eMass = 0.000511;
-	double ptCut = 0.2;
 	double etaCut = 0.8;
+	double ptCut = 0.2;
 
 	bool runPrefilter = false;
+	double prfltrPt_Cut = 0.2;
 	double prfltrM_cut = 0.050;
 	double prfltrPhi_cut = 0.050;
 
@@ -103,7 +110,7 @@ void ana(TString generator = "hijing")
 		for (const auto track : *mcTracks) {
 			if (abs(track.GetPdgCode()) != 11) continue;
 			if (TMath::Abs(track.GetEta()) > etaCut) continue;
-			if (track.GetPt() < ptCut) continue;
+			if (track.GetPt() < prfltrPt_Cut) continue;
 
 			const auto r_vtx = std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) + std::pow(track.GetStartVertexCoordinatesY(), 2));
 			if (r_vtx > 0.55) continue;
@@ -170,6 +177,12 @@ void ana(TString generator = "hijing")
 		  { em.erase(em.begin()+vDelE.at(i));}
 		  for(int i = vDelP.size()-1; i >= 0; i--){ ep.erase(ep.begin()+vDelP.at(i));}
 		}
+
+		// add some cuts on the left over tracks, e.g. the actual kinematic cuts for the analysis
+		em.erase(std::remove_if(em.begin(), em.end(), [&ptCut](auto& track) { return track.GetPt() < ptCut; }), em.end());
+		ep.erase(std::remove_if(ep.begin(), ep.end(), [&ptCut](auto& track) { return track.GetPt() < ptCut; }), ep.end());
+
+
 		// printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
 		for (auto p : ep) {
 			TLorentzVector vp;
@@ -179,6 +192,7 @@ void ana(TString generator = "hijing")
 				e.Get4Momentum(ve);
 				const float mass = (ve + vp).M();
 				hInvMass.Fill(mass);
+				hInvMass_dPhi.Fill(mass,fabs(p.GetPhi() - e.GetPhi()));
 			}
 		}
 		for (auto p : ep_prim) {
@@ -189,6 +203,8 @@ void ana(TString generator = "hijing")
 				e.Get4Momentum(ve);
 				const float mass = (ve + vp).M();
 				hInvMassPrim.Fill(mass);
+				hInvMass_dPhiPrim.Fill(mass,fabs(p.GetPhi() - e.GetPhi()));
+
 			}
 		}
 		for (auto track1 = em.begin(); track1!=em.end(); ++track1)
@@ -334,6 +350,8 @@ void ana(TString generator = "hijing")
 	f->WriteTObject(&hLS2conv);
 	f->WriteTObject(&hLS1primHF);
 	f->WriteTObject(&hLS2primHF);
+	f->WriteTObject(&hInvMass_dPhi);
+	f->WriteTObject(&hInvMass_dPhiPrim);
 }
 
 bool isStable(int pdg)
