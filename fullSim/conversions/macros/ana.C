@@ -22,7 +22,7 @@ enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 void ana(TString generator = "hijing")
 {
 	TChain mcTree("o2sim");
-	cTree.AddFile(Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root",generator.Data()));
+	mcTree.AddFile(Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root",generator.Data()));
 	mcTree.SetBranchStatus("*", 0);
 	mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -53,6 +53,21 @@ void ana(TString generator = "hijing")
 	double eMass = 0.000511;
 	double ptCut = 0.2;
 	double etaCut = 0.8;
+
+	bool runPrefilter = false;
+	double prfltrM_cut = 0.050;
+	double prfltrPhi_cut = 0.050;
+
+	// lambda to define prefilter criterion
+	// this can be anything that returns a boolean
+	auto prfltr = [&prfltrM_cut,&prfltrPhi_cut](o2::MCTrack &t1,o2::MCTrack &t2) {
+		TLorentzVector lv1,lv2;
+		t1.Get4Momentum(lv1);
+		t2.Get4Momentum(lv2);
+		if ( (lv1 + lv2).M() < prfltrM_cut && (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrPhi_cut) ) return false;
+		else return true;
+	};
+
 
 	std::vector<o2::MCTrack> ep, em, ep_prim, em_prim;
 	for(int iEvent = 0; iEvent < nEvents; ++iEvent) {
@@ -129,6 +144,31 @@ void ana(TString generator = "hijing")
 			++nConv;
 			if (track.GetPdgCode() == 11) ep.emplace_back(track);
 			else em.emplace_back(track);
+		}
+
+
+		// vectors to store indicies of elements we want to get rid of
+	  std::vector<int> vDelE,vDelP;
+		for (unsigned long int e = 0; e<em.size(); ++e) {
+	    for (unsigned long int p = 0; p<ep.size(); ++p) {
+				if(!prfltr(em[e],ep[p])) {vDelE.push_back(e);vDelP.push_back(p);}
+			}
+		}
+		// sort the indizies
+	  // not sure if it is really needed, but better be safe
+	  std::sort(vDelE.begin(),vDelE.end());
+	  // erase entries that are not unique
+	  vDelE.erase(std::unique(vDelE.begin(), vDelE.end()), vDelE.end());
+	  // for second vector do as above
+	  std::sort(vDelP.begin(),vDelP.end());
+	  vDelP.erase(std::unique(vDelP.begin(), vDelP.end()), vDelP.end());
+		// only delete if we run with a prefilter
+		if (runPrefilter){
+			// loop from end to begin of vector to not screw up ordering when deleting a elemt of the vector
+		  for(int i = vDelE.size()-1; i >= 0; i--)
+		  // erase element at position stored in index vector vDelE
+		  { em.erase(em.begin()+vDelE.at(i));}
+		  for(int i = vDelP.size()-1; i >= 0; i--){ ep.erase(ep.begin()+vDelP.at(i));}
 		}
 		// printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
 		for (auto p : ep) {
@@ -281,7 +321,7 @@ void ana(TString generator = "hijing")
 	// l.Draw();
 	// c.SaveAs("../output/invMass.png");
 
-	std::unique_ptr<TFile> f {TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s.root",ptCut,etaCut,generator.Data()), "RECREATE")};
+	std::unique_ptr<TFile> f {TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s_prf_%d.root",ptCut,etaCut,generator.Data(), (int)runPrefilter), "RECREATE")};
 	f->WriteTObject(&hEvents);
 	f->WriteTObject(&hMult);
 	f->WriteTObject(&hVertex);
