@@ -19,10 +19,10 @@ bool isHF(int pdg);
 
 enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 
-void ana(TString generator = "hijing") {
+void ana(TString generator = "pythia8hi") {
   TChain mcTree("o2sim");
   mcTree.AddFile(
-      Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root", generator.Data()));
+      Form("../../run/%s/tmp/pythia_PbPb_b45_Kine.root",generator.Data()));
   mcTree.SetBranchStatus("*", 0);
   mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -61,8 +61,8 @@ void ana(TString generator = "hijing") {
       "hInvMassPrim",
       "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}", 200, 0.,
       2.};
-  TH1D hInvMass_dPhi{
-      "hInvMass",
+  TH2D hInvMass_dPhi{
+      "hInvMass_dPhi",
       "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);N / N_{ev}",
       200,
       0.,
@@ -70,8 +70,8 @@ void ana(TString generator = "hijing") {
       200,
       0.,
       4.};
-  TH1D hInvMass_dPhiPrim{
-      "hInvMassPrim",
+  TH2D hInvMass_dPhiPrim{
+      "hInvMass_dPhiPrim",
       "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}",
       200,
       0.,
@@ -117,7 +117,7 @@ void ana(TString generator = "hijing") {
   double etaCut = 0.8;
   double ptCut = 0.2;
 
-  bool runPrefilter = false;
+  bool runPrefilter = true;
   double prfltrPt_Cut = 0.2;
   double prfltrM_cut = 0.050;
   double prfltrPhi_cut = 0.050;
@@ -131,13 +131,16 @@ void ana(TString generator = "hijing") {
     t2.Get4Momentum(lv2);
     if ((lv1 + lv2).M() < prfltrM_cut &&
         (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrPhi_cut))
-      return false;
+    {
+	    printf(">>> mass: %f \t dPhi: %f\n",(lv1 + lv2).M(),fabs(t1.GetPhi() - t2.GetPhi()));
+	    return false;}
     else
       return true;
   };
 
   std::vector<o2::MCTrack> ep, em, ep_prim, em_prim;
   for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
+    if(iEvent > 100) break;
     ep.clear();
     em.clear();
     ep_prim.clear();
