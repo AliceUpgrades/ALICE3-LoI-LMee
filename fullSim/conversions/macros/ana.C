@@ -19,10 +19,10 @@ bool isHF(int pdg);
 
 enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 
-void ana(TString generator = "hijing")
+void ana(TString generator = "hijing_old")
 {
 	TChain mcTree("o2sim");
-	mcTree.AddFile(Form("../../run/%s/tmp/hijing_PbPb_b45_Kine.root",generator.Data()));
+	mcTree.AddFile(Form("../../run/%s/tmp/old_decaysOff1_hardPtMin23_hijing_Kine.root",generator.Data()));
 	mcTree.SetBranchStatus("*", 0);
 	mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -157,7 +157,7 @@ void ana(TString generator = "hijing")
 		// vectors to store indicies of elements we want to get rid of
 	  std::vector<int> vDelE,vDelP;
 		for (unsigned long int e = 0; e<em.size(); ++e) {
-	    for (unsigned long int p = 0; p<ep.size(); ++p) {
+		    for (unsigned long int p = 0; p<ep.size(); ++p) {
 				if(!prfltr(em[e],ep[p])) {vDelE.push_back(e);vDelP.push_back(p);}
 			}
 		}
