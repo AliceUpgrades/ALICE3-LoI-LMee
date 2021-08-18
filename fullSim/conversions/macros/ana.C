@@ -148,6 +148,7 @@ void ana(TString generator = "pythia8hi") {
     mcTree.GetEntry(iEvent);
     int nConv = 0;
     int Ntracks = 0;
+    // track loop for Multiplicity
     for (const auto track : *mcTracks) {
       // if (!track.isPrimary()) continue; //only tracks from generator, not
       // geant
@@ -175,15 +176,15 @@ void ana(TString generator = "pythia8hi") {
         mpdg = mTrack.GetPdgCode();
       }
       if (isStable(pdg) && isStable(mpdg))
-        continue; // if both are mother and daugther are stable, just fill the
+        continue; // if both (mother and daugther) are stable, just fill the
                   // mother (other iteration)
       if (abs(track.GetEta()) > 0.5)
         continue;
-      // if (abs(track.GetPt()) < ptCut)  continue;
       Ntracks++; // check that we are in the right eta range
-    }
+    }            // end track loop for multiplicity
     hMult.Fill(Ntracks);
 
+    // start loop for prefilter track selection
     for (const auto track : *mcTracks) {
       if (abs(track.GetPdgCode()) != 11)
         continue;
@@ -213,35 +214,14 @@ void ana(TString generator = "pythia8hi") {
       if (motherId < 0)
         continue;
       auto mTrack = (*mcTracks)[motherId];
-      // our track is an electron and we have its mother!
-      // check if its a charm mother:
-      bool isCharmMother = false;
-      bool isFromBeauty = false;
       int mpdg = abs(mTrack.GetPdgCode());
-      if (((mpdg > 400) && (mpdg < 439)) || ((mpdg > 4000) && (mpdg < 4399)))
-        isCharmMother = true;
-      while (
-          true) { // recursiv loop until beauty is found, or the stack is done.
-        auto gmId = mTrack.getMotherTrackId(); // get the mother id
-        if (gmId < 0)
-          break;                               // break condition if done here
-        mTrack = (*mcTracks)[gmId];            // get track from id
-        auto gmpdg = abs(mTrack.GetPdgCode()); // get the pdg code
-        if (((gmpdg > 500) && (gmpdg < 549)) ||
-            ((gmpdg > 5000) && (gmpdg < 5499))) {
-          isFromBeauty = true;
-          break;
-        } // if there is beauty, we can stop.
-      }
-      if (isCharmMother || isFromBeauty)
-        hfePt.Fill(track.GetPt()); // we are looking for HFE, so both are fine
       if (mpdg != 22)
         continue; // conversions will only be taken into account if they are
                   // produced in the inner most layer/ Be-foil and come from a
                   // photon... no weak decays
-      hVertex.Fill(track.GetStartVertexCoordinatesX(),
-                   track.GetStartVertexCoordinatesY());
-      hVertexR.Fill(track.GetStartVertexCoordinatesZ(), r_vtx);
+      // hVertex.Fill(track.GetStartVertexCoordinatesX(),
+      //              track.GetStartVertexCoordinatesY());
+      // hVertexR.Fill(track.GetStartVertexCoordinatesZ(), r_vtx);
       ++nConv;
       if (track.GetPdgCode() == 11)
         ep.emplace_back(track);
@@ -250,12 +230,20 @@ void ana(TString generator = "pythia8hi") {
     }
 
     // vectors to store indicies of elements we want to get rid of
-    std::vector<int> vDelE, vDelP;
+    std::vector<int> vDelE, vDelP, vDelEprim, vDelPprim;
     for (unsigned long int e = 0; e < em.size(); ++e) {
       for (unsigned long int p = 0; p < ep.size(); ++p) {
         if (!prfltr(em[e], ep[p])) {
           vDelE.push_back(e);
           vDelP.push_back(p);
+        }
+      }
+    }
+    for (unsigned long int e = 0; e < em_prim.size(); ++e) {
+      for (unsigned long int p = 0; p < ep_prim.size(); ++p) {
+        if (!prfltr(em_prim[e], ep_prim[p])) {
+          vDelEprim.push_back(e);
+          vDelPprim.push_back(p);
         }
       }
     }
@@ -267,6 +255,13 @@ void ana(TString generator = "pythia8hi") {
     // for second vector do as above
     std::sort(vDelP.begin(), vDelP.end());
     vDelP.erase(std::unique(vDelP.begin(), vDelP.end()), vDelP.end());
+    std::sort(vDelEprim.begin(), vDelEprim.end());
+    vDelEprim.erase(std::unique(vDelEprim.begin(), vDelEprim.end()),
+                    vDelEprim.end());
+    std::sort(vDelPprim.begin(), vDelPprim.end());
+    vDelPprim.erase(std::unique(vDelPprim.begin(), vDelPprim.end()),
+                    vDelPprim.end());
+
     // only delete if we run with a prefilter
     if (runPrefilter) {
       // loop from end to begin of vector to not screw up ordering when deleting
@@ -278,24 +273,75 @@ void ana(TString generator = "pythia8hi") {
       for (int i = vDelP.size() - 1; i >= 0; i--) {
         ep.erase(ep.begin() + vDelP.at(i));
       }
+      for (int i = vDelEprim.size() - 1; i >= 0; i--) {
+        em_prim.erase(em_prim.begin() + vDelEprim.at(i));
+      }
+      for (int i = vDelPprim.size() - 1; i >= 0; i--) {
+        ep_prim.erase(ep_prim.begin() + vDelPprim.at(i));
+      }
     }
 
     // add some cuts on the left over tracks, e.g. the actual kinematic cuts for
     // the analysis
+    // use this to make the code more readable
+    auto pt_cut = [&ptCut](auto &track) { return track.GetPt() < ptCut; };
     em.erase(
         std::remove_if(em.begin(), em.end(),
                        [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
         em.end());
+    em_prim.erase(
+        std::remove_if(em_prim.begin(), em_prim.end(),
+                       [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
+        em_prim.end());
     ep.erase(
         std::remove_if(ep.begin(), ep.end(),
                        [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
         ep.end());
-
+    ep_prim.erase(
+        std::remove_if(ep_prim.begin(), ep_prim.end(),
+                       [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
+        ep_prim.end());
+    // hf selection. write lambda, use for each in the std::vectors? we only
+    // need to know if there is a HF particle in those...
+    //??????????????????????????????????????????????????????
+    auto isHFe = [&mcTracks](auto &track) {
+      auto motherId = track.getMotherTrackId();
+      if (motherId < 0)
+        return false;
+      auto mTrack = (*mcTracks)[motherId];
+      // our track is an electron and we have its mother!
+      // check if its a charm mother:
+      bool isCharmMother = false;
+      bool isFromBeauty = false;
+      int mpdg = abs(mTrack.GetPdgCode());
+      if (((mpdg > 400) && (mpdg < 439)) || ((mpdg > 4000) && (mpdg < 4399)))
+        isCharmMother = true;
+      while (true) {
+        // recursiv loop until beauty is found, or the stack is done.
+        auto gmId = mTrack.getMotherTrackId(); // get the mother id
+        if (gmId < 0)
+          break;                               // break condition if done here
+        mTrack = (*mcTracks)[gmId];            // get track from id
+        auto gmpdg = abs(mTrack.GetPdgCode()); // get the pdg code
+        if (((gmpdg > 500) && (gmpdg < 549)) ||
+            ((gmpdg > 5000) && (gmpdg < 5499))) {
+          isFromBeauty = true;
+          break;
+        } // if there is beauty, we can stop.
+      }
+      return (isCharmMother || isFromBeauty);
+    };
+		for(auto track : ep) {if(isHFe(track)) hfePt.Fill(track.GetPt());}
+		for(auto track : em) {if(isHFe(track)) hfePt.Fill(track.GetPt());}
+    //??????????????????????????????????????????????????????
     // printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
-    auto dphi = [](o2::MCTrack & t1, o2::MCTrack & t2) {
-      auto deltaPhi = t1.GetPhi() - t2.GetPhi();
-      if(deltaPhi > TMath::Pi())  {(deltaPhi -= TMath::Pi());}
-			return deltaPhi;
+    auto dphi = [](o2::MCTrack &t1, o2::MCTrack &t2) {
+      auto deltaPhi = fabs(t1.GetPhi() - t2.GetPhi());
+      // printf("delpta Phi: %f\n", deltaPhi);
+      if (deltaPhi > TMath::Pi()) {
+        (deltaPhi -= 2 * TMath::Pi());
+      }
+      return fabs(deltaPhi);
     };
     for (auto p : ep) {
       TLorentzVector vp;
@@ -305,8 +351,7 @@ void ana(TString generator = "pythia8hi") {
         e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
         hInvMass.Fill(mass);
-				hInvMass_dPhi.Fill(mass, dphi(p,e));
-				// hInvMass_dPhi.Fill(mass, fabs(p.GetPhi() - e.GetPhi()));
+        hInvMass_dPhi.Fill(mass, dphi(p, e));
       }
     }
     for (auto p : ep_prim) {
@@ -317,7 +362,7 @@ void ana(TString generator = "pythia8hi") {
         e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
         hInvMassPrim.Fill(mass);
-        hInvMass_dPhiPrim.Fill(mass, dphi(p,e));
+        hInvMass_dPhiPrim.Fill(mass, dphi(p, e));
       }
     }
     for (auto track1 = em.begin(); track1 != em.end(); ++track1) {
@@ -408,49 +453,6 @@ void ana(TString generator = "pythia8hi") {
     }
   }
 
-  // hLS1prim.Add(&hLS1prim);
-  // FillLsHist(&hLS1,em);
-  //
-  // TCanvas c("c", "c", 1600, 1600);
-  // hVertex.Draw("colz");
-  // hVertex.SetStats(false);
-  // c.SaveAs("conv_xy.png");
-  // hVertexR.Draw("colz");
-  // hVertexR.SetStats(false);
-  // c.SaveAs("conv_rz.png");
-  // // hLS1.Scale(1./nEvents);
-  // hLS1.SetMarkerStyle(20);
-  // hLS1.SetMarkerColor(kBlack);
-  // hLS1.SetLineColor(kBlack);
-  // // hLS1prim.Scale(1./nEvents);
-  // hLS1prim.SetMarkerStyle(20);
-  // hLS1prim.SetMarkerColor(kRed);
-  // hLS1prim.SetLineColor(kRed);
-  // hLS1.SetMaximum(10);
-  // hLS1.SetMinimum(0.001);
-  // c.SetLogy();
-  // hLS1.SetStats(0);
-  // hLS1.Draw();
-  // hLS1prim.Draw("same");
-  // TLegend l1(0.6, 0.7, .9, .9);
-  // l1.AddEntry(&hLS1,"All -- pairs (w/ conversions)");
-  // l1.AddEntry(&hLS1prim,"All primary -- pairs");
-  // l1.Draw();
-  // c.SaveAs("../output/massSpectrum.png");
-  // c.SetLogy(kFALSE);
-  //
-  //
-  // hInvMass.Scale(1./nEvents);
-  // hInvMass.SetStats(kFALSE);
-  // hInvMass.Draw();
-  // hInvMassPrim.Scale(1./nEvents);
-  // hInvMassPrim.Draw("same");
-  // hInvMassPrim.SetLineColor(kRed);
-  // TLegend l(0.6, 0.7, .9, .9);
-  // l.AddEntry(&hInvMass, "conversions", "l");
-  // l.AddEntry(&hInvMassPrim, "primary", "l");
-  // l.Draw();
-  // c.SaveAs("../output/invMass.png");
 
   std::unique_ptr<TFile> f{
       TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s_prf_%d.root", ptCut,
