@@ -292,6 +292,11 @@ void ana(TString generator = "pythia8hi") {
         ep.end());
 
     // printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
+    auto dphi = [](o2::MCTrack & t1, o2::MCTrack & t2) {
+      auto deltaPhi = t1.GetPhi() - t2.GetPhi();
+      if(deltaPhi > TMath::Pi())  {(deltaPhi -= TMath::Pi());}
+			return deltaPhi;
+    };
     for (auto p : ep) {
       TLorentzVector vp;
       p.Get4Momentum(vp);
@@ -300,7 +305,8 @@ void ana(TString generator = "pythia8hi") {
         e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
         hInvMass.Fill(mass);
-        hInvMass_dPhi.Fill(mass, fabs(p.GetPhi() - e.GetPhi()));
+				hInvMass_dPhi.Fill(mass, dphi(p,e));
+				// hInvMass_dPhi.Fill(mass, fabs(p.GetPhi() - e.GetPhi()));
       }
     }
     for (auto p : ep_prim) {
@@ -311,7 +317,7 @@ void ana(TString generator = "pythia8hi") {
         e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
         hInvMassPrim.Fill(mass);
-        hInvMass_dPhiPrim.Fill(mass, fabs(p.GetPhi() - e.GetPhi()));
+        hInvMass_dPhiPrim.Fill(mass, dphi(p,e));
       }
     }
     for (auto track1 = em.begin(); track1 != em.end(); ++track1) {
