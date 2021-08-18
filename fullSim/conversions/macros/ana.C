@@ -36,6 +36,8 @@ void ana(TString generator = "pythia8hi") {
   TH1D hMult{"hMult", "Multiplicity", 100, 0, 3500};
   TH1D hfePt{"hHfePt", "p_{T} spectrum of electrons from charm; p_{T} (GeV/c)",
              200, 0, 10};
+	TH1D allPt{"hAllPt", "p_{T} spectrum of electrons; p_{T} (GeV/c)",
+	          200, 0, 10};
   TH2D hVertex{"hVertex",
                "prod. vertices of e^{+}/e^{-} with photon mother;x (cm);y (cm)",
                1000,
@@ -45,49 +47,49 @@ void ana(TString generator = "pythia8hi") {
                -r,
                r};
   TH2D hVertexR{
-      "hVertexR",
-      "prod. vertices of e^{+}/e^{-} with photon mother;z (cm);r (cm)",
-      1000,
-      -20.,
-      20.,
-      1000,
-      0.,
-      5.};
+    "hVertexR",
+    "prod. vertices of e^{+}/e^{-} with photon mother;z (cm);r (cm)",
+    1000,
+    -20.,
+    20.,
+    1000,
+    0.,
+    5.};
   TH1D hInvMass{
-      "hInvMass",
-      "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);N / N_{ev}",
-      200, 0., 2.};
+    "hInvMass",
+    "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);N / N_{ev}",
+    200, 0., 2.};
   TH1D hInvMassPrim{
-      "hInvMassPrim",
-      "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}", 200, 0.,
-      2.};
+    "hInvMassPrim",
+    "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}", 200, 0.,
+    2.};
   TH2D hInvMass_dPhi{
-      "hInvMass_dPhi",
-      "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);N / N_{ev}",
-      200,
-      0.,
-      2.,
-      200,
-      0.,
-      4.};
+    "hInvMass_dPhi",
+    "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);#Delta #phi",
+    200,
+    0.,
+    2.,
+    200,
+    -3.4,
+    3.4};
   TH2D hInvMass_dPhiPrim{
-      "hInvMass_dPhiPrim",
-      "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}",
-      200,
-      0.,
-      2.,
-      200,
-      0.,
-      4.};
+    "hInvMass_dPhiPrim",
+    "invariant mass of primary e^{+}/e^{-};m (GeV/c);#Delta #phi",
+    200,
+    0.,
+    2.,
+    200,
+    -3.4,
+    3.4};
 
   TH1D hLS1{
-      "hLS1",
-      "Like Sign spectrum of -- pairs from all particles;m_{ee} (GeV/c^{2})",
-      400, 0, 4};
+    "hLS1",
+    "Like Sign spectrum of -- pairs from all particles;m_{ee} (GeV/c^{2})",
+    400, 0, 4};
   TH1D hLS2{
-      "hLS2",
-      "Like Sign spectrum of ++ pairs from all particles;m_{ee} (GeV/c^{2})",
-      400, 0, 4};
+    "hLS2",
+    "Like Sign spectrum of ++ pairs from all particles;m_{ee} (GeV/c^{2})",
+    400, 0, 4};
   TH1D hLS1conv{"hLS1conv",
                 "Like Sign spectrum of -- pairs including at least one "
                 "conversion electron;m_{ee} (GeV/c^{2})",
@@ -117,30 +119,31 @@ void ana(TString generator = "pythia8hi") {
   double etaCut = 0.8;
   double ptCut = 0.2;
 
-  bool runPrefilter = true;
+  bool runPrefilter = false;
   double prfltrPt_Cut = 0.2;
   double prfltrM_cut = 0.050;
   double prfltrPhi_cut = 0.050;
 
   // lambda to define prefilter criterion
   // this can be anything that returns a boolean
-  auto prfltr = [&prfltrM_cut, &prfltrPhi_cut](o2::MCTrack &t1,
-                                               o2::MCTrack &t2) {
+  auto prfltr = [&prfltrM_cut, &prfltrPhi_cut](o2::MCTrack& t1,
+                                               o2::MCTrack& t2) {
     TLorentzVector lv1, lv2;
     t1.Get4Momentum(lv1);
     t2.Get4Momentum(lv2);
     if ((lv1 + lv2).M() < prfltrM_cut &&
-        (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrPhi_cut))
-    {
-	    printf(">>> mass: %f \t dPhi: %f\n",(lv1 + lv2).M(),fabs(t1.GetPhi() - t2.GetPhi()));
-	    return false;}
-    else
+        (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrPhi_cut)) {
+      // printf(">>> mass: %f \t dPhi: %f\n", (lv1 + lv2).M(),
+      //        fabs(t1.GetPhi() - t2.GetPhi()));
+      return false;
+    } else
       return true;
   };
 
   std::vector<o2::MCTrack> ep, em, ep_prim, em_prim;
   for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
-    if(iEvent > 100) break;
+    // if (iEvent > 100)
+    //   break;
     ep.clear();
     em.clear();
     ep_prim.clear();
@@ -153,14 +156,14 @@ void ana(TString generator = "pythia8hi") {
       // if (!track.isPrimary()) continue; //only tracks from generator, not
       // geant
       const auto r_vtx =
-          std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) +
-                    std::pow(track.GetStartVertexCoordinatesY(), 2));
+        std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) +
+                  std::pow(track.GetStartVertexCoordinatesY(), 2));
       if (r_vtx > 0.1)
         continue; // additional 'primary' selection
       auto pdg = track.GetPdgCode();
       if (!pdg)
         continue; // if pdg code is 0 something is wrong
-      TParticlePDG *pPDG = TDatabasePDG::Instance()->GetParticle(pdg);
+      TParticlePDG* pPDG = TDatabasePDG::Instance()->GetParticle(pdg);
       if (!pPDG)
         continue; // if no particle, something is wrong
       if (fabs(pPDG->Charge()) < 3.)
@@ -194,8 +197,8 @@ void ana(TString generator = "pythia8hi") {
         continue;
 
       const auto r_vtx =
-          std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) +
-                    std::pow(track.GetStartVertexCoordinatesY(), 2));
+        std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) +
+                  std::pow(track.GetStartVertexCoordinatesY(), 2));
       if (r_vtx > 0.55)
         continue;
       if (r_vtx < 0.05) // check for primaries... TODO: implement proper is
@@ -284,27 +287,15 @@ void ana(TString generator = "pythia8hi") {
     // add some cuts on the left over tracks, e.g. the actual kinematic cuts for
     // the analysis
     // use this to make the code more readable
-    auto pt_cut = [&ptCut](auto &track) { return track.GetPt() < ptCut; };
-    em.erase(
-        std::remove_if(em.begin(), em.end(),
-                       [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
-        em.end());
-    em_prim.erase(
-        std::remove_if(em_prim.begin(), em_prim.end(),
-                       [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
-        em_prim.end());
-    ep.erase(
-        std::remove_if(ep.begin(), ep.end(),
-                       [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
-        ep.end());
-    ep_prim.erase(
-        std::remove_if(ep_prim.begin(), ep_prim.end(),
-                       [&ptCut](auto &track) { return track.GetPt() < ptCut; }),
-        ep_prim.end());
+    auto pt_cut = [&ptCut](auto& track) { return track.GetPt() < ptCut; };
+    em.erase(std::remove_if(em.begin(), em.end(), pt_cut), em.end());
+    em_prim.erase(std::remove_if(em_prim.begin(), em_prim.end(), pt_cut), em_prim.end());
+    ep.erase(std::remove_if(ep.begin(), ep.end(), pt_cut), ep.end());
+    ep_prim.erase(std::remove_if(ep_prim.begin(), ep_prim.end(), pt_cut), ep_prim.end());
     // hf selection. write lambda, use for each in the std::vectors? we only
     // need to know if there is a HF particle in those...
     //??????????????????????????????????????????????????????
-    auto isHFe = [&mcTracks](auto &track) {
+    auto isHFe = [&mcTracks](auto& track) {
       auto motherId = track.getMotherTrackId();
       if (motherId < 0)
         return false;
@@ -331,11 +322,20 @@ void ana(TString generator = "pythia8hi") {
       }
       return (isCharmMother || isFromBeauty);
     };
-		for(auto track : ep) {if(isHFe(track)) hfePt.Fill(track.GetPt());}
-		for(auto track : em) {if(isHFe(track)) hfePt.Fill(track.GetPt());}
+    for (auto track : ep_prim) {
+			allPt.Fill(track.GetPt());
+      if (isHFe(track))
+        hfePt.Fill(track.GetPt());
+    }
+    for (auto track : em_prim) {
+			allPt.Fill(track.GetPt());
+      if (isHFe(track))
+        hfePt.Fill(track.GetPt());
+    }
+
     //??????????????????????????????????????????????????????
     // printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
-    auto dphi = [](o2::MCTrack &t1, o2::MCTrack &t2) {
+    auto dphi = [](o2::MCTrack& t1, o2::MCTrack& t2) {
       auto deltaPhi = fabs(t1.GetPhi() - t2.GetPhi());
       // printf("delpta Phi: %f\n", deltaPhi);
       if (deltaPhi > TMath::Pi()) {
@@ -453,14 +453,14 @@ void ana(TString generator = "pythia8hi") {
     }
   }
 
-
   std::unique_ptr<TFile> f{
-      TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s_prf_%d.root", ptCut,
-                       etaCut, generator.Data(), (int)runPrefilter),
-                  "RECREATE")};
+    TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s_prf_%d.root", ptCut,
+                     etaCut, generator.Data(), (int)runPrefilter),
+                "RECREATE")};
   f->WriteTObject(&hEvents);
   f->WriteTObject(&hMult);
   f->WriteTObject(&hVertex);
+	f->WriteTObject(&allPt);
   f->WriteTObject(&hfePt);
   f->WriteTObject(&hLS1);
   f->WriteTObject(&hLS2);
@@ -474,54 +474,56 @@ void ana(TString generator = "pythia8hi") {
   f->WriteTObject(&hInvMass_dPhiPrim);
 }
 
-bool isStable(int pdg) {
+bool isStable(int pdg)
+{
   if (abs(pdg) > 1000000000)
     return true;
   switch (abs(pdg)) {
-  case 22: // Photon
-    return true;
-  case 11: // Electron
-    return true;
-  case 13: // Muon
-    return true;
-  case 211: // Pion
-    return true;
-  case 321: // Kaon
-    return true;
-  case 310: // K0s
-    return true;
-  case 130: // K0l
-    return true;
-  case 2212: // Proton
-    return true;
-  case 2112: // Neutron
-    return true;
-  case 3122: // Lambda_0
-    return true;
-  case 3212: // Sigma0
-    return true;
-  case 3112: // Sigma Minus
-    return true;
-  case 3222: // Sigma Plus
-    return true;
-  case 3312: // Xsi Minus
-    return true;
-  case 3322: // Xsi
-    return true;
-  case 3334: // Omega
-    return true;
-  case 12: // Electron Neutrino
-    return true;
-  case 14: // Muon Neutrino
-    return true;
-  case 16: // Tau Neutrino
-    return true;
-  default:
-    return false;
+    case 22: // Photon
+      return true;
+    case 11: // Electron
+      return true;
+    case 13: // Muon
+      return true;
+    case 211: // Pion
+      return true;
+    case 321: // Kaon
+      return true;
+    case 310: // K0s
+      return true;
+    case 130: // K0l
+      return true;
+    case 2212: // Proton
+      return true;
+    case 2112: // Neutron
+      return true;
+    case 3122: // Lambda_0
+      return true;
+    case 3212: // Sigma0
+      return true;
+    case 3112: // Sigma Minus
+      return true;
+    case 3222: // Sigma Plus
+      return true;
+    case 3312: // Xsi Minus
+      return true;
+    case 3322: // Xsi
+      return true;
+    case 3334: // Omega
+      return true;
+    case 12: // Electron Neutrino
+      return true;
+    case 14: // Muon Neutrino
+      return true;
+    case 16: // Tau Neutrino
+      return true;
+    default:
+      return false;
   }
 }
 
-bool isInFITacc(double eta) {
+bool isInFITacc(double eta)
+{
   if ((2.2 < eta) && (eta < 5.0))
     return true;
   if ((-3.4 < eta) && (eta < -2.3))
@@ -530,6 +532,7 @@ bool isInFITacc(double eta) {
     return false;
 }
 
-bool isHF(int pdg) {
+bool isHF(int pdg)
+{
   return (((pdg > 400) && pdg < (600)) || ((pdg > 4000) && pdg < (6000)));
 }
