@@ -49,10 +49,12 @@ runDelphes() {
   root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
   # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
-NJOBS=5        # number of max parallel runs
-NRUNS=10        # number of runs
 
-NEVENTS=10    # number of events in a run
+
+NJOBS=10        # number of max parallel runs                   50
+NRUNS=10        # number of runs                               100
+
+NEVENTS=10    # number of events in a run                       1000
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
@@ -60,26 +62,26 @@ SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="werner"     # detector setup
-BFIELD=2       # magnetic field  [kG]
-# BFIELD=5       # magnetic field  [kG]
+# BFIELD=2       # magnetic field  [kG]
+BFIELD=5       # magnetic field  [kG]
 
-RADIUS=10
-# RADIUS=100
+# RADIUS=10
+RADIUS=100
 
-# SIGMAT=0.020      # time resolution [ns]
-SIGMAT=0.050      # time resolution [ns]
+SIGMAT=0.020      # time resolution [ns]
+ITOFSIGMAT=0.050      # time resolution [ns]
 SIGMA0=0.200      # vertex time spread [ns]
-BARRELRAD=19.    # barrel radius      [cm] (right now equal to TOF)
-BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
-# BARRELRAD=100.    # barrel radius      [cm] (right now equal to TOF)
-# BARRELLEN=200.    # barrel half length [cm] (right now equal to TOF)
+# BARRELRAD=19.    # barrel radius      [cm] (right now equal to TOF)
+# BARRELLEN=38.    # barrel half length [cm] (right now equal to TOF)
+BARRELRAD=100.    # barrel radius      [cm] (right now equal to TOF)
+BARRELLEN=200.    # barrel half length [cm] (right now equal to TOF)
 BARRELETA=1.443   # barrel max pseudorapidity
 TAILLX=1.0        # tail on left    [q]
 TAILRX=1.3        # tail on right   [q]
-TOFRAD=19.       # TOF radius      [cm]
-TOFLEN=38.       # TOF half length [cm]
-# TOFRAD=100.       # TOF radius      [cm]
-# TOFLEN=200.       # TOF half length [cm]
+ITOFRAD=19.       # TOF radius      [cm]
+ITOFLEN=38.       # TOF half length [cm]
+TOFRAD=100.       # TOF radius      [cm]
+TOFLEN=200.       # TOF half length [cm]
 RICHRAD=100.      # RICH radius      [cm]
 RICHLEN=200.      # RICH half length [cm]
 
@@ -119,6 +121,10 @@ echo " --- selected RADIUS:   $RADIUS"
 # code
 cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 
+# LF and HF weights
+cp ./corrWeights/hfe_weights.root hfe_weights.root
+cp ./corrWeights/lfe_weights.root lfe_weights.root
+
 # LUTS
 if [[ $SCENARIO = "werner" ]]
 then
@@ -141,12 +147,14 @@ fi
 # make sure B field is set right
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
 sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
-### set TOF radius
+### set (i)TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${BARRELRAD}e\-2/" propagate.tcl
 sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
-### set TOF length
+sed -i -e "s/double inner_tof_radius = .*$/double inner_tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
+### set (i)TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${BARRELLEN}e\-2/" propagate.tcl
 sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_length = .*$/double inner_tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${BARRELETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
@@ -155,6 +163,8 @@ sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
 sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_sigmat = .*$/double inner_tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
+sed -i -e "s/double inner_tof_sigma0 = .*$/double inner_tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
 ### set RICH radius
 sed -i -e "s/double rich_radius = .*$/double rich_radius = ${RICHRAD}\;/" anaEEstudy.cxx
 ### set RICH length
@@ -211,16 +221,23 @@ for I in $(seq 1 $NRUNS); do
     touch .running.$I
 
     runDelphes $I $NEVENTS $NEVENTSCC $NEVENTSBB $SYSTEM &&
-    (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I completed") ||
-    (rm -rf delphes.$I.root && rm -rf .running.$I && echo " --- run $I crashed") &
+    (#rm -rf delphes.$I.root &&
+     rm -rf .running.$I && echo " --- run $I completed") ||
+    (#rm -rf delphes.$I.root &&
+     rm -rf .running.$I && echo " --- run $I crashed") &
 
 done
 
 
 wait
+
+hadd delphes.$(expr $NEVENTS \* $NRUNS).root delphes.*.root
+mv delphes.$(expr $NEVENTS \* $NRUNS).root ./data/delphes_files/
+rm -rf delphes.*.root
+
 echo " Finished running Delphes "
 ### merge runs when all done
-hadd -f anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
+hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
 # cp ./macros/anaPlots.cxx anaPlots.cxx &&
 # root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
@@ -229,7 +246,7 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)even
 ### clean up
 rm lutCovm*
 rm propagate.tcl
-rm *.root
+# rm *.root
 # rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
