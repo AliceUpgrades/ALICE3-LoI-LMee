@@ -29,20 +29,16 @@ void ana(TString generator = "pythia8hi") {
   mcTree.SetBranchStatus("*", 0);
   mcTree.SetBranchStatus("MCTrack*", 1);
 
-  std::vector<o2::MCTrack> *mcTracks = nullptr;
   std::vector<o2::MCTrack>* mcTracks = nullptr;
   mcTree.SetBranchAddress("MCTrack", &mcTracks);
 
   const int nEvents = mcTree.GetEntries();
   TH1D hEvents{"hEvents", "nEvents", 1, 0, 1};
-  hEvents.SetBinContent(1, nEvents);
   // hEvents.SetBinContent(1, nEvents);
   const float r = 10.;
   TH1D hMult{"hMult", "Multiplicity", 100, 0, 3500};
   TH1D hfePt{"hHfePt", "p_{T} spectrum of electrons from charm; p_{T} (GeV/c)",
              200, 0, 10};
-	TH1D allPt{"hAllPt", "p_{T} spectrum of electrons; p_{T} (GeV/c)",
-	          200, 0, 10};
   TH1D allPt{"hAllPt", "p_{T} spectrum of electrons; p_{T} (GeV/c)",
              200, 0, 10};
   TH2D hVertex{"hVertex",
@@ -69,8 +65,8 @@ void ana(TString generator = "pythia8hi") {
   TH1D hInvMassPrim{
     "hInvMassPrim",
     "invariant mass of primary e^{+}/e^{-};m (GeV/c);N / N_{ev}", 200, 0., 4.};
-  TH1D hInvMass{
-    "hULS_UF",
+  TH1D hULS_HF{
+    "hULS_HF",
     "invariant mass of e^{+}/e^{-} from HF;m (GeV/c);N",
     200, 0., 4.};
   TH2D hInvMass_dPhi{
@@ -132,17 +128,22 @@ void ana(TString generator = "pythia8hi") {
   bool runPrefilter = false;
   double prfltrPt_Cut = 0.2;
   double prfltrM_cut = 0.050;
-  double prfltrPhi_cut = 0.050;
+  double prfltrOA_cut = 0.050;
 
+	auto oa = [](TLorentzVector &lv1,TLorentzVector &lv2){return fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect())));};
   // lambda to define prefilter criterion
   // this can be anything that returns a boolean
-  auto prfltr = [&prfltrM_cut, &prfltrPhi_cut](o2::MCTrack& t1,
-                                               o2::MCTrack& t2) {
+  auto prfltr = [&prfltrM_cut, &prfltrOA_cut, oa](o2::MCTrack& t1,
+                                              o2::MCTrack& t2) {
     TLorentzVector lv1, lv2;
     t1.Get4Momentum(lv1);
     t2.Get4Momentum(lv2);
+    // printf("OA: %f, phi: %f\n", lv1.Vect().Angle(lv2.Vect()), fabs(t1.GetPhi() - t2.GetPhi()));
     if ((lv1 + lv2).M() < prfltrM_cut &&
-        (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrPhi_cut)) {
+        // (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrOA_cut)) {
+				((oa(lv1,lv2)) < prfltrOA_cut)) {
+				// (fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))) < prfltrOA_cut)) {
+
       // printf(">>> mass: %f \t dPhi: %f\n", (lv1 + lv2).M(),
       //        fabs(t1.GetPhi() - t2.GetPhi()));
       return false;
@@ -153,7 +154,7 @@ void ana(TString generator = "pythia8hi") {
   std::vector<o2::MCTrack> ep, em, ep_prim, em_prim;
   for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
     // if (iEvent > 100)
-		hEvents.Fill();
+    hEvents.Fill(0.5);
     //   break;
     ep.clear();
     em.clear();
@@ -333,30 +334,24 @@ void ana(TString generator = "pythia8hi") {
       }
       return (isCharmMother || isFromBeauty);
     };
-		std::vector<int> vHFep,vHFem;
+    std::vector<o2::MCTrack> vHFep, vHFem;
     for (auto track : ep_prim) {
       allPt.Fill(track.GetPt());
-      if (isHFe(track))
+      if (isHFe(track)) {
         hfePt.Fill(track.GetPt());
-				vHFep.emplace_back(track);
+        vHFep.emplace_back(track);
+      }
     }
     for (auto track : em_prim) {
       allPt.Fill(track.GetPt());
-      if (isHFe(track))
+      if (isHFe(track)) {
         hfePt.Fill(track.GetPt());
-				vHFem.emplace_back(track);
+        vHFem.emplace_back(track);
+      }
     }
 
     //??????????????????????????????????????????????????????
     // printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
-    auto dphi = [](o2::MCTrack& t1, o2::MCTrack& t2) {
-      auto deltaPhi = fabs(t1.GetPhi() - t2.GetPhi());
-      // printf("delpta Phi: %f\n", deltaPhi);
-      if (deltaPhi > TMath::Pi()) {
-        (deltaPhi -= 2 * TMath::Pi());
-      }
-      return fabs(deltaPhi);
-    };
     for (auto p : ep) {
       TLorentzVector vp;
       p.Get4Momentum(vp);
@@ -365,7 +360,7 @@ void ana(TString generator = "pythia8hi") {
         e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
         hInvMass.Fill(mass);
-        hInvMass_dPhi.Fill(mass, dphi(p, e));
+        hInvMass_dPhi.Fill(mass, oa(vp, ve));
       }
     }
     for (auto p : ep_prim) {
@@ -376,20 +371,19 @@ void ana(TString generator = "pythia8hi") {
         e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
         hInvMassPrim.Fill(mass);
-        hInvMass_dPhiPrim.Fill(mass, dphi(p, e));
+        hInvMass_dPhiPrim.Fill(mass, oa(vp, ve));
       }
     }
-		for(auto p: vHFep)
-		{
-			TLorentzVector vp;
+    for (auto p : vHFep) {
+      TLorentzVector vp;
       p.Get4Momentum(vp);
-      for(auto e : vHFem)
-			{
-				e.Get4Momentum(ve);
+      for (auto e : vHFem) {
+        TLorentzVector ve;
+        e.Get4Momentum(ve);
         const float mass = (ve + vp).M();
-				hULS_UF.Fill(mass);
-			}
-		}
+        hULS_HF.Fill(mass);
+      }
+    }
     for (auto track1 = em.begin(); track1 != em.end(); ++track1) {
       TLorentzVector LV1;
       track1->Get4Momentum(LV1);
@@ -497,7 +491,7 @@ void ana(TString generator = "pythia8hi") {
   f->WriteTObject(&hLS2primHF);
   f->WriteTObject(&hInvMass_dPhi);
   f->WriteTObject(&hInvMass_dPhiPrim);
-	f->WriteTObject(&hULS_UF);
+  f->WriteTObject(&hULS_HF);
 }
 
 bool isStable(int pdg)
