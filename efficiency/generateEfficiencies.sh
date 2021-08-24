@@ -63,7 +63,7 @@ SYSTEM="PbPb"         # collisionSystem
 # SCENARIO="default"     # detector setup
 SCENARIO="werner"     # detector setup
 # BFIELD=2       # magnetic field  [kG]
-BFIELD=5       # magnetic field  [kG]
+BFIELD=20       # magnetic field  [kG]
 
 # RADIUS=10
 RADIUS=100
@@ -108,8 +108,9 @@ fi
 echo " --- selected SYSTEM:   $SYSTEM"
 
 # card
-cp ../delphes/cards/propagate.${BFIELD}kG.tails.tcl propagate.tcl
-echo " --- selected B-Field:  0.${BFIELD}T"
+# cp ../delphes/cards/propagate.${BFIELD}kG.tails.tcl propagate.tcl
+cp ../delphes/cards/propagate.2kG.tails.tcl propagate.tcl
+echo " --- selected B-Field:  ${BFIELD}kG"
 
 # resolution files
 cp ../resolutionfiles/resolution_test_${BFIELD}kG.root resolution.root
@@ -146,7 +147,7 @@ fi
 
 # make sure B field is set right
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
-sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
+sed -i -e "s/double Bz .*$/double Bz = ${BFIELD};/" anaEEstudy.cxx
 ### set (i)TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${BARRELRAD}e\-2/" propagate.tcl
 sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" anaEEstudy.cxx
@@ -237,12 +238,12 @@ rm -rf delphes.*.root
 
 echo " Finished running Delphes "
 ### merge runs when all done
-hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
+hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
 # cp ./macros/anaPlots.cxx anaPlots.cxx &&
 # root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
 # rm anaPlots.cxx
-mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod
+mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod
 ### clean up
 rm lutCovm*
 rm propagate.tcl

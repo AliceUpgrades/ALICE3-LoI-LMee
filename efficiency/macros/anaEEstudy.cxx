@@ -28,7 +28,7 @@ bool bUseTOF   = true;
 bool bUseRICH  = true;
 bool bPlotPIDhists = false;
 
-double Bz = 0.5;            // becomes overwritten by the generateEfficiencies.sh skript
+double Bz = 5;            // in kG,  becomes overwritten by the generateEfficiencies.sh skript
 double eMass = 0.000511;
 
 
@@ -101,6 +101,7 @@ double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,   
 double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */   /*  99.,    99.    */    /*  4.0,    4.0, */   4.0  };
 double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.04,   0.0    */    /*  0.08,   0.08,*/   0.08 };
 double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.08,   0.0    */    /*  0.2,    0.2, */   0.2  };
+double PtCut20[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.08,   0.0    */    /*  0.2,    0.2, */   0.3  };
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
 
@@ -227,8 +228,9 @@ bool kineCuts(Track *tr, Int_t iSce){
   // check pt and eta for track
   // evaluate as true if criterion is passed
   bool pt;
-  if(Bz == 0.2) pt = tr->PT > PtCut02[iSce];
-  else if(Bz == 0.5) pt = tr->PT > PtCut05[iSce];
+  if(Bz == 2) pt = tr->PT > PtCut02[iSce];
+  else if(Bz == 5) pt = tr->PT > PtCut05[iSce];
+  else if(Bz == 20) pt = tr->PT > PtCut20[iSce];
   bool eta = abs(tr->Eta) < EtaCut;
   // all have to be true
   return (pt && eta);
@@ -239,8 +241,9 @@ bool kineCuts(GenParticle *pa, Int_t iSce){
   // check pt and eta for particle
   // evaluate as true if criterion is passed
   bool pt;
-  if(Bz == 0.2) pt = pa->PT > PtCut02[iSce];
-  else if(Bz == 0.5) pt = pa->PT > PtCut05[iSce];
+  if(Bz == 2) pt = pa->PT > PtCut02[iSce];
+  else if(Bz == 5) pt = pa->PT > PtCut05[iSce];
+  else if(Bz == 20) pt = pa->PT > PtCut20[iSce];
   bool eta = abs(pa->Eta) < EtaCut;
   // all have to be true
   return (pt && eta);
@@ -251,8 +254,9 @@ bool kineCuts(TLorentzVector LV, Int_t iSce){
   // check pt and eta for particle
   // evaluate as true if criterion is passed
   bool pt;
-  if(Bz == 0.2) pt = LV.Pt() > PtCut02[iSce];
-  else if(Bz == 0.5) pt = LV.Pt() > PtCut05[iSce];
+  if(Bz == 2) pt = LV.Pt() > PtCut02[iSce];
+  else if(Bz == 5) pt = LV.Pt() > PtCut05[iSce];
+  else if(Bz == 20) pt = LV.Pt() > PtCut20[iSce];
   bool eta = abs(LV.Eta()) < EtaCut;
   // all have to be true
   return (pt && eta);
@@ -614,7 +618,7 @@ void anaEEstudy(
     const char *outputFile = "anaEEstudyLFcc.root" // merge output files after analysis was run to keep file size moderate
   )
 {
-
+  cout << " cout Bz = " << Bz << endl;
   // Stopwatch
   TStopwatch* watch = new TStopwatch;
   watch->Start();
@@ -1815,8 +1819,9 @@ void anaEEstudy(
         //setting variables for i-th PID scenario
         bool   i_useTOFPID = useTOFPID[iPID_scenario];
         bool   i_useRICHPID;
-        if (Bz == 0.2)      i_useRICHPID = useRICHPID_B2[iPID_scenario];
-        else if (Bz == 0.5) i_useRICHPID = useRICHPID_B5[iPID_scenario];
+        if (Bz == 2)      i_useRICHPID = useRICHPID_B2[iPID_scenario];
+        else if (Bz == 5) i_useRICHPID = useRICHPID_B5[iPID_scenario];
+        else if (Bz == 20) i_useRICHPID = useRICHPID_B5[iPID_scenario];
         else cout << "!!! Error, issue with setting BField. !!!" << endl;
         // bool   i_usePreShPID = usePreShPID[iPID_scenario];
         double i_SigmaTOFEle = nSigmaTOFEle[iPID_scenario];
