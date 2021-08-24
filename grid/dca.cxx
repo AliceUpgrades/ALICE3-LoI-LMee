@@ -16,11 +16,11 @@ double rich_radius = 100.; // [cm]
 double rich_length = 200.; // [cm]
 
 // Cinematic cuts on tracks
-double PtCut = 0.08;
+double PtCut = 0.3;
 double EtaCut = 1.1;
 
 // Squeeze dca the resolution for systematic studies
-double Ksqueeze = 0.9;
+double Ksqueeze = 1.0;
 
 // charm pair clasification
 enum charmPairType {kIsNoCharm = 0, kIsDzeroPair,kIsDplusPair,kIsDmixedPair,kIncludsBaryon,kIsDzeroBaryon,kIsDplusBaryon,kIsBaryonPair};
@@ -429,7 +429,7 @@ void dca(
       auto m1Pid = mother1->PID;
       LV1.SetPtEtaPhiM(track1->PT,track1->Eta,track1->Phi,eMass);
       printf("dca1: %2.3f w/o  sqeeze: %2.3f\n", track1->D0/(track1->ErrorD0),track1->D0/(track1->ErrorD0));
-      
+
       dca1 = track1->D0/(track1->ErrorD0*Ksqueeze);
       for (auto track2 : vecPositron) {
         auto particle2 = (GenParticle *)track2->Particle.GetObject();
