@@ -17,7 +17,7 @@ double rich_length = 200.; // [cm]
 
 // Cinematic cuts on tracks
 double PtCut = 0.3;
-double EtaCut = 1.1;
+double EtaCut = 0.8;
 
 // Squeeze dca the resolution for systematic studies
 double Ksqueeze = 1.0;
