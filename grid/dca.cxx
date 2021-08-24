@@ -344,7 +344,7 @@ void dca(
       // just check the pT spectra...
 
       // smear track if requested
-      if (smear) if (!smearer.smearTrack(*track)) continue; // strange syntax, but works
+      if (smear) if (!smearer.smearTrack(*track,11,1800)) continue; // strange syntax, but works
       // kinatic cuts on tracks
       if (!kineCuts(track)) continue;
 
