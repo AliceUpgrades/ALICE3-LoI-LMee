@@ -25,7 +25,7 @@ Workdirectorysize = {
 	"12000MB"
 };
 
-Split = "production:1-100";
+Split = "production:1-10";
 SplitArguments = "";
 
 

@@ -29,6 +29,8 @@ TAILRX=1.3     # tail on right   [q]
 TOFRAD=100.     # TOF radius      [cm]
 TOFLEN=200.     # TOF half length [cm]
 TOFETA=1.443   # TOF max pseudorapidity
+RICHRAD=100.      # RICH radius      [cm]
+RICHLEN=200.      # RICH half length [cm]
 
 ENERGY=$4
 
@@ -68,7 +70,7 @@ cp lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 
 # Set B fild in propagation card and analysis macro
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
-sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" anaEEstudy.cxx
+sed -i -e "s/double Bz .*$/double Bz = ${BFIELD};/" anaEEstudy.cxx
 
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${TOFRAD}e\-2/" propagate.tcl
@@ -84,6 +86,10 @@ sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
 sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" anaEEstudy.cxx
 sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" anaEEstudy.cxx
+### set RICH radius
+sed -i -e "s/double rich_radius = .*$/double rich_radius = ${RICHRAD}\;/" anaEEstudy.cxx
+### set RICH length
+sed -i -e "s/double rich_length = .*$/double rich_length = ${RICHLEN}\;/" anaEEstudy.cxx
 
 
 # # adapt pt cuts corresponding to selected B-field

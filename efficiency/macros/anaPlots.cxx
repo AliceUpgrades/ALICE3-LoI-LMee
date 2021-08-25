@@ -1,6 +1,6 @@
 // use bools to select which  histograms are upperIntEdge
 
-bool bPlotEfficiency = kFALSE;
+bool bPlotEfficiency = kTRUE;
 bool bPlotPIDhistograms = kFALSE;
   bool bPlotNSigmaProjections = kTRUE;
 bool bPlotTrackContamination = kTRUE;
@@ -23,7 +23,8 @@ int ith_PIDscenario = 1;
 // TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, TOF only", "0.0 < #it{p}_{T,e}, TOF only"};
 // TString strPIDscenario[] = {"0.04 < #it{p}_{T,e}, iTOF only", "0.0 < #it{p}_{T,e}, iTOF only"};
 // TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF", "0.2 < #it{p}_{T,e}, RICH", "0.2 < #it{p}_{T,e}, TOF+RICH"};
-TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF+RICH"};
+// TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF+RICH"};
+TString strPIDscenario[] = {"0.3 < #it{p}_{T,e}, TOF+RICH"};
 // TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -185,6 +186,8 @@ void anaPlots(TString inputFile)
   if (findBField) BField = 0.2;
   findBField = inputFile.Contains("B=0.5");
   if (findBField) BField = 0.5;
+  findBField = inputFile.Contains("B=20kG");
+  if (findBField) BField = 2.0;
   findCollSystem = inputFile.Contains("PbPb");
   if (findCollSystem) collSystem = "Pb-Pb";
   findCollSystem = inputFile.Contains("pp");
@@ -394,6 +397,7 @@ void anaPlots(TString inputFile)
   TH3F* hGenSmeared_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Ele_GenSmeared_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
   TH3F* hGenSmeared_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Pos_GenSmeared_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
 
+  TH1F* hRec_Track_Pt_hasPS = (TH1F*) fIn->Get(Form("%s/hTrack_ElePos_Rec_Pt_hasPS_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
 
 
 
@@ -1017,7 +1021,7 @@ if (bPlotPIDhistograms) {
     normalizeToBinWidth(proj_genLS_Mee);
     normalizeToBinWidth(proj_genLS_Ptee);
     normalizeToBinWidth(proj_genLS_DCA);
-    
+
     normalizeToBinWidth(proj_recLS_MCpidEle_Ptee);
     normalizeToBinWidth(proj_recLS_LFtoee_Ptee);
     normalizeToBinWidth(proj_recLS_HFtoe_Ptee);
@@ -1054,7 +1058,7 @@ if (bPlotPIDhistograms) {
     makeHistNice(proj_recULS_MCpidEle_ccTOee_Mee,kOrange+2);
     makeHistNice(proj_recULS_MCpidEle_bbTOee_Mee,kMagenta+1);
     makeHistNice(proj_recULS_MCpidEle_hfTOee_Mee,kRed+2);
-  
+
 
 
 
@@ -1073,6 +1077,9 @@ if (bPlotPIDhistograms) {
  TH1F* ptGenTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
  // TH1F* ptGenSmearedTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenSmearedTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
  TH1F* ptGenTrackElePos_HF_rebin = (TH1F*) ptGenTrackElePos_HF->Rebin(nbinspt_proj_10,"ptGenTrackElePos_HF_rebin",&pt_bin_proj_10[0]);
+ // cout << __LINE__ <<  " COUT "  << endl;
+ TH1F* hRec_Track_Pt_hasPS_rebin = (TH1F*) hRec_Track_Pt_hasPS->Rebin(nbinspt_proj,"hRec_Track_Pt_hasPS_rebin",&pt_bin_proj[0]);
+
 
 
  TH1F* ptRecTrackElePos_Pi0_beforePID_rebin = (TH1F*) ptRecTrackElePos_Pi0_beforePID->Rebin(nbinspt_proj,"ptRecTrackElePos_Pi0_beforePID_rebin",&pt_bin_proj[0]);
@@ -1118,6 +1125,7 @@ if (bPlotPIDhistograms) {
   TH1F* ptEffElePosGenSmeared;
   TH1F* ptEffElePosGen_woPID;
   TH1F* ptEffEle;
+  TH1F* ptEffElePOS_PreShower;
   // TH1F* ptEffElePrim;
   // TH1F* ptEffEleCC;
   // TH1F* ptEffEleBB;
@@ -1274,6 +1282,8 @@ if (bPlotPIDhistograms) {
    // mPtPairEffElePos->Sumw2();
    mPtPairEffElePos->Divide(mPtPairEffElePos,mptGenTrackElePos,1,1,"B");
 
+   ptEffElePOS_PreShower = (TH1F*) hRec_Track_Pt_hasPS_rebin->Clone("eff_pT_ElePos_PreShower");
+   ptEffElePOS_PreShower->Divide(ptEffElePOS_PreShower,ptGenTrackElePos_rebin,1,1,"B");
 
   }
 
@@ -1570,7 +1580,7 @@ if (bPlotTrackContamination) {
 
   normalizeToBinWidth(ptRecTrackElePos_Pi0_beforePID_rebin);
   normalizeToBinWidth(ptRecTrackElePos_LF_beforePID_rebin);
-  // normalizeToBinWidth(ptRecTrackElePos_HF_beforePID_rebin);
+  normalizeToBinWidth(ptRecTrackElePos_HF_beforePID_rebin);
   normalizeToBinWidth(ptRecTrackElePos_Pi0_afterPID_rebin);
   normalizeToBinWidth(ptRecTrackElePos_LF_afterPID_rebin);
   normalizeToBinWidth(ptRecTrackElePos_HF_afterPID_rebin);
@@ -1724,6 +1734,9 @@ if (bPlotTrackContamination) {
     makeHistNice(ptEffElePosGen,kBlue+1);
     makeHistNice(ptEffElePosGenSmeared,kRed+2);
     makeHistNice(ptEffElePosGen_woPID,kViolet+2);
+
+    makeHistNice(ptEffElePOS_PreShower,kBlue+1);
+
   }
 
   makeHistNice(proj_recULS_Mee,kBlack);
@@ -2421,7 +2434,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     pad1->cd();
     ptRecTrackElePos_rebin->GetYaxis()->SetTitle("dN/d#it{p}_{T,e}");
     ptRecTrackElePos_rebin->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
-    ptRecTrackElePos_rebin->GetXaxis()->SetRangeUser(0.0,4.0);
+    ptRecTrackElePos_rebin->GetXaxis()->SetRangeUser(0.06,4.0);
     ptRecTrackElePos_rebin->GetYaxis()->SetRangeUser(1.0,100000000);
     ptRecTrackElePos_rebin->SetMarkerColor(kBlack);
     ptRecTrackElePos_rebin->SetLineColor(kBlack);
@@ -2438,7 +2451,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     TH1F* ratioTotalHF = (TH1F*) ptRecTrackElePos_LF_afterPID_rebin->Clone();
     ratioTotalHF->Add(ptRecTrackElePos_HF_afterPID_rebin);
     ratioTotalHF->Divide(ptRecTrackElePos_HF_afterPID_rebin);
-    ratioTotalHF->GetYaxis()->SetRangeUser(0.5,300);
+    // ratioTotalHF->GetYaxis()->SetRangeUser(0.5,300);
+    ratioTotalHF->GetXaxis()->SetRangeUser(0.06,4.0);
     ratioTotalHF->GetYaxis()->SetTitle("Ratio (LF+HF)/HF");
     ratioTotalHF->GetXaxis()->SetLabelSize(0.1);
     ratioTotalHF->GetYaxis()->SetLabelSize(0.1);
@@ -2566,7 +2580,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
 
     // cMeePteeDCALFtoeeHFtoe->SaveAs("./plots/MeePteeDCA_LFtoeeHFtoe.png");
 
-    // generate root file with LS background mee ptee and dca LF->ee , HF->e and Sum 
+    // generate root file with LS background mee ptee and dca LF->ee , HF->e and Sum
     if (bGenerateBackground) {
       TFile *fBackground_weigths = TFile::Open("./plots/MeePteeDCA_LFtoeeHFtoe_noweight.root","RECREATE");
       proj_recLS_MCpidEle_Mee->SetName("proj_recLS_MCpidEle_Mee");
@@ -2779,6 +2793,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     textBField->Draw("same");
     textPIDScenario->Draw("same");
     cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_Gen_woPID.png");
+    ptEffElePOS_PreShower->Draw("hist p e1");
+    cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_PreShower.png");
 
 
     auto cEffEleEta = new TCanvas("cEffEleEta","cEffEleEta",800,800);
@@ -3085,6 +3101,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     mPtPairEffElePos->GetXaxis()->SetTitle("m_{ee} (GeV/#it{c}^{2})");
     mPtPairEffElePos->GetZaxis()->SetTitle("pair efficiency");
     mPtPairEffElePos->GetZaxis()->RotateTitle(kTRUE);
+    mPtPairEffElePos->GetYaxis()->SetRangeUser(0.,4.);
     // mPtPairEffElePos->GetXaxis()->SetRangeUser(0.0,0.7);
     // mPtPairEffElePos->GetYaxis()->SetRangeUser(0.0,0.7);
     // mPtPairEffElePos->GetZaxis()->SetRangeUser(0,1.0);
@@ -3858,14 +3875,15 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
 
 
   // TString nameEffRootFile = inputFile.Data();
-  // TString endDirName = "2.8.21_TOF_0.2ptcut_tof_rich_both_newHFselection";
+  // TString endDirName = "23.8.21_ptcut0.3_TOFRICH_Run2TBField";
   // if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
   // // if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
   // // if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
   // // if (inputFile.Contains("B2_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
   // // if (inputFile.Contains("B5_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
   // // if (inputFile.Contains("B=0.5_2M_502TeV")) nameEffRootFile.ReplaceAll("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/prod/anaEEstudy.", "");
-  // if (inputFile.Contains("B5_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // // if (inputFile.Contains("B5_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // if (inputFile.Contains("B20_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B20_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
   // nameEffRootFile.ReplaceAll(".root", "");
   // TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
   //
