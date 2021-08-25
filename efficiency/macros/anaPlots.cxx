@@ -397,6 +397,7 @@ void anaPlots(TString inputFile)
   TH3F* hGenSmeared_Track_Ele_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Ele_GenSmeared_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
   TH3F* hGenSmeared_Track_Pos_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Pos_GenSmeared_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
 
+  TH1F* hRec_Track_Pt_hasPS = (TH1F*) fIn->Get(Form("%s/hTrack_ElePos_Rec_Pt_hasPS_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
 
 
 
@@ -1076,6 +1077,9 @@ if (bPlotPIDhistograms) {
  TH1F* ptGenTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
  // TH1F* ptGenSmearedTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenSmearedTrackElePos_beforeKineCuts->Rebin(nbinspt_proj,"ptGenSmearedTrackElePos_beforeKineCuts_rebin",&pt_bin_proj[0]);
  TH1F* ptGenTrackElePos_HF_rebin = (TH1F*) ptGenTrackElePos_HF->Rebin(nbinspt_proj_10,"ptGenTrackElePos_HF_rebin",&pt_bin_proj_10[0]);
+ // cout << __LINE__ <<  " COUT "  << endl;
+ TH1F* hRec_Track_Pt_hasPS_rebin = (TH1F*) hRec_Track_Pt_hasPS->Rebin(nbinspt_proj,"hRec_Track_Pt_hasPS_rebin",&pt_bin_proj[0]);
+
 
 
  TH1F* ptRecTrackElePos_Pi0_beforePID_rebin = (TH1F*) ptRecTrackElePos_Pi0_beforePID->Rebin(nbinspt_proj,"ptRecTrackElePos_Pi0_beforePID_rebin",&pt_bin_proj[0]);
@@ -1121,6 +1125,7 @@ if (bPlotPIDhistograms) {
   TH1F* ptEffElePosGenSmeared;
   TH1F* ptEffElePosGen_woPID;
   TH1F* ptEffEle;
+  TH1F* ptEffElePOS_PreShower;
   // TH1F* ptEffElePrim;
   // TH1F* ptEffEleCC;
   // TH1F* ptEffEleBB;
@@ -1277,6 +1282,8 @@ if (bPlotPIDhistograms) {
    // mPtPairEffElePos->Sumw2();
    mPtPairEffElePos->Divide(mPtPairEffElePos,mptGenTrackElePos,1,1,"B");
 
+   ptEffElePOS_PreShower = (TH1F*) hRec_Track_Pt_hasPS_rebin->Clone("eff_pT_ElePos_PreShower");
+   ptEffElePOS_PreShower->Divide(ptEffElePOS_PreShower,ptGenTrackElePos_rebin,1,1,"B");
 
   }
 
@@ -1727,6 +1734,9 @@ if (bPlotTrackContamination) {
     makeHistNice(ptEffElePosGen,kBlue+1);
     makeHistNice(ptEffElePosGenSmeared,kRed+2);
     makeHistNice(ptEffElePosGen_woPID,kViolet+2);
+
+    makeHistNice(ptEffElePOS_PreShower,kBlue+1);
+
   }
 
   makeHistNice(proj_recULS_Mee,kBlack);
@@ -2783,6 +2793,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     textBField->Draw("same");
     textPIDScenario->Draw("same");
     cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_Gen_woPID.png");
+    ptEffElePOS_PreShower->Draw("hist p e1");
+    cEffAddedElePosPt->SaveAs("./plots/Eff_ElePos_Pt_PreShower.png");
 
 
     auto cEffEleEta = new TCanvas("cEffEleEta","cEffEleEta",800,800);
@@ -3862,46 +3874,46 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
   }
 
 
-  TString nameEffRootFile = inputFile.Data();
-  TString endDirName = "23.8.21_ptcut0.3_TOFRICH_Run2TBField";
-  if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
-  // if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-  // if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-  // if (inputFile.Contains("B2_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-  // if (inputFile.Contains("B5_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-  // if (inputFile.Contains("B=0.5_2M_502TeV")) nameEffRootFile.ReplaceAll("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/prod/anaEEstudy.", "");
-  // if (inputFile.Contains("B5_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-  if (inputFile.Contains("B20_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B20_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
-  nameEffRootFile.ReplaceAll(".root", "");
-  TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
-
-  if (bPlotEfficiency) {
-    ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
-    ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
-    ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
-    ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
-    ptEffEle->Write();
-    ptEffPos->Write();
-    ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
-    ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
-    ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
-    ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
-    ptEffElePosGen->Write();
-    ptEffElePosGenSmeared->Write();
-
-    ptEtaEffElePos->SetTitle("eff_pteta_2D");
-    ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
-    ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.2);
-    ptEtaEffElePos->Write();
-
-  }
-
-  if (bPlotTrackContamination) {
-    hTotalPureContaminationRecPt->SetTitle("Total Contamination");
-    hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
-    hTotalPureContaminationRecPt->Write();
-  }
-  fOut->Close();
+  // TString nameEffRootFile = inputFile.Data();
+  // TString endDirName = "23.8.21_ptcut0.3_TOFRICH_Run2TBField";
+  // if (inputFile.Contains("data")) nameEffRootFile.ReplaceAll("./data/prod/anaEEstudy.", "");
+  // // if (inputFile.Contains("B2_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // // if (inputFile.Contains("B5_100k")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // // if (inputFile.Contains("B2_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B2_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // // if (inputFile.Contains("B5_2M_502TeV")) nameEffRootFile.ReplaceAll(Form("../grid/output/B5_2M_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // // if (inputFile.Contains("B=0.5_2M_502TeV")) nameEffRootFile.ReplaceAll("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/prod/anaEEstudy.", "");
+  // // if (inputFile.Contains("B5_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B5_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // if (inputFile.Contains("B20_100k_502TeV")) nameEffRootFile.ReplaceAll(Form("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/grid/output/B20_100k_502TeV_%s/anaEEstudy.",endDirName.Data()), "");
+  // nameEffRootFile.ReplaceAll(".root", "");
+  // TFile *fOut = TFile::Open(Form("./data/TrackEff_%s_PIDscenario%i.root",nameEffRootFile.Data(),ith_PIDscenario),"RECREATE");
+  //
+  // if (bPlotEfficiency) {
+  //   ptEffEle->SetTitle("eff_singleElectrons_Rec/GenSmeared");
+  //   ptEffPos->SetTitle("eff_singlePositrons_Rec/GenSmeared");
+  //   ptEffEle->GetXaxis()->SetRangeUser(0.0,10.0);
+  //   ptEffPos->GetXaxis()->SetRangeUser(0.0,10.0);
+  //   ptEffEle->Write();
+  //   ptEffPos->Write();
+  //   ptEffElePosGen->SetTitle("eff_Track_Rec/Generated");
+  //   ptEffElePosGenSmeared->SetTitle("eff_Track_Rec/GeneratedSmeared");
+  //   ptEffElePosGen->GetXaxis()->SetRangeUser(0.0,10.0);
+  //   ptEffElePosGenSmeared->GetXaxis()->SetRangeUser(0.0,10.0);
+  //   ptEffElePosGen->Write();
+  //   ptEffElePosGenSmeared->Write();
+  //
+  //   ptEtaEffElePos->SetTitle("eff_pteta_2D");
+  //   ptEtaEffElePos->GetXaxis()->SetRangeUser(0.0,4.0);
+  //   ptEtaEffElePos->GetYaxis()->SetRangeUser(-1.2,1.2);
+  //   ptEtaEffElePos->Write();
+  //
+  // }
+  //
+  // if (bPlotTrackContamination) {
+  //   hTotalPureContaminationRecPt->SetTitle("Total Contamination");
+  //   hTotalPureContaminationRecPt->GetXaxis()->SetRangeUser(0.0,4.0);
+  //   hTotalPureContaminationRecPt->Write();
+  // }
+  // fOut->Close();
 
 
 }

@@ -51,17 +51,17 @@ runDelphes() {
 }
 
 
-NJOBS=10        # number of max parallel runs                   50
-NRUNS=10        # number of runs                               100
+NJOBS=60        # number of max parallel runs                   50
+NRUNS=100        # number of runs                               100
 
-NEVENTS=10    # number of events in a run                       1000
+NEVENTS=100    # number of events in a run                       1000
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
 SYSTEM="PbPb"         # collisionSystem
 # SYSTEM="pp"         # collisionSystem
 # SCENARIO="default"     # detector setup
-SCENARIO="werner"     # detector setup
+SCENARIO="geometry_v1"     # detector setup
 # BFIELD=2       # magnetic field  [kG]
 BFIELD=20       # magnetic field  [kG]
 
@@ -141,6 +141,13 @@ then
   cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.pi.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.pi.dat
   cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.ka.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.ka.dat
   cp ../LUTs/lutCovm.${BFIELD}kG.${RADIUS}cm.default/lutCovm.pr.${BFIELD}kG.${RADIUS}cm.default.dat lutCovm.pr.dat
+elif [[ $SCENARIO = "geometry_v1" ]]
+then
+  cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.mu.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pr.dat
 else
   echo "!!! check SCENARIO and BFIELD variables"
 fi
@@ -185,9 +192,9 @@ sed -i -e "s/double rich_length = .*$/double rich_length = ${RICHLEN}\;/" anaEEs
 
 #load the right LUTs in the anaEEstudy.cxx
 
-cp ../preshower/macros/preparePreshowerEff.C .
-root -l -b -q preparePreshowerEff.C
-echo "Finished   preparePreshowerEff.C"
+# cp ../preshower/macros/preparePreshowerEff.C .
+# root -l -b -q preparePreshowerEff.C
+# echo "Finished   preparePreshowerEff.C"
 echo ""
 
 
@@ -238,7 +245,7 @@ rm -rf delphes.*.root
 
 echo " Finished running Delphes "
 ### merge runs when all done
-hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root && #rm -rf anaEEstudy.*.root &&
+hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root &&# rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
 # cp ./macros/anaPlots.cxx anaPlots.cxx &&
 # root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
@@ -247,9 +254,9 @@ mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)even
 ### clean up
 rm lutCovm*
 rm propagate.tcl
-# rm *.root
+rm *.root
 # rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
-rm preparePreshowerEff.C
+# rm preparePreshowerEff.C
 # ./cleanup.sh
