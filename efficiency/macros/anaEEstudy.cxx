@@ -22,23 +22,13 @@ using namespace std;
 
 
 bool bSmear    = true;
-bool bUsePreSh = false;
 bool bUseiTOF   = false;
-bool bUseTOF   = true;
-bool bUseRICH  = true;
 bool bPlotPIDhists = false;
 
-double Bz = 0.5;            // becomes overwritten by the generateEfficiencies.sh skript
+double Bz = 5;            // in kG,  becomes overwritten by the generateEfficiencies.sh skript
 double eMass = 0.000511;
 
 
-// Kinematic cuts on tracks
-// double PtCut = 0.0;     // open cuts
-// double PtCut = 0.04;    // right now pt cut in cut variations below // if B=0.2T becomes overwritten by the generateEfficiencies.sh skript
-// double PtCut = 0.08;    // right now pt cut in cut variations below // if B=0.5T becomes overwritten by the generateEfficiencies.sh skript
-// double EtaCut = 1.1;
-double EtaCut = 0.8;
-// double EtaCut = 10.;    // open cuts
 
 // --- binning ---
 // Double_t pt_binning[]  = {0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.5,4.0};
@@ -89,24 +79,29 @@ double rich_PionRejection_p_cut = 1.0; // [GeV/c]
 
 
 
-// PID Scenarios           different pt cuts           different PID scenarios               using iTOF layer         only TOF, RICH, both
-bool useInnerTOFPID[]   = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   /* kTRUE,   kTRUE  */    /*kFALSE, kFALSE,*/ kFALSE };
-bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE,  kTRUE,   kTRUE   */   /* kTRUE,   kTRUE  */    /*kTRUE,  kFALSE,*/ kTRUE  };
-bool useRICHPID_B2[]    = {/*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   /* kFALSE,  kFALSE */    /*kFALSE, kTRUE, */ kTRUE  };
-bool useRICHPID_B5[]    = {/*kTRUE,   kTRUE,     */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   /* kFALSE,  kFALSE */    /*kFALSE, kTRUE, */ kTRUE  };
-bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   /* kFALSE,  kFALSE */    /*kFALSE, kFALSE,*/ kFALSE };
-double nSigmaTOFEle[]   = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */   /*  3.0,    3.0    */    /*  3.0,    3.0, */   3.0  };
-double nSigmaTOFPi[]    = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */   /*  3.0,    3.0    */    /*  3.0,    3.0, */   3.0  };
-double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */   /*  0.0,    0.0    */    /*  3.0,    3.0, */   3.0  };
-double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */   /*  99.,    99.    */    /*  4.0,    4.0, */   4.0  };
-double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.04,   0.0    */    /*  0.08,   0.08,*/   0.08 };
-double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.08,   0.0    */    /*  0.2,    0.2, */   0.2  };
+// PID Scenarios           different pt cuts           different PID scenarios               using iTOF layer         only TOF, RICH, both            use only PS
+bool useTOFPID[]        = {/*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE,  kTRUE,   kTRUE   */   /* kTRUE,   kTRUE  */    /*kTRUE,  kFALSE,*/ /*kTRUE  */   kFALSE };
+bool useRICHPID[]       = {/*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE,  kTRUE,   kTRUE   */   /* kFALSE,  kFALSE */    /*kFALSE, kTRUE, */ /*kTRUE  */   kFALSE };
+bool usePreShPID[]      = {/*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE  */   /* kFALSE,  kFALSE */    /*kFALSE, kFALSE,*/ /*kFALSE */   kTRUE  };
+double nSigmaTOFEle[]   = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */   /*  3.0,    3.0    */    /*  3.0,    3.0, */ /*  3.0  */     3.0  };
+double nSigmaTOFPi[]    = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */   /*  3.0,    3.0    */    /*  3.0,    3.0, */ /*  3.0  */     3.0  };
+double nSigmaRICHEle[]  = {/*3.0,     3.0,       */  /*  3.0,    3.0,    3.0,     3.0   */   /*  0.0,    0.0    */    /*  3.0,    3.0, */ /*  3.0  */     3.0  };
+double nSigmaRICHPi[]   = {/*4.0,     4.0,       */  /*  3.0,    3.0,    3.5,     4.0   */   /*  99.,    99.    */    /*  4.0,    4.0, */ /*  4.0  */     4.0  };
+double PtCut02[]        = {/*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.04,   0.0    */    /*  0.08,   0.08,*/ /*  0.08 */     0.08 };
+double PtCut05[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.08,   0.0    */    /*  0.2,    0.2, */ /*  0.2  */     0.2  };
+double PtCut20[]        = {/*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,    0.03  */   /*  0.08,   0.0    */    /*  0.2,    0.2, */ /*  0.3  */     0.3  };
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
 
+// Eta cut (pseudorapidity)
+// double EtaCut = 1.1;
+double EtaCut = 0.8;
 
 
-bool doPID(Track * track, bool useTOF, bool useRICH, bool usePreSh, double p_tofMaxAcc, double p_tofPionRej, double p_richPionRej, double nSigmaTOFele, double nSigmaTOFpi, double nSigmaRICHele, double nSigmaRICHpi, o2::delphes::TOFLayer toflayer, o2::delphes::RICHdetector richdetector, std::array<float, 5> PIDnsigmaTOF, std::array<float, 5> PIDnsigmaRICH){
+
+
+
+bool doPID(Track * track, bool useTOF, bool useRICH, double p_tofMaxAcc, double p_tofPionRej, double p_richPionRej, double nSigmaTOFele, double nSigmaTOFpi, double nSigmaRICHele, double nSigmaRICHpi, o2::delphes::TOFLayer toflayer, o2::delphes::RICHdetector richdetector, std::array<float, 5> PIDnsigmaTOF, std::array<float, 5> PIDnsigmaRICH){
   double p = track->P;
 
   bool TOFpid = kFALSE;
@@ -227,8 +222,9 @@ bool kineCuts(Track *tr, Int_t iSce){
   // check pt and eta for track
   // evaluate as true if criterion is passed
   bool pt;
-  if(Bz == 0.2) pt = tr->PT > PtCut02[iSce];
-  else if(Bz == 0.5) pt = tr->PT > PtCut05[iSce];
+  if(Bz == 2) pt = tr->PT > PtCut02[iSce];
+  else if(Bz == 5) pt = tr->PT > PtCut05[iSce];
+  else if(Bz == 20) pt = tr->PT > PtCut20[iSce];
   bool eta = abs(tr->Eta) < EtaCut;
   // all have to be true
   return (pt && eta);
@@ -239,8 +235,9 @@ bool kineCuts(GenParticle *pa, Int_t iSce){
   // check pt and eta for particle
   // evaluate as true if criterion is passed
   bool pt;
-  if(Bz == 0.2) pt = pa->PT > PtCut02[iSce];
-  else if(Bz == 0.5) pt = pa->PT > PtCut05[iSce];
+  if(Bz == 2) pt = pa->PT > PtCut02[iSce];
+  else if(Bz == 5) pt = pa->PT > PtCut05[iSce];
+  else if(Bz == 20) pt = pa->PT > PtCut20[iSce];
   bool eta = abs(pa->Eta) < EtaCut;
   // all have to be true
   return (pt && eta);
@@ -251,8 +248,9 @@ bool kineCuts(TLorentzVector LV, Int_t iSce){
   // check pt and eta for particle
   // evaluate as true if criterion is passed
   bool pt;
-  if(Bz == 0.2) pt = LV.Pt() > PtCut02[iSce];
-  else if(Bz == 0.5) pt = LV.Pt() > PtCut05[iSce];
+  if(Bz == 2) pt = LV.Pt() > PtCut02[iSce];
+  else if(Bz == 5) pt = LV.Pt() > PtCut05[iSce];
+  else if(Bz == 20) pt = LV.Pt() > PtCut20[iSce];
   bool eta = abs(LV.Eta()) < EtaCut;
   // all have to be true
   return (pt && eta);
@@ -614,7 +612,7 @@ void anaEEstudy(
     const char *outputFile = "anaEEstudyLFcc.root" // merge output files after analysis was run to keep file size moderate
   )
 {
-
+  cout << " cout Bz = " << Bz << endl;
   // Stopwatch
   TStopwatch* watch = new TStopwatch;
   watch->Start();
@@ -723,9 +721,9 @@ void anaEEstudy(
   richdetector.setEfficiency(0.4);
   richdetector.setSigma(7.e-3);
 
-  // // PreShower detector
-  // o2::delphes::PreShower preshower;
-  // preshower.setup();
+  // PreShower detector
+  o2::delphes::PreShower preshower;
+  preshower.setup();
 
 
   // smearer
@@ -809,6 +807,7 @@ void anaEEstudy(
   TH3F* hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_afterPID[nPIDscenarios];
   TH3F* hTrack_ElePos_LF_Rec_Pt_Eta_Phi_afterPID[nPIDscenarios];
   TH3F* hTrack_ElePos_HF_Rec_Pt_Eta_Phi_afterPID[nPIDscenarios];
+  TH1F* hTrack_ElePos_Rec_Pt_hasPS[nPIDscenarios];
 
 
   for (int j = 0; j < nPIDscenarios; ++j){
@@ -838,6 +837,7 @@ void anaEEstudy(
     hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_afterPID[j] = new TH3F(Form("hTrack_ElePos_Pi0_Rec_Pt_Eta_Phi_afterPID_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
     hTrack_ElePos_LF_Rec_Pt_Eta_Phi_afterPID[j] = new TH3F(Form("hTrack_ElePos_LF_Rec_Pt_Eta_Phi_afterPID_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
     hTrack_ElePos_HF_Rec_Pt_Eta_Phi_afterPID[j] = new TH3F(Form("hTrack_ElePos_HF_Rec_Pt_Eta_Phi_afterPID_sce%i",j+1),";#it{p}_{T} (GeV/#it{c});#eta;#varphi (rad)", n_ptee_bin_c, ptee_bin_c, nEtaBins, eta_binning, nPhiBins, phi_binning);
+    hTrack_ElePos_Rec_Pt_hasPS[j]  = new TH1F(Form("hTrack_ElePos_Rec_Pt_hasPS_sce%i",j+1),";#it{p}_{T} (GeV/#it{c})", n_ptee_bin_c, ptee_bin_c);
   }
 
 
@@ -927,6 +927,7 @@ void anaEEstudy(
     // lRecPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_beauty_rec[iPIDscenario]);
     // lRecPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_beauty_Ele_rec[iPIDscenario]);
     // lRecPIDscenario[iPIDscenario]->Add(hPt_Eta_Phi_beauty_Pos_rec[iPIDscenario]);
+    lRecPIDscenario[iPIDscenario]->Add(hTrack_ElePos_Rec_Pt_hasPS[iPIDscenario]);
 
 
     lRecPIDscenario[iPIDscenario]->Add(hMPtDCA_ULS_rec[iPIDscenario]);
@@ -1230,41 +1231,6 @@ void anaEEstudy(
     }
   }
 
-  // // Preshower histograms
-  // // logx binning
-  // const Int_t nbins = 80;
-  // double xmin = 1.e-2;
-  // double xmax = 1.e2;
-  // double logxmin = std::log10(xmin);
-  // double logxmax = std::log10(xmax);
-  // double binwidth = (logxmax - logxmin) / nbins;
-  // double xbins[nbins + 1];
-  // for (Int_t i = 0; i <= nbins; ++i)
-  //   xbins[i] = std::pow(10., logxmin + i * binwidth);
-  //
-  // // Preshower efficiency input histograms
-  // TH1* hPreshowerEff[5];
-  // auto filePreshowerEff = TFile::Open("preshowerEff.root");
-  // hPreshowerEff[0] = (TH1*)filePreshowerEff->Get("preshowerEffElectrons");
-  // hPreshowerEff[1] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
-  // hPreshowerEff[2] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
-  // hPreshowerEff[3] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
-  // hPreshowerEff[4] = (TH1*)filePreshowerEff->Get("preshowerEffPions");
-  //
-  // // Preshower QA output histograms
-  // TH1F* hPreShElectronPt[nPIDscenarios];
-  // TH1F* hPreShPionPt[nPIDscenarios];
-  // for (int j = 0; j < nPIDscenarios; ++j) hPreShElectronPt[j] = new TH1F(Form("PreshowerElectronPt_sce%i",j+1), ";#it{p_{T}} (GeV/#it{c});", nbins, xbins);
-  // for (int j = 0; j < nPIDscenarios; ++j) hPreShPionPt[j]     = new TH1F(Form("PreshowerPionPt_sce%i",j+1), ";#it{p_{T}} (GeV/#it{c});", nbins, xbins);
-  //
-  // for (int iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
-  //   lRecPIDscenario[iPIDscenario]->Add(hPreShElectronPt[iPIDscenario]);
-  //   lRecPIDscenario[iPIDscenario]->Add(hPreShPionPt[iPIDscenario]);
-  // }
-  //
-  // // PID map
-  // std::map<int, int> pidmap = { {11, 0}, {13, 1}, {211, 2}, {321, 3}, {2212, 4} };
-
 
   std::vector<TList*> vecTListRecPIDscenarios;
   for (size_t iPIDscenario = 0; iPIDscenario < nPIDscenarios; iPIDscenario++) {
@@ -1425,6 +1391,7 @@ void anaEEstudy(
       if (abs(particle->PID) == 11 )  hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts->Fill(particle->PT,particle->Eta,phiGen,weight); // Pt Eta Phi of generated electrons + positrons
 
 
+      // loop over iPID_scenario
       for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
       if (abs(particle->PID) == 211 )  {
         double rap = etatorap(particle->PT,particle->Eta, 0.13957018); // use charged pion mass
@@ -1538,7 +1505,7 @@ void anaEEstudy(
     //
     //   double phiRec = TVector2::Phi_0_2pi(track->Phi);
     //
-    //   if (bUseTOF){
+    //   if (useTOFPID){
     //     // fill beta-p before semaring
     //     auto p = track->P;
     //     // inner TOF
@@ -1600,7 +1567,7 @@ void anaEEstudy(
 
       auto p = track->P;
 
-      if (bUseTOF){
+      if (useTOFPID){
         // fill beta-p before semaring
         // outer TOF
         auto beta = toflayer.getBeta(*track);
@@ -1612,7 +1579,7 @@ void anaEEstudy(
         hInnerBetaP_beforeSmearing->Fill(p, betaInnerTOF);
       }
 
-      if (bUseRICH){
+      if (useRICHPID){
         // fill cherenkovAngle-p before semaring
         auto measAngle = (richdetector.getMeasuredAngle(*track)).first;
         hCherenkovAngleP_beforeSmearing->Fill(p,measAngle);
@@ -1728,36 +1695,7 @@ void anaEEstudy(
       // apply eta acceptance cut
       if(!etaCut(track)) continue;
 
-      // cout << "hasInner = " << innertoflayer.hasTOF(*track) << ", hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-      // cout << "PIDnsigmaInnerTOF = " << PIDnsigmaInnerTOF[0] << ", PIDnsigmaTOF = " << PIDnsigmaTOF[0] << ", PIDnsigmaRICH = " << PIDnsigmaRICH[0] << endl;
-      //
-      // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-      // bool c = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 20) < 0.001;
-      // bool b = fabs(track->ZOuter * 0.1) < 200;
-      // bool d = fabs(track->ZOuter * 0.1) < 40;
-      // auto x = track->XOuter * 0.1;
-      // auto y = track->YOuter * 0.1;
-      // auto hyp = hypot(x,y);
-      // cout << " Track XOuter*0.1 = " << x << ", YOuter*0.1 = " << y  << ", hypot(x,y) = " << hyp << endl;
-      // cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-      // cout << " innerTOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << d << ", (fabs(z) < mLength) = " << d << endl;
-      // cout << endl;
-
       if( bPlotPIDhists && (innertoflayer.hasTOF(*track) || toflayer.hasTOF(*track) || richdetector.hasRICH(*track) )){
-        // cout << "hasInner = " << innertoflayer.hasTOF(*track) << ", hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-        // cout << "PIDnsigmaInnerTOF = " << PIDnsigmaInnerTOF[0] << ", PIDnsigmaTOF = " << PIDnsigmaTOF[0] << ", PIDnsigmaRICH = " << PIDnsigmaRICH[0] << endl;
-        //
-        // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-        // bool c = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 20) < 0.001;
-        // bool b = fabs(track->ZOuter * 0.1) < 200;
-        // bool d = fabs(track->ZOuter * 0.1) < 40;
-        // auto x = track->XOuter * 0.1;
-        // auto y = track->YOuter * 0.1;
-        // auto hyp = hypot(x,y);
-        // cout << " Track XOuter*0.1 = " << x << ", YOuter*0.1 = " << y  << ", hypot(x,y) = " << hyp << endl;
-        // cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-        // cout << " innerTOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << d << ", (fabs(z) < mLength) = " << d << endl;
-        // cout << endl;
 
         for (int i = 0; i < 5; ++i) {
           // inner TOF
@@ -1800,6 +1738,7 @@ void anaEEstudy(
                                       hTrack_ElePos_HF_Rec_Pt_Eta_Phi_beforePID->Fill(track->PT,track->Eta,phiRec,weight);   // Pt Eta Phi of reconstructed electrons + positrons from HF before PID
       }
 
+
       for (size_t iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
 
         // // kinatic cuts on tracks        (no pt cut on single electrons)
@@ -1810,84 +1749,27 @@ void anaEEstudy(
         // look only at electrons
         // if(abs(particle->PID) != 11 ) continue;
 
-
+        // Apply PreShower electron selection
+        if(usePreShPID[iPID_scenario]){
+          bool isElectronPreShower = false;
+          if (preshower.hasPreShower(*track) ) isElectronPreShower = preshower.isElectron(*track,1800);
+          if (isElectronPreShower && abs(particle->PID) == 11) hTrack_ElePos_Rec_Pt_hasPS[iPID_scenario]->Fill(track->PT,weight);
+        }
 
         //setting variables for i-th PID scenario
-        bool   i_useTOFPID = useTOFPID[iPID_scenario];
-        bool   i_useRICHPID;
-        if (Bz == 0.2)      i_useRICHPID = useRICHPID_B2[iPID_scenario];
-        else if (Bz == 0.5) i_useRICHPID = useRICHPID_B5[iPID_scenario];
-        else cout << "!!! Error, issue with setting BField. !!!" << endl;
-        // bool   i_usePreShPID = usePreShPID[iPID_scenario];
+        bool   i_useTOFPID  = useTOFPID[iPID_scenario];
+        bool   i_useRICHPID = useRICHPID[iPID_scenario];
+
         double i_SigmaTOFEle = nSigmaTOFEle[iPID_scenario];
         double i_SigmaTOFPi = nSigmaTOFPi[iPID_scenario];
         double i_SigmaRICHEle = nSigmaRICHEle[iPID_scenario];
         double i_SigmaRICHPi = nSigmaRICHPi[iPID_scenario];
 
-        // // ################## PID selection ##################
-        // // PID selection, identifying particles by using TOF "OR" RICH.
-        // // using TOF  electron inclusion and pion rejection
-        // // using RICH electron inclusion and pion rejection
-        // bool TOFpid = false;
-        // bool RICHpid = false;
-        // // bool PreShpid = false;
-        //
-        // // Preshower PID
-        // // check if track is identified as an electron by the Preshower
-        // // auto pdg  = std::abs(track->PID);
-        // // auto pbin = hPreshowerEff[pidmap[pdg]]->FindBin(p);
-        // // auto eff  = hPreshowerEff[pidmap[pdg]]->GetBinContent(pbin);
-        // // if (i_usePreShPID && (gRandom->Uniform() < eff) ){
-        // //   PreShpid = true;
-        // //   // and fill some QA histograms for Preshower PID
-        // //   if(!pidmap[pdg]) hPreShElectronPt[iPID_scenario]->Fill(track->PT);
-        // //   else hPreShPionPt[iPID_scenario]->Fill(track->PT);
-        // // }  // select primaries based on 3 sigma DCA cuts
-        // //
-        //
-        //
-        // //TOF PID
-        // if(i_useTOFPID && (toflayer.hasTOF(*track)) && (p < tof_EleAccep_p_cut)) {
-        //   if (p > tof_PionRej_p_cut && richdetector.hasRICH(*track)) {
-        //     if((fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) && (fabs(PIDnsigmaRICH[0]) < nSigmaRICHEle_forTOFPID)) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-        //   }
-        //   else if(p <= tof_PionRej_p_cut){
-        //     if(fabs(PIDnsigmaTOF[0]) < i_SigmaTOFEle) TOFpid = true; // is within 3 sigma of the electron band (TOF)
-        //   }
-        //   else TOFpid = false; // This is rejecting all the heavier partilces which do not have a RICH signal in the pt area of 0.4-0.6 GeV/c
-        //
-        //
-        //   if(fabs(PIDnsigmaTOF[2]) < i_SigmaTOFPi) TOFpid = false; // is within 3 sigma of the pion band (TOF)
-        // }
-        // else TOFpid = false;
-        //
-        // //RICH PID
-        // if(i_useRICHPID && richdetector.hasRICH(*track)) {
-        //   if(fabs(PIDnsigmaRICH[0]) < i_SigmaRICHEle) RICHpid = true; // is within 3 sigma of the electron band (RICH)
-        //   if((fabs(PIDnsigmaRICH[2]) < i_SigmaRICHPi) && (p > rich_PionRejection_p_cut) ) RICHpid = false; // is within 3 sigma of the pion band (RICH)
-        // }
-        // else RICHpid = false;
-        //
-        // // bool a = fabs(hypot(track->XOuter * 0.1,track->YOuter * 0.1) - 100) < 0.001;
-        // // bool b = fabs(track->ZOuter * 0.1) < 200;
-        // // if(p < 0.1) {
-        // //   cout << " TOFpid = " << TOFpid << ", RICHpid = " << RICHpid << endl;
-        // //   cout << " PDG = " << track->PID << ", p = " << p << endl;
-        // //   cout << " hasTOF = " << toflayer.hasTOF(*track) << ", hasRICH = " << richdetector.hasRICH(*track) << endl;
-        // //   cout << " TOF NsigmaEle = " << PIDnsigmaTOF[0] << ", NsigmaPi = " << PIDnsigmaTOF[2] << endl;
-        // //   cout << " RICH NsigmaEle = " << PIDnsigmaRICH[0] << ", NsigmaPi = " << PIDnsigmaRICH[2] << endl;
-        // //   cout << " TOF hasTOF requirements: (fabs(r - mRadius) < 0.001 ) = " << a << ", (fabs(z) < mLength) = " << b << endl;
-        // //   cout << endl;
-        // // }
-        //
-        //
-        // if (!(RICHpid || TOFpid) /*&& !PreShpid*/) continue; // check if TOF or RICH signal is true.
-        // // ################## end of PID selection ##################
-
-
-        if(!doPID(track, i_useTOFPID, i_useRICHPID, bUsePreSh, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, toflayer, richdetector, PIDnsigmaTOF, PIDnsigmaRICH)) continue;
-        // if(!doiTOFPID(track, i_useTOFPID, itof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, toflayer, PIDnsigmaTOF)) continue;
-        // cout << "### passed doiTOFPID() ###" << endl;
+        if(i_useTOFPID || i_useRICHPID){
+          if(!doPID(track, i_useTOFPID, i_useRICHPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, toflayer, richdetector, PIDnsigmaTOF, PIDnsigmaRICH)) continue;
+          // if(!doiTOFPID(track, i_useTOFPID, itof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, toflayer, PIDnsigmaTOF)) continue;
+          // cout << "### passed doiTOFPID() ###" << endl;
+        }
 
         // fill nsigma after PID cuts histograms    (after PID selection has been applied)
         if(bPlotPIDhists) {
