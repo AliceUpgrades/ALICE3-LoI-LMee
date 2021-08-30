@@ -4,11 +4,15 @@
 #include "TChain.h"
 #include "TDatabasePDG.h"
 #include "TFile.h"
+#include "TH1.h"
 #include "TH2.h"
+#include "TH3.h"
 #include "TLegend.h"
 #include "TPad.h"
 #include "TParticle.h"
 #include "TParticlePDG.h"
+#include "TRandom.h"
+#include "TDatime.h"
 
 #include "DetectorsCommonDataFormats/DetID.h"
 #include "SimulationDataFormat/MCTrack.h"
@@ -17,15 +21,14 @@ bool isStable(int pdg);
 bool isInFITacc(double eta);
 bool isHF(int pdg);
 
-enum isCharm { kIsNoCharm, kIsCharm, kIsCharmFromBeauty };
 enum isCharm { kIsNoCharm,
                kIsCharm,
                kIsCharmFromBeauty };
 
-void ana(TString generator = "pythia8hi") {
+void ana(TString generator = "pythia8hi")
+{
   TChain mcTree("o2sim");
-  mcTree.AddFile(
-      Form("../../run/%s/tmp/pythia_PbPb_b45_Kine.root",generator.Data()));
+  mcTree.AddFile(Form("../input/%s/chunk_pythia8hi.root", generator.Data()));
   mcTree.SetBranchStatus("*", 0);
   mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -97,29 +100,35 @@ void ana(TString generator = "pythia8hi") {
     "Like Sign spectrum of ++ pairs from all particles;m_{ee} (GeV/c^{2})",
     400, 0, 4};
   TH1D hLS1conv{"hLS1conv",
-                "Like Sign spectrum of -- pairs including at least one "
-                "conversion electron;m_{ee} (GeV/c^{2})",
+                "Like Sign spectrum of -- pairs including at least one conversion electron;m_{ee} (GeV/c^{2})",
                 400, 0, 4};
   TH1D hLS2conv{"hLS2conv",
-                "Like Sign spectrum of ++ pairs including at least one "
-                "conversion electron;m_{ee} (GeV/c^{2})",
+                "Like Sign spectrum of ++ pairs including at least one conversion electron;m_{ee} (GeV/c^{2})",
                 400, 0, 4};
   TH1D hLS1prim{"hLS1prim",
-                "Like Sign spectrum of -- pairs from primary particles;m_{ee} "
-                "(GeV/c^{2})",
+                "Like Sign spectrum of -- pairs from primary particles;m_{ee} (GeV/c^{2})",
                 400, 0, 4};
   TH1D hLS2prim{"hLS2prim",
-                "Like Sign spectrum of ++ pairs from primary particles;m_{ee} "
-                "(GeV/c^{2})",
+                "Like Sign spectrum of ++ pairs from primary particles;m_{ee} (GeV/c^{2})",
                 400, 0, 4};
   TH1D hLS1primHF{"hLS1primHF",
-                  "Like Sign spectrum of -- pairs from primary electrons "
-                  "including at least one HFe;m_{ee} (GeV/c^{2})",
+                  "Like Sign spectrum of -- pairs from primary electrons including at least one HFe;m_{ee} (GeV/c^{2})",
                   400, 0, 4};
   TH1D hLS2primHF{"hLS2primHF",
-                  "Like Sign spectrum of ++ pairs from primary electrons "
-                  "including at least one HFe;m_{ee} (GeV/c^{2})",
+                  "Like Sign spectrum of ++ pairs from primary electrons including at least one HFe;m_{ee} (GeV/c^{2})",
                   400, 0, 4};
+
+  // histos for random rejection effeciency
+  TH3D pt_eta_phi_gen{"pt_eta_phi_gen",
+                      "generated test particles;p_{T} (GeV/c),#eta,#phi (rad.)",
+                      400, 0, 4,
+                      20, -1, 1,
+                      32, 0., TMath::Pi() * 2};
+  TH3D pt_eta_phi_rec{"pt_eta_phi_rec",
+                      "reconstructed test particles;p_{T} (GeV/c),#eta,#phi (rad.)",
+                      100, 0, 4,
+                      20, -1, 1,
+                      32, 0., TMath::Pi() * 2};
 
   double eMass = 0.000511;
   double etaCut = 0.8;
@@ -127,22 +136,41 @@ void ana(TString generator = "pythia8hi") {
 
   bool runPrefilter = false;
   double prfltrPt_Cut = 0.2;
-  double prfltrM_cut = 0.050;
-  double prfltrOA_cut = 0.050;
+  double prfltrM_cut = 0.10;
+  double prfltrOA_cut = 0.10;
 
-	auto oa = [](TLorentzVector &lv1,TLorentzVector &lv2){return fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect())));};
+  TDatime t;
+  gRandom->SetSeed(t.GetDate() + t.GetYear() * t.GetHour() * t.GetMinute() * t.GetSecond());
+
+  auto oa = [](TLorentzVector& lv1, TLorentzVector& lv2) { return fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))); };
   // lambda to define prefilter criterion
   // this can be anything that returns a boolean
   auto prfltr = [&prfltrM_cut, &prfltrOA_cut, oa](o2::MCTrack& t1,
-                                              o2::MCTrack& t2) {
+                                                  o2::MCTrack& t2) {
     TLorentzVector lv1, lv2;
     t1.Get4Momentum(lv1);
     t2.Get4Momentum(lv2);
     // printf("OA: %f, phi: %f\n", lv1.Vect().Angle(lv2.Vect()), fabs(t1.GetPhi() - t2.GetPhi()));
     if ((lv1 + lv2).M() < prfltrM_cut &&
         // (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrOA_cut)) {
-				((oa(lv1,lv2)) < prfltrOA_cut)) {
-				// (fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))) < prfltrOA_cut)) {
+        ((oa(lv1, lv2)) < prfltrOA_cut)) {
+      // (fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))) < prfltrOA_cut)) {
+
+      // printf(">>> mass: %f \t dPhi: %f\n", (lv1 + lv2).M(),
+      //        fabs(t1.GetPhi() - t2.GetPhi()));
+      return false;
+    } else
+      return true;
+  };
+  auto prfltr2 = [&prfltrM_cut, &prfltrOA_cut, oa](o2::MCTrack& t1,
+                                                   TLorentzVector& lv2) {
+    TLorentzVector lv1;
+    t1.Get4Momentum(lv1);
+    // printf("OA: %f, phi: %f\n", lv1.Vect().Angle(lv2.Vect()), fabs(t1.GetPhi() - t2.GetPhi()));
+    if ((lv1 + lv2).M() < prfltrM_cut &&
+        // (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrOA_cut)) {
+        ((oa(lv1, lv2)) < prfltrOA_cut)) {
+      // (fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))) < prfltrOA_cut)) {
 
       // printf(">>> mass: %f \t dPhi: %f\n", (lv1 + lv2).M(),
       //        fabs(t1.GetPhi() - t2.GetPhi()));
@@ -242,6 +270,23 @@ void ana(TString generator = "pythia8hi") {
         ep.emplace_back(track);
       else
         em.emplace_back(track);
+    }
+    // calculate random rejection Efficiency
+    int NTestParticles = 1000;
+    for (int iTestPart = 0; iTestPart < NTestParticles; iTestPart++) {
+      TLorentzVector lv_test;
+      auto isNotRejected = true;
+      auto eta_gen = gRandom->Uniform() * 1.6 - 0.8;
+      auto phi_gen = gRandom->Uniform() * TMath::Pi() * 2;
+      auto pt_gen = gRandom->Uniform() * 4.;
+      lv_test.SetPtEtaPhiM(pt_gen, eta_gen, phi_gen, eMass);
+      pt_eta_phi_gen.Fill(pt_gen, eta_gen, phi_gen);
+      for (unsigned long int e = 0; e < em.size(); ++e) {
+        if (!prfltr2(em[e], lv_test)) {
+          isNotRejected = false;
+        }
+      }
+      if (isNotRejected) pt_eta_phi_rec.Fill(pt_gen, eta_gen, phi_gen);
     }
 
     // vectors to store indicies of elements we want to get rid of
@@ -492,6 +537,8 @@ void ana(TString generator = "pythia8hi") {
   f->WriteTObject(&hInvMass_dPhi);
   f->WriteTObject(&hInvMass_dPhiPrim);
   f->WriteTObject(&hULS_HF);
+  f->WriteTObject(&pt_eta_phi_gen);
+  f->WriteTObject(&pt_eta_phi_rec);
 }
 
 bool isStable(int pdg)
