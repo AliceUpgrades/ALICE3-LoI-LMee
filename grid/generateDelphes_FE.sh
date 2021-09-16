@@ -13,7 +13,7 @@ runDelphes() {
 NEVENTS=$1     # number of events in a run
 
 # SYSTEM="pp_inel"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
-SYSTEM=$2   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
+SYSTEM=$2   # Select the system. This will copy the corresponding pythia configuration. Make sure it exists in the pythia directory.
 
 RADIUS=100     # radius tracks have to reach for reco
 # RADIUS=10     # radius tracks have to reach for reco
@@ -24,19 +24,20 @@ SIGMAT=0.020   # time resolution [ns]
 SIGMA0=0.200         # vertex time spread [ns]
 TAILLX=1.0     # tail on left    [q]
 TAILRX=1.3     # tail on right   [q]
-# TOFRAD=19.     # TOF radius      [cm]
-# TOFLEN=38.     # TOF half length [cm]
+# TOFRAD=20.     # TOF radius      [cm]
+# TOFLEN=56.     # TOF half length [cm]
 TOFRAD=100.     # TOF radius      [cm]
-TOFLEN=200.     # TOF half length [cm]
-TOFETA=1.443   # TOF max pseudorapidity
+TOFLEN=280.     # TOF half length [cm]
+# TOFETA=1.443   # TOF max pseudorapidity
 RICHRAD=100.      # RICH radius      [cm]
-RICHLEN=200.      # RICH half length [cm]
+RICHLEN=280.      # RICH half length [cm]
+BARRELETA=4.      # Barrel max pseudorapidity
 
 ENERGY=$4
 
 ### calculate max eta from geometry
-TOFETA=`awk -v a=$TOFRAD -v b=$TOFLEN 'BEGIN {th=atan2(a,b)*0.5; sth=sin(th); cth=cos(th); print -log(sth/cth)}'`
-echo "maxEta = $TOFETA"
+# TOFETA=`awk -v a=$TOFRAD -v b=$TOFLEN 'BEGIN {th=atan2(a,b)*0.5; sth=sin(th); cth=cos(th); print -log(sth/cth)}'`
+echo "maxEta = $BARRELETA"
 
 #how many events are generated
 echo " --- generating events:"
@@ -60,13 +61,17 @@ echo "Random:setSeed on" >> pythia8.cfg
 #use process id as seed maybe add time?
 echo "Random:seed = $$" >> pythia8.cfg
 
-cp lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
-cp lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
-cp lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
-cp lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
-cp lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
+# cp lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
+# cp lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
+# cp lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
+# cp lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
+# cp lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
 
-
+cp lutCovm.el.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.el.dat
+cp lutCovm.mu.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.mu.dat
+cp lutCovm.pi.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pi.dat
+cp lutCovm.ka.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.ka.dat
+cp lutCovm.pr.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pr.dat
 
 # Set B fild in propagation card and analysis macro
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
@@ -79,7 +84,7 @@ sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" anaEEstud
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${TOFLEN}e\-2/" propagate.tcl
 sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" anaEEstudy.cxx
 ### set TOF acceptance
-sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${TOFETA} \}/" propagate.tcl
+sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${BARRELETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
 sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
 sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
@@ -115,7 +120,7 @@ echo " SIGMAT      = ${SIGMAT}      # time resolution [ns]"
 echo " SIGMA0      = ${SIGMA0}      # vertex time spread [ns]"
 echo " BARRELRAD   = ${TOFRAD}       # barrel radius      [cm] (right now equal to TOF)"
 echo " BARRELLEN   = ${TOFLEN}       # barrel half length [cm] (right now equal to TOF)"
-echo " BARRELETA   = ${TOFETA}    # barrel max pseudorapidity"
+echo " BARRELETA   = ${BARRELETA}    # barrel max pseudorapidity"
 echo " TAILLX      = ${TAILLX}        # tail on left    [q]"
 echo " TAILRX      = ${TAILRX}        # tail on right   [q]"
 echo " TOFRAD      = ${TOFRAD}       # TOF radius      [cm]"
