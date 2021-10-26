@@ -317,7 +317,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       auto particle = (GenParticle*)track->Particle.GetObject();
       auto pid = particle->PID;
 
-      if (abs(pid) != 11){
+      if ((abs(pid) != 11) && (fabs(track->Charge) != 0)){
         if(rnd.Rndm() > 0.001) continue;
       }
 
@@ -375,7 +375,6 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
     nTracksPos->Fill(vecPositron_mcTruth.size());
     // pairing
     TLorentzVector LV1, LV2, LV;
-    double dca = 0., dca1 = 0., dca2 = 0.;
     if (pairing) {
       for (auto track1 : vecElectron_mcTruth) {
         LV1.SetPtEtaPhiM(track1->PT, track1->Eta, track1->Phi, eMass);
