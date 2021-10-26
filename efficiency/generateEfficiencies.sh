@@ -51,21 +51,23 @@ runDelphes() {
 }
 
 
-NJOBS=10        # number of max parallel runs                   50
-NRUNS=10        # number of runs                               100
+NJOBS=100        # number of max parallel runs                   50
+NRUNS=100        # number of runs                               100
 
-NEVENTS=10    # number of events in a run                       1000
+NEVENTS=1000    # number of events in a run                       1000
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
-SYSTEM="PbPb"         # collisionSystem
-# SYSTEM="pp"         # collisionSystem
+SYSTEM="PbPb"            # collisionSystem
+# SYSTEM="pp"            # collisionSystem
 # SCENARIO="default"     # detector setup
-SCENARIO="geometry_v1"     # detector setup
-# BFIELD=2       # magnetic field  [kG]
-BFIELD=5       # magnetic field  [kG]
+SEMICENTRAL=false         # semicentral = false => 0-10%,  semicentral = true => 30-50%
+SCENARIO="geometry_v1"   # detector setup
+# BFIELD=2               # magnetic field  [kG]
+BFIELD=5                 # magnetic field  [kG]
 
 RADIUS=100
+
 
 
 # BARRELRAD=20.    # barrel radius      [cm] (right now equal to TOF)
@@ -107,28 +109,41 @@ elif [[ $SYSTEM = "PbPb" ]]
  ALLEVENTS=$(expr $NEVENTS \* $NRUNS)
  echo " --- $ALLEVENTS PbPb events"
 fi
-# copy stuff into running directory
 
-echo " --- selected SYSTEM:   $SYSTEM"
+
+if [[ $SEMICENTRAL = true ]]
+  then
+    CENTRALITYRANGE="30-50"     # centrality in %
+elif [[ $SEMICENTRAL = false ]]
+ then
+   CENTRALITYRANGE="0-10"       # centrality in %
+fi
+
+# copy stuff into running directory
+echo " --- selected SYSTEM:     $SYSTEM"
 
 # card
 # cp ../delphes/cards/propagate.${BFIELD}kG.tails.tcl propagate.tcl
 cp ../delphes/cards/propagate.2kG.tails.tcl propagate.tcl
-echo " --- selected B-Field:  ${BFIELD}kG"
+echo " --- selected B-Field:    ${BFIELD}kG"
+
+# LF and HF weights
+cp ./corrWeights/hfe_weights_${CENTRALITYRANGE}central.root hfe_weights.root
+cp ./corrWeights/lfe_weights_${CENTRALITYRANGE}central.root lfe_weights.root
+echo " --- selected Centrality: ${CENTRALITYRANGE}%"
 
 # resolution files
 cp ../resolutionfiles/resolution_test_${BFIELD}kG.root resolution.root
 echo " --- selected resolution file: resolution_test_${BFIELD}kG.root"
 
-echo " --- selected SCENARIO: $SCENARIO"
-echo " --- selected RADIUS:   $RADIUS"
+echo " --- selected SCENARIO:   $SCENARIO"
+echo " --- selected RADIUS:     $RADIUS"
 
 # code
+cp ./macros/anaEEstudy.h anaEEstudy.h
 cp ./macros/anaEEstudy.cxx anaEEstudy.cxx
 
-# LF and HF weights
-cp ./corrWeights/hfe_weights.root hfe_weights.root
-cp ./corrWeights/lfe_weights.root lfe_weights.root
+
 
 # LUTS
 if [[ $SCENARIO = "werner" ]]
@@ -152,6 +167,13 @@ then
   cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pi.dat
   cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.ka.dat
   cp ../LUTs/lutCovm.geometry_v1.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pr.dat
+elif [[ $SCENARIO = "its3" ]] # requires a radius of 400cm
+then
+  cp ../LUTs/lutCovm.its3.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.${BFIELD}kG.rmin${RADIUS}.its3.dat lutCovm.el.dat
+  cp ../LUTs/lutCovm.its3.rmin${RADIUS}.${BFIELD}kG/lutCovm.mu.${BFIELD}kG.rmin${RADIUS}.its3.dat lutCovm.mu.dat
+  cp ../LUTs/lutCovm.its3.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.${BFIELD}kG.rmin${RADIUS}.its3.dat lutCovm.pi.dat
+  cp ../LUTs/lutCovm.its3.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.${BFIELD}kG.rmin${RADIUS}.its3.dat lutCovm.ka.dat
+  cp ../LUTs/lutCovm.its3.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.${BFIELD}kG.rmin${RADIUS}.its3.dat lutCovm.pr.dat
 else
   echo "!!! check SCENARIO and BFIELD variables"
 fi
@@ -181,6 +203,8 @@ sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" anaEEstud
 sed -i -e "s/double rich_radius = .*$/double rich_radius = ${RICHRAD}\;/" anaEEstudy.cxx
 ### set RICH length
 sed -i -e "s/double rich_length = .*$/double rich_length = ${RICHLEN}\;/" anaEEstudy.cxx
+### set centrality boolian for anaEEstudy
+sed -i -e "s/bool bSemiCentral  = .*$/bool bSemiCentral  = ${SEMICENTRAL}\;/" anaEEstudy.cxx
 
 
 # adapt pt cuts corresponding to selected B-field
@@ -208,7 +232,7 @@ echo " SIGMAT      = ${SIGMAT}      # time resolution [ns]"
 echo " SIGMA0      = ${SIGMA0}      # vertex time spread [ns]"
 echo " BARRELRAD   = ${BARRELRAD}       # barrel radius      [cm] (right now equal to TOF)"
 echo " BARRELLEN   = ${BARRELLEN}       # barrel half length [cm] (right now equal to TOF)"
-echo " BARRELETA   = ${BARRELETA}    # barrel max pseudorapidity"
+echo " BARRELETA   = ${BARRELETA}        # barrel max pseudorapidity"
 echo " TAILLX      = ${TAILLX}        # tail on left    [q]"
 echo " TAILRX      = ${TAILRX}        # tail on right   [q]"
 echo " TOFRAD      = ${TOFRAD}       # TOF radius      [cm]"
@@ -254,10 +278,11 @@ hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS
 # cp ./macros/anaPlots.cxx anaPlots.cxx &&
 # root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
 # rm anaPlots.cxx
-mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod
+mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod && rm -rf anaEEstudy.*.root &&
 ### clean up
 rm lutCovm*
 rm propagate.tcl
+rm delphes.*.log
 rm *.root
 # rm *.log
 rm *.cfg
