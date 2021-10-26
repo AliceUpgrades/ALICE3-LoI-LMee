@@ -214,7 +214,8 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   smearer.loadTable(2212, "./lutCovm.pr.dat");
 
   // Event histograms
-  auto nTracks = new TH1F("nTracks", ";Tracks", 10000, 0, 10000);
+  auto nTracks = new TH1F("nTracks",";Tracks",10000,0,10000);
+  auto nTracksCent = new TH1F("nTracksCent",";Tracks",10000,0,10000);
   auto nTracksEle = new TH1F("nTracksEle", ";Tracks", 1000, 0, 1000);
   auto nTracksPos = new TH1F("nTracksPos", ";Tracks", 1000, 0, 1000);
 
@@ -303,8 +304,9 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       vecPIDtracks.push_back(track);
     }
 
-    if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
     nTracks->Fill(vecPIDtracks.size());
+    if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
+    nTracksCent->Fill(vecPIDtracks.size());
 
     std::array<float, 2> tzero;
     toflayer.eventTime(vecTOFtracks, tzero);
@@ -433,6 +435,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   }
   auto fout = TFile::Open(outputFile, "RECREATE");
   nTracks->Write();
+  nTracksCent->Write();
   nTracksEle->Write();
   nTracksPos->Write();
   hPt_trackEle_trueEle->Write();
