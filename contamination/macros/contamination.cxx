@@ -303,6 +303,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       vecPIDtracks.push_back(track);
     }
 
+    if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
     nTracks->Fill(vecPIDtracks.size());
 
     std::array<float, 2> tzero;
@@ -314,8 +315,6 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       auto particle = (GenParticle*)track->Particle.GetObject();
       auto pid = particle->PID;
 
-      cont = nHadCounter ? ((double) nHadCounter)/(nHadCounter+nEleCounter) : 0. ;
-      cout << "Contamination: " << cont << endl;
       if (abs(pid) != 11){
         if(rnd.Rndm() > 0.001) continue;
       }
