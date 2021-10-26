@@ -20,6 +20,10 @@ double rich_length = 200.; // [cm]
 double PtCut = 0.04;
 double EtaCut = 1.1;
 
+double pionRej = 1./1000.;
+
+
+
 void makeHistNice(TH1* h, int color)
 {
   h->SetMarkerColor(color);
@@ -251,7 +255,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   auto hPdg_mother = new TH1F("hPdg_mother", ";pdg code mother", 601, -0.5, 600.5);
 
   // Pair histograms
-  auto hM_Pt_DCA_sameMother = new TH2F("hM_Pt_sameMother", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0., 3., 400, 0., 4.);
+  auto hM_Pt_sameMother = new TH2F("hM_Pt_sameMother", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0., 3., 400, 0., 4.);
   auto hM_Pt_ULS = new TH2F("hM_Pt_ULS", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
   auto hM_Pt_LSplus = new TH2F("hM_Pt_LSplus", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
   auto hM_Pt_LSminus = new TH2F("hM_Pt_LSminus", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
@@ -270,7 +274,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   rndm3.SetSeed(12345);
 
   int eventCounter = 1;
-
+  TRandom3 rnd;
   for (Int_t ientry = 0; ientry < numberOfEntries; ++ientry) {
     // Load selected branches with data from specified event
     treeReader->ReadEntry(ientry);
@@ -310,14 +314,12 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       auto particle = (GenParticle*)track->Particle.GetObject();
       auto pid = particle->PID;
 
-      auto imother = particle->M1;
-      if (imother == -1) return false;
-      auto mother = (GenParticle*)particles->At(imother);
-      auto mpid = mother->PID;
+      cont = nHadCounter ? ((double) nHadCounter)/(nHadCounter+nEleCounter) : 0. ;
+      cout << "Contamination: " << cont << endl;
+      if (abs(pid) != 11){
+        if(rnd.Rndm() > 0.001) continue;
+      }
 
-      bool TOFpid = false;
-      bool RICHpid = false;
-      bool PSHpid = false;
       // TOF PID
       auto p = track->P;
       auto beta = toflayer.getBeta(*track);
@@ -328,10 +330,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       toflayer.makePID(*track, deltat, nsigmaTOF);
       for (int i = 0; i < 5; ++i)
         hNsigmaP_tof[i]->Fill(p, nsigmaTOF[i]);
-      if (p < 0.6) {
-        if (fabs(nsigmaTOF[0]) < 3.) TOFpid = true;  // is within 3 sigma of the electron band
-        if (fabs(nsigmaTOF[2]) < 3.) TOFpid = false; // is within 3 sigma of the electron band
-      }
+
       // RICH PID
       auto measurement = richdetector.getMeasuredAngle(*track);
       auto angle = measurement.first;
@@ -346,19 +345,6 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       for (int i = 0; i < 5; ++i) {
         hNsigmaP_rich[i]->Fill(p, nsigmaRICH[i]);
       }
-      if (richdetector.hasRICH(*track)) {
-        if (fabs(nsigmaRICH[0]) < 3.) RICHpid = true;
-        if ((fabs(nsigmaRICH[2]) < 3.) && (p > 1.)) RICHpid = false;
-      }
-
-      if (p > 2.) {
-        if (abs(pdg) == 11) {
-          if (rndm3.Rndm() < 0.8) PSHpid = true;
-        } else
-          (rndm3.Rndm() < pionRej) PSHpid = true;
-      }
-
-      if (!(RICHpid || TOFpid || PSHpid)) continue;
 
       // fill pid histos after cuts
       for (int i = 0; i < 5; ++i) {
@@ -368,18 +354,17 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       hPt_trackPID->Fill(track->PT);
       if (abs(pid) == 11) {
         hPt_trackEle_trueEle->Fill(track->PT);
-        hPdg_mother->Fill(mpid);
       }
 
       if (track->Charge < 0.) {
         if (pairing) {
           vecElectron.push_back(track);
-          if (abs(pdg) == 11) vecElectron_mcTruth.push_back(track);
+          if (abs(pid) == 11) vecElectron_mcTruth.push_back(track);
         }
       } else if (track->Charge > 0.) {
         if (pairing) {
           vecPositron.push_back(track);
-          if (abs(pdg) == 11) vecPositron_mcTruth.push_back(track);
+          if (abs(pid) == 11) vecPositron_mcTruth.push_back(track);
         }
       }
     }

@@ -8,16 +8,16 @@ runDelphes() {
   echo "Random:seed = $1" >> pythia8.$1.cfg
 
   DelphesPythia8 propagate.tcl pythia8.$1.cfg delphes.$1.root  &> delphes.$1.log &&
-  root -q -l "bkg.cxx(\"delphes.$1.root\", \"background.$1.root\")" &> bkg.$1.log
+  root -q -l "contamination.cxx(\"delphes.$1.root\", \"contamination.$1.root\")" &> contamination.$1.log
 }
 
 SYSTEM="pp_cc_cr2"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 # SYSTEM="PbPb"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 
-NJOBS=10        # number of max parallel runs
-NRUNS=100       # number of runs
+NJOBS=50        # number of max parallel runs
+NRUNS=50       # number of runs
 
-NEVENTS=100     # number of events in a run
+NEVENTS=100000     # number of events in a run
 
 RADIUS=100     # radius tracks have to reach for reco
 
@@ -43,7 +43,7 @@ echo " --- $ALLEVENTS $SYSTEM events"
 # card
 cp ../delphes/cards/propagate.2kG.tails.tcl propagate.tcl
 # code
-cp ./macros/bkg.cxx bkg.cxx
+cp ./macros/contamination.cxx contamination.cxx
 # pythia configuration
 cp ../pythia/pythia8_${SYSTEM}.cfg pythia8.cfg
 
@@ -60,11 +60,11 @@ echo "Random:setSeed on" >> pythia8.cfg
 # cp $DELPHESO2_ROOT/examples/pythia8/$PY8CFG.cfg pythia8.cfg
 # cp $DELPHESO2_ROOT/examples/pythia8/pythia8_inel.cfg pythia8.cfg
 # LUTs
-cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.el.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.el.dat
-cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.mu.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.mu.dat
-cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pi.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pi.dat
-cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.ka.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.ka.dat
-cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADIUS}.${BFIELD}kG.dat lutCovm.pr.dat
+cp ../LUTs/B5kG/lutCovm.el.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.el.dat
+cp ../LUTs/B5kG/lutCovm.mu.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.mu.dat
+cp ../LUTs/B5kG/lutCovm.pi.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pi.dat
+cp ../LUTs/B5kG/lutCovm.ka.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.ka.dat
+cp ../LUTs/B5kG/lutCovm.pr.${BFIELD}kG.rmin${RADIUS}.geometry_v1.dat lutCovm.pr.dat
 
 # cp ../../LUTs/default/lutCovm.el.5kG.dat lutCovm.el.dat # default lUTS for test
 # cp ../../LUTs/default/lutCovm.mu.5kG.dat lutCovm.mu.dat # default lUTS for test
@@ -76,22 +76,22 @@ cp ../LUTs/lutCovm.werner.rmin${RADIUS}.${BFIELD}kG/lutCovm.pr.werner.rmin${RADI
 
 # Set B fild in propagation card and analysis macro
 sed -i -e "s/set barrel_Bz .*$/set barrel_Bz ${BFIELD}e\-1/" propagate.tcl
-sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" bkg.cxx
+sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" contamination.cxx
 
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${TOFRAD}e\-2/" propagate.tcl
-sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" bkg.cxx
+sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" contamination.cxx
 ### set TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${TOFLEN}e\-2/" propagate.tcl
-sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" bkg.cxx
+sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" contamination.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${TOFETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
 sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
 sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
 sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
-sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" bkg.cxx
-sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" bkg.cxx
+sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" contamination.cxx
+sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" contamination.cxx
 
 
 ### create LUTs
@@ -115,14 +115,14 @@ done
 
 ### merge runs when all done
 wait
-hadd -f background.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root background.*.root &&
-mv background.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root ./output/
-rm -rf background.*.root &&
+hadd -f contamination.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root contamination.*.root &&
+mv contamination.rmin${RADIUS}.${BFIELD}kG.${SYSTEM}.root ./output/
+rm -rf contamination.*.root &&
 
 ### clean up
 rm lutCovm*
 rm propagate.tcl
 rm *.root
-rm *.log
+#rm *.log
 rm *.cfg
-rm bkg.cxx
+rm contamination.cxx
