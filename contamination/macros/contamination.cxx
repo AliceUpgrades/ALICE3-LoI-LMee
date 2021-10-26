@@ -20,9 +20,7 @@ double rich_length = 200.; // [cm]
 double PtCut = 0.04;
 double EtaCut = 1.1;
 
-double pionRej = 1./1000.;
-
-
+double pionRej = 1. / 1000.;
 
 void makeHistNice(TH1* h, int color)
 {
@@ -214,8 +212,8 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   smearer.loadTable(2212, "./lutCovm.pr.dat");
 
   // Event histograms
-  auto nTracks = new TH1F("nTracks",";Tracks",10000,0,10000);
-  auto nTracksCent = new TH1F("nTracksCent",";Tracks",10000,0,10000);
+  auto nTracks = new TH1F("nTracks", ";Tracks", 10000, 0, 10000);
+  auto nTracksCent = new TH1F("nTracksCent", ";Tracks", 10000, 0, 10000);
   auto nTracksEle = new TH1F("nTracksEle", ";Tracks", 1000, 0, 1000);
   auto nTracksPos = new TH1F("nTracksPos", ";Tracks", 1000, 0, 1000);
 
@@ -305,7 +303,10 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
     }
 
     nTracks->Fill(vecPIDtracks.size());
-    if (vecPIDtracks.size() < 3750) {vecPIDtracks.clear(); continue;} // dirty dirty centrality
+    if (vecPIDtracks.size() < 3750) {
+      vecPIDtracks.clear();
+      continue;
+    } // dirty dirty centrality
     nTracksCent->Fill(vecPIDtracks.size());
 
     std::array<float, 2> tzero;
@@ -317,8 +318,8 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       auto particle = (GenParticle*)track->Particle.GetObject();
       auto pid = particle->PID;
 
-      if ((abs(pid) != 11) && (fabs(track->Charge) != 0)){
-        if(rnd.Rndm() > 0.001) continue;
+      if ((abs(pid) != 11) && (fabs(track->Charge) != 0)) {
+        if (rnd.Rndm() > 0.001) continue;
       }
 
       // TOF PID
@@ -374,57 +375,36 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
     nTracksEle->Fill(vecElectron_mcTruth.size());
     nTracksPos->Fill(vecPositron_mcTruth.size());
     // pairing
-    TLorentzVector LV1, LV2, LV;
+
     if (pairing) {
-      for (auto track1 : vecElectron_mcTruth) {
-        LV1.SetPtEtaPhiM(track1->PT, track1->Eta, track1->Phi, eMass);
-        for (auto track2 : vecPositron_mcTruth) {
-          LV2.SetPtEtaPhiM(track2->PT, track2->Eta, track2->Phi, eMass);
-          LV = LV1 + LV2;
-          hM_Pt_ULS_trueEle->Fill(LV.Mag(), LV.Pt()); // ULS spectrum
+      // be lazy and write lambda
+      auto pairULS = [&eMass](const std::vector<Track*>& v1, const std::vector<Track*>& v2, TH1D* hist) -> void {
+        TLorentzVector LV1, LV2;
+        for (auto& t1 : v1) {
+          LV1.SetPtEtaPhiM(t1->PT, t1->Eta, t1->Phi, eMass);
+          for (auto& t2 : v2) {
+            LV2.SetPtEtaPhiM(t2->PT, t2->Eta, t2->Phi, eMass);
+            hist->Fill((LV1 + LV2).Mag(), (LV1 + LV2).Pt());
+          }
         }
-      }
-      for (auto track1 : vecElectron) {
-        LV1.SetPtEtaPhiM(track1->PT, track1->Eta, track1->Phi, eMass);
-        for (auto track2 : vecPositron) {
-          LV2.SetPtEtaPhiM(track2->PT, track2->Eta, track2->Phi, eMass);
-          LV = LV1 + LV2;
-          hM_Pt_ULS->Fill(LV.Mag(), LV.Pt()); // ULS spectrum
+      };
+      pairULS(vecElectron_mcTruth, vecPositron_mcTruth, hM_Pt_ULS_trueEle);
+      pairULS(vecElectron, vecPositron, hM_Pt_ULS);
+      // and another lambda for the LS spectra
+      auto pairLS = [&eMass](const std::vector<Track*>& v, TH1D* hist) -> void {
+        TLorentzVector LV1, LV2;
+        for (auto t1 = v.begin(); t1 != v.end(); ++t1) {
+          for (auto t2 = t1 + 1; t2 != v.end(); ++t2) {
+            LV1.SetPtEtaPhiM((*t1)->PT, (*t1)->Eta, (*t1)->Phi, eMass);
+            LV2.SetPtEtaPhiM((*t2)->PT, (*t2)->Eta, (*t2)->Phi, eMass);
+            hM_Pt_LSplus_trueEle->Fill((LV1 + LV2).Mag(), (LV1 + LV2).Pt());
+          }
         }
-      }
-      // Nested for loops for the calculation of the LS spectra
-      for (auto track1 = vecPositron_mcTruth.begin(); track1 != vecPositron_mcTruth.end(); ++track1) {
-        for (auto track2 = track1 + 1; track2 != vecPositron_mcTruth.end(); ++track2) {
-          LV1.SetPtEtaPhiM((*track1)->PT, (*track1)->Eta, (*track1)->Phi, eMass);
-          LV2.SetPtEtaPhiM((*track2)->PT, (*track2)->Eta, (*track2)->Phi, eMass);
-          LV = LV1 + LV2;
-          hM_Pt_LSplus_trueEle->Fill(LV.Mag(), LV.Pt());
-        }
-      }
-      for (auto track1 = vecPositron.begin(); track1 != vecPositron.end(); ++track1) {
-        for (auto track2 = track1 + 1; track2 != vecPositron.end(); ++track2) {
-          LV1.SetPtEtaPhiM((*track1)->PT, (*track1)->Eta, (*track1)->Phi, eMass);
-          LV2.SetPtEtaPhiM((*track2)->PT, (*track2)->Eta, (*track2)->Phi, eMass);
-          LV = LV1 + LV2;
-          hM_Pt_LSplus->Fill(LV.Mag(), LV.Pt());
-        }
-      }
-      for (auto track1 = vecElectron_mcTruth.begin(); track1 != vecElectron_mcTruth.end(); ++track1) {
-        for (auto track2 = track1 + 1; track2 != vecElectron_mcTruth.end(); ++track2) {
-          LV1.SetPtEtaPhiM((*track1)->PT, (*track1)->Eta, (*track1)->Phi, eMass);
-          LV2.SetPtEtaPhiM((*track2)->PT, (*track2)->Eta, (*track2)->Phi, eMass);
-          LV = LV1 + LV2;
-          hM_Pt_LSminus_trueEle->Fill(LV.Mag(), LV.Pt());
-        }
-      }
-      for (auto track1 = vecElectron.begin(); track1 != vecElectron.end(); ++track1) {
-        for (auto track2 = track1 + 1; track2 != vecElectron.end(); ++track2) {
-          LV1.SetPtEtaPhiM((*track1)->PT, (*track1)->Eta, (*track1)->Phi, eMass);
-          LV2.SetPtEtaPhiM((*track2)->PT, (*track2)->Eta, (*track2)->Phi, eMass);
-          LV = LV1 + LV2;
-          hM_Pt_LSminus->Fill(LV.Mag(), LV.Pt());
-        }
-      }
+      };
+      pairLS(vecPositron_mcTruth, hM_Pt_LSplus_trueEle);
+      pairLS(vecPositron, hM_Pt_LSplus);
+      pairLS(vecElectron_mcTruth, hM_Pt_LSminus_trueEle);
+      pairLS(vecElectron, hM_Pt_LSminus);
     }
     vecElectron_mcTruth.clear();
     vecElectron.clear();
