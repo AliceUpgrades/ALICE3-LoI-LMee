@@ -5,7 +5,7 @@ bool pairing = true;
 bool smear = true;
 // bool nsigma = true;
 double Bz = 0.2;
-double eMass = 0.000511;
+constexpr double eMass = 0.000511;
 
 // TOF geometry
 double tof_radius = 100.; // [cm]
@@ -378,7 +378,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
 
     if (pairing) {
       // be lazy and write lambda
-      auto pairULS = [&eMass](const std::vector<Track*>& v1, const std::vector<Track*>& v2, TH2* hist) -> void {
+      auto pairULS = [](const std::vector<Track*>& v1, const std::vector<Track*>& v2, TH2* hist) -> void {
         TLorentzVector LV1, LV2;
         for (auto& t1 : v1) {
           LV1.SetPtEtaPhiM(t1->PT, t1->Eta, t1->Phi, eMass);
@@ -391,13 +391,13 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       pairULS(vecElectron_mcTruth, vecPositron_mcTruth, hM_Pt_ULS_trueEle);
       pairULS(vecElectron, vecPositron, hM_Pt_ULS);
       // and another lambda for the LS spectra
-      auto pairLS = [&eMass](const std::vector<Track*>& v, TH2* hist) -> void {
+      auto pairLS = [](const std::vector<Track*>& v, TH2* hist) -> void {
         TLorentzVector LV1, LV2;
         for (auto t1 = v.begin(); t1 != v.end(); ++t1) {
           for (auto t2 = t1 + 1; t2 != v.end(); ++t2) {
             LV1.SetPtEtaPhiM((*t1)->PT, (*t1)->Eta, (*t1)->Phi, eMass);
             LV2.SetPtEtaPhiM((*t2)->PT, (*t2)->Eta, (*t2)->Phi, eMass);
-            hM_Pt_LSplus_trueEle->Fill((LV1 + LV2).Mag(), (LV1 + LV2).Pt());
+            hist->Fill((LV1 + LV2).Mag(), (LV1 + LV2).Pt());
           }
         }
       };
