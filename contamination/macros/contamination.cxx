@@ -378,7 +378,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
 
     if (pairing) {
       // be lazy and write lambda
-      auto pairULS = [&eMass](const std::vector<Track*>& v1, const std::vector<Track*>& v2, TH1D* hist) -> void {
+      auto pairULS = [&eMass](const std::vector<Track*>& v1, const std::vector<Track*>& v2, TH2* hist) -> void {
         TLorentzVector LV1, LV2;
         for (auto& t1 : v1) {
           LV1.SetPtEtaPhiM(t1->PT, t1->Eta, t1->Phi, eMass);
@@ -391,7 +391,7 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       pairULS(vecElectron_mcTruth, vecPositron_mcTruth, hM_Pt_ULS_trueEle);
       pairULS(vecElectron, vecPositron, hM_Pt_ULS);
       // and another lambda for the LS spectra
-      auto pairLS = [&eMass](const std::vector<Track*>& v, TH1D* hist) -> void {
+      auto pairLS = [&eMass](const std::vector<Track*>& v, TH2* hist) -> void {
         TLorentzVector LV1, LV2;
         for (auto t1 = v.begin(); t1 != v.end(); ++t1) {
           for (auto t2 = t1 + 1; t2 != v.end(); ++t2) {
