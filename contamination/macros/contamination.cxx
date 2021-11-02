@@ -262,6 +262,10 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   auto hM_Pt_LSplus_trueEle = new TH2F("hM_Pt_LSplus_trueEle", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
   auto hM_Pt_LSminus_trueEle = new TH2F("hM_Pt_LSminus_trueEle", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
 
+  auto hM_Pt_ULS_cont = new TH2F("hM_Pt_ULS_cont", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
+  auto hM_Pt_LSplus_cont = new TH2F("hM_Pt_LSplus_cont", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
+  auto hM_Pt_LSminus_cont = new TH2F("hM_Pt_LSminus_cont", ";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)", 300., 0, 3., 400, 0., 4.);
+
   // auto hM_Pt_sameMother = new TH2F("hM_Pt_sameMother",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0.,3.,400,0.,4.);
   // auto hM_Pt_ULS = new TH2F("hM_Pt_ULS",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
   // auto hM_Pt_LSplus = new TH2F("hM_Pt_LSplus",";m_{ee} (Gev/c^2);p_{T,ee} (GeV/c)",300.,0,3.,400,0.,4.);
@@ -405,6 +409,43 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       pairLS(vecPositron, hM_Pt_LSplus);
       pairLS(vecElectron_mcTruth, hM_Pt_LSminus_trueEle);
       pairLS(vecElectron, hM_Pt_LSminus);
+      // We also want to ask if at least one is from contamination
+      auto pairULScont = [](const std::vector<Track*>& v1, const std::vector<Track*>& v2, TH2* hist) -> void {
+        TLorentzVector LV1, LV2;
+        for (auto& t1 : v1) {
+          auto p1 = (GenParticle *)t1->Particle.GetObject();
+          auto pid1 = fabs(p1->PID);
+          LV1.SetPtEtaPhiM(t1->PT, t1->Eta, t1->Phi, eMass);
+          for (auto& t2 : v2) {
+            auto p2 = (GenParticle *)t2->Particle.GetObject();
+            auto pid2 = fabs(p2->PID);
+            if((pid1 == 11) && (pid2 == 11)) continue; // at least one should not be an electron
+            LV2.SetPtEtaPhiM(t2->PT, t2->Eta, t2->Phi, eMass);
+            hist->Fill((LV1 + LV2).Mag(), (LV1 + LV2).Pt());
+          }
+        }
+      };
+      pairULScont(vecElectron, vecPositron, hM_Pt_ULS_cont);
+      auto pairLScont = [](const std::vector<Track*>& v, TH2* hist) -> void {
+        TLorentzVector LV1, LV2;
+        for (auto t1 = v.begin(); t1 != v.end(); ++t1) {
+          auto p1 = (GenParticle *)t1->Particle.GetObject();
+          auto pid1 = fabs(p1->PID);
+          for (auto t2 = t1 + 1; t2 != v.end(); ++t2) {
+            auto p2 = (GenParticle *)t2->Particle.GetObject();
+            auto pid2 = fabs(p2->PID);
+            if((pid1 == 11) && (pid2 == 11)) continue; // at least one should not be an electron
+            LV1.SetPtEtaPhiM((*t1)->PT, (*t1)->Eta, (*t1)->Phi, eMass);
+            LV2.SetPtEtaPhiM((*t2)->PT, (*t2)->Eta, (*t2)->Phi, eMass);
+            hist->Fill((LV1 + LV2).Mag(), (LV1 + LV2).Pt());
+          }
+        }
+      };
+      pairLScont(vecPositron, hM_Pt_LSplus_cont);
+      pairLScont(vecElectron, hM_Pt_LSminus_cont);
+
+
+
     }
     vecElectron_mcTruth.clear();
     vecElectron.clear();
@@ -422,10 +463,13 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
   hM_Pt_sameMother->Write();
   hM_Pt_ULS->Write();
   hM_Pt_ULS_trueEle->Write();
+  hM_Pt_ULS_cont->Write();
   hM_Pt_LSplus->Write();
   hM_Pt_LSplus_trueEle->Write();
+  hM_Pt_LSplus_cont->Write();
   hM_Pt_LSminus->Write();
   hM_Pt_LSminus_trueEle->Write();
+  hM_Pt_LSminus_cont->Write();
   hTime0->Write();
   hBetaP->Write();
   hAngleP->Write();
