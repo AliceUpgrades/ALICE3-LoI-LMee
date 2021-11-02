@@ -429,10 +429,10 @@ void contamination(const char* inputFile, const char* outputFile = "output.root"
       auto pairLScont = [](const std::vector<Track*>& v, TH2* hist) -> void {
         TLorentzVector LV1, LV2;
         for (auto t1 = v.begin(); t1 != v.end(); ++t1) {
-          auto p1 = (GenParticle *)t1->Particle.GetObject();
+          auto p1 = (GenParticle *)(*t1)->Particle.GetObject();
           auto pid1 = fabs(p1->PID);
           for (auto t2 = t1 + 1; t2 != v.end(); ++t2) {
-            auto p2 = (GenParticle *)t2->Particle.GetObject();
+            auto p2 = (GenParticle *)(*t2)->Particle.GetObject();
             auto pid2 = fabs(p2->PID);
             if((pid1 == 11) && (pid2 == 11)) continue; // at least one should not be an electron
             LV1.SetPtEtaPhiM((*t1)->PT, (*t1)->Eta, (*t1)->Phi, eMass);
