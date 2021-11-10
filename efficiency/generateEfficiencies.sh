@@ -52,16 +52,16 @@ runDelphes() {
 
 
 NJOBS=100        # number of max parallel runs                   50
-NRUNS=100        # number of runs                               100
+NRUNS=300        # number of runs                               100
 
-NEVENTS=1000    # number of events in a run                       1000
+NEVENTS=1000    # number of events in a run                     1000
 NEVENTSCC=1000  # number of events in the charm sample
 NEVENTSBB=1000  # number of events in the beauty sample
 
 SYSTEM="PbPb"            # collisionSystem
 # SYSTEM="pp"            # collisionSystem
 # SCENARIO="default"     # detector setup
-SEMICENTRAL=false         # semicentral = false => 0-10%,  semicentral = true => 30-50%
+SEMICENTRAL=true         # semicentral = false => 0-10%,  semicentral = true => 30-50%
 SCENARIO="geometry_v1"   # detector setup
 # BFIELD=2               # magnetic field  [kG]
 BFIELD=5                 # magnetic field  [kG]

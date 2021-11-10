@@ -24,7 +24,7 @@ using namespace std;
 
 bool bSmear        = true;
 bool bUseiTOF      = false;
-bool bSemiCentral  = false;
+bool bSemiCentral  = true;
 bool bUseWeights  = true;
 
 double Bz = 5;            // in kG,  becomes overwritten by the generateEfficiencies.sh skript
@@ -72,7 +72,6 @@ double inner_tof_sigma0 = 0.20; // [ns]
 
 
 // TOF ele pt acceptance
-double tof_EleAccep_p_cut = 0.6;  // [GeV/c]
 double itof_EleAccep_p_cut = 0.3;  // [GeV/c]
 // TOF additional Pion/Muon rejection
 double tof_PionRej_p_cut = 0.4; // [GeV/c] above this value the nSigmaRICHEle_forTOFPID cut is apllied. Thus the TOF is only accepting particles within nSigmaRICHEle and nSigmaTOFele
@@ -95,31 +94,33 @@ double pf_PID_NSigTOFele  = 3.;
 double pf_PID_NSigTOFpi   = 3.0;
 double pf_PID_NSigRICHele = 3.;
 double pf_PID_NSigRICHpi  = 4.0;
+double pf_PID_TOFpacc     = 0.6;
 double pf_PID_PSptacc     = 1.5;
 
 
 
-// PID Scenarios            =   /*    woPF,   TOFRICH,TOFPS,TOFRICHPS PID             */ /*  30-50% large eta      */ /*  0-10% additional Prefilter studies    */       compare eta acceptance with MC PID                               different PF pt cuts                        /*     TOF, RICH,w wo PID */        different pt cuts           different PID scenarios                 using iTOF layer         only TOF, RICH, both           use TOF   use only PS   use TOF+PS
-bool bUseTrackEff           =   /*                   kTRUE                            */ /*            kTRUE       */ /*            kTRUE                       */ /*                       kFALSE                         */  /*                      kTRUE                      */  /*         kFALSE         */                                                                                                                                 /*   kTRUE */    kTRUE     /*   kTRUE */  ;
-bool useMCPID[]             = { /*kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE */ /* kFALSE, kFALSE, kFALSE */ /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE */ /*  kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE  */  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE  */  /*  kTRUE,  kTRUE,  kTRUE */                                                                                                                                     kFALSE,     kFALSE,        kFALSE    };
-bool usePreFilter[]         = { /*kFALSE,  kFALSE,  kFALSE,   kTRUE,   kTRUE,   kTRUE */ /* kFALSE,  kTRUE,  kTRUE */ /* kFALSE,  kTRUE,  kTRUE,  kTRUE,  kTRUE */ /*  kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE  */  /* kFALSE,  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /* kFALSE, kFALSE, kFALSE */                                                                                                                                     kFALSE,     kFALSE,        kFALSE    };
-bool useTOFPID[]            = { /* kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE */ /*  kTRUE,  kTRUE,  kTRUE */ /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE */ /* kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE  */  /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /*  kTRUE, kFALSE, kFALSE */      /*kTRUE,   kTRUE,     */  /*kTRUE,  kTRUE ,  kTRUE,   kTRUE */    /* kTRUE  ,   kTRUE */   /*kTRUE , kFALSE,*/ /*kTRUE  */      kTRUE,     kFALSE,         kTRUE    };
-bool useRICHPID[]           = { /* kTRUE,  kFALSE,   kTRUE,   kTRUE,  kFALSE,   kTRUE */ /*  kTRUE,  kTRUE,  kTRUE */ /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE */ /* kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE  */  /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /* kFALSE,  kTRUE, kFALSE */      /*kFALSE,  kFALSE,    */  /*kFALSE, kTRUE ,  kTRUE,   kTRUE */    /* kFALSE ,  kFALSE */   /*kFALSE, kTRUE, */ /*kTRUE  */     kFALSE,     kFALSE,        kFALSE    };
-bool usePreShPID[]          = { /*kFALSE,   kTRUE,   kTRUE,  kFALSE,   kTRUE,   kTRUE */ /* kFALSE, kFALSE, kFALSE */ /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE */ /* kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE  */  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE  */  /* kFALSE, kFALSE, kFALSE */      /*kFALSE,  kFALSE,    */  /*kFALSE, kFALSE, kFALSE,  kFALSE */    /* kFALSE ,  kFALSE */   /*kFALSE, kFALSE,*/ /*kFALSE */     kFALSE,      kTRUE,         kTRUE    };
-double nSigmaTOFEle[]       = { /*   3.0,     3.0,     3.0,     3.0,     3.0,     3.0 */ /*    3.0,    3.0,    3.0 */ /*    3.0,    3.0,    3.0,    3.0,    3.0 */ /*    3.0,     3.0,     3.0,     3.0,     3.0,     3.0  */  /*    3.0,    3.0,    3.0,    3.0,    3.0,    3.0  */  /*    3.0,    3.0,    3.0 */      /*3.0,     3.0,       */  /*  3.0,    3.0 ,    3.0,     3.0 */    /*  3.0   ,    3.0  */   /*  3.0 ,   3.0, */ /*  3.0  */        3.0,        3.0,           3.0    };
-double nSigmaTOFPi[]        = { /*   3.0,     3.0,     3.0,     3.0,     3.0,     3.0 */ /*    3.0,    3.0,    3.0 */ /*    3.0,    3.0,    3.0,    3.0,    3.0 */ /*    3.0,     3.0,     3.0,     3.0,     3.0,     3.0  */  /*    3.0,    3.0,    3.0,    3.0,    3.0,    3.0  */  /*    3.0,    3.0,    3.0 */      /*3.0,     3.0,       */  /*  3.0,    3.0 ,    3.0,     3.0 */    /*  3.0   ,    3.0  */   /*  3.0 ,   3.0, */ /*  3.0  */        3.0,        3.0,           3.0    };
-double nSigmaRICHEle[]      = { /*   3.0,     3.0,     3.0,     3.0,     3.0,     3.0 */ /*    3.0,    3.0,    3.0 */ /*    3.0,    3.0,    3.0,    3.0,    3.0 */ /*    3.0,     3.0,     3.0,     3.0,     3.0,     3.0  */  /*    3.0,    3.0,    3.0,    3.0,    3.0,    3.0  */  /*    3.0,    3.0,    3.0 */      /*3.0,     3.0,       */  /*  3.0,    3.0 ,    3.0,     3.0 */    /*  0.0   ,    0.0  */   /*  3.0 ,   3.0, */ /*  3.0  */        3.0,        3.0,           3.0    };
-double nSigmaRICHPi[]       = { /*   4.0,     4.0,     4.0,     4.0,     4.0,     4.0 */ /*    4.0,    4.0,    4.0 */ /*    4.0,    4.0,    4.0,    4.0,    4.0 */ /*    4.0,     4.0,     4.0,     4.0,     4.0,     4.0  */  /*    4.0,    4.0,    4.0,    4.0,    4.0,    4.0  */  /*    4.0,    4.0,    4.0 */      /*4.0,     4.0,       */  /*  3.0,    3.0 ,    3.5,     4.0 */    /*  99.   ,    99.  */   /*  4.0 ,   4.0, */ /*  4.0  */        4.0,        4.0,           4.0    };
-double PtCut02[]            = { /*  0.08,    0.08,    0.08,    0.08,    0.08,    0.08 */ /*   0.08,   0.08,   0.08 */ /*   0.08,   0.08,   0.08,   0.08,   0.08 */ /*   0.08,    0.08,    0.08,    0.08,    0.08,    0.08  */  /*   0.08,   0.08,   0.08,   0.08,   0.08,   0.08  */  /*   0.08,   0.08,   0.08 */      /*0.04,    0.08,      */  /*  0.03,   0.03,   0.03,     0.3 */    /*  0.04  ,   0.0   */   /*  0.08,   0.08,*/ /*  0.08 */       0.08,       0.08,          0.08    };
-double PtCut05[]            = { /*   0.2,     0.2,     0.2,     0.2,     0.2,     0.2 */ /*    0.2,    0.2,    0.2 */ /*    0.2,    0.2,    0.2,    0.2,    0.2 */ /*    0.2,     0.2,     0.2,     0.2,     0.2,     0.2  */  /*    0.2,    0.2,    0.2,    0.2,    0.2,    0.2  */  /*    0.2,    0.2,    0.2 */      /*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,     0.3 */    /*  0.08  ,   0.0   */   /*  0.2 ,   0.2, */ /*  0.2  */        0.2,        0.2,           0.2    };
-double PtCut20[]            = { /*   0.3,     0.3,     0.3,     0.3,     0.3,     0.3 */ /*    0.3,    0.3,    0.3 */ /*    0.3,    0.3,    0.3,    0.3,    0.3 */ /*    0.3,     0.3,     0.3,     0.3,     0.3,     0.3  */  /*    0.3,    0.3,    0.3,    0.3,    0.3,    0.3  */  /*    0.3,    0.3,    0.3 */      /*0.2,     0.08,      */  /*  0.03,   0.03,   0.03,     0.3 */    /*  0.08  ,   0.0   */   /*  0.2 ,   0.2, */ /*  0.3  */        0.3,        0.3,           0.3    };
-double EtaCut[]             = { /*   0.8,     0.8,     0.8,     0.8,     0.8,     0.8 */ /*   1.75,   1.75,   1.75 */ /*    0.8,    0.8,    0.8,    0.8,    0.8 */ /*    0.8,    1.25,    1.75,     2.5,     3.0,     4.0  */  /*    0.8,    0.8,    0.8,    0.8,    0.8,    0.8  */  /*    0.8,    0.8,    0.8 */                                                                                                                                        0.8,        0.8,           0.8    };
-bool busePFpid[]            = { /*kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE */                                                                                                                                                                                                                                                                                                                                                               kFALSE,     kFALSE,        kFALSE    };
-bool usePFtrackVec[]        = { /* kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE */ /* kFALSE, kFALSE,  kTRUE */ /* kFALSE, kFALSE,  kTRUE,  kTRUE,  kTRUE */                                                             /* kFALSE, kFALSE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /* kFALSE, kFALSE, kFALSE */                                                                                                                                     kFALSE,     kFALSE,        kFALSE    };
-double pf_pt_cut[]          = { /*  0.02,    0.02,    0.02,    0.02,    0.02,    0.02 */ /*   0.08,   0.08,   0.02 */ /*   0.08,   0.08,   0.02,   0.02,   0.02 */ /*   0.08,    0.08,    0.08,    0.08,    0.08,    0.08  */  /*   0.00,   0.08,   0.02,   0.02,   0.02,   0.02  */  /*   0.00,   0.00,   0.00 */              /* use small pt cut first in rising order */                                                                             0.02,       0.02,          0.02    };
-double pf_opAngle_cut[]     = { /*   0.1,     0.1,     0.1,     0.1,     0.1,     0.1 */ /*    0.1,    0.1,    0.1 */ /*    0.1,    0.1,   0.08,    0.1,   0.12 */                                                             /*   0.00,   0.08,   0.08,    0.1,   0.12,   0.12  */  /*   0.00,   0.00,   0.00 */                                                                                                                                        0.1,        0.1,           0.1    };
-double pf_mass_cut[]        = { /*  0.05,    0.05,    0.05,    0.05,    0.05,    0.05 */ /*   0.05,   0.05,   0.05 */ /*   0.05,   0.05,   0.05,   0.05,   0.05 */                                                             /*   0.00,   0.05,   0.05,   0.05,   0.05,   0.06  */  /*   0.00,   0.00,   0.00 */                                                                                                                                       0.05,       0.05,          0.05    };
-double ps_EleAccep_pt_cut[] = { /*   0.0,     0.4,     1.5,     0.0,     0.4,     1.5 */                                                                                                                                                                                                                                                                                                                                                                  0.0,        0.0,           0.0    };
+// PID Scenarios            =   /* woPF ,     TOFRICH,TOFPS,TOFRICHPS PID             */   30-50% large eta       /*  0-10% additional Prefilter studies    */       compare eta acceptance with MC PID                               different PF pt cuts                        /*     TOF, RICH,w wo PID */           different PID scenarios          /* use TOF  use only PS use TOF+PS diff p acc
+bool bUseTrackEff           =   /*                   kTRUE                            */             kTRUE        /*            kTRUE                       */ /*                       kFALSE                         */  /*                      kTRUE                      */  /*         kFALSE         */                                            /*   kTRUE      kTRUE      kTRUE,      kTRUE  */ ;
+bool useMCPID[]             = { /*kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE */  kFALSE, kFALSE, kFALSE  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE */ /*  kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE  */  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE  */  /*  kTRUE,  kTRUE,  kTRUE */                                            /*  kFALSE,    kFALSE,    kFALSE,     kFALSE  */};
+bool usePreFilter[]         = { /*kFALSE,  kFALSE,  kFALSE,   kTRUE,   kTRUE,   kTRUE */  kFALSE,  kTRUE,  kTRUE  /* kFALSE,  kTRUE,  kTRUE,  kTRUE,  kTRUE */ /*  kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE  */  /* kFALSE,  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /* kFALSE, kFALSE, kFALSE */                                            /*  kFALSE,    kFALSE,    kFALSE,     kFALSE  */};
+bool useTOFPID[]            = { /* kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE */   kTRUE,  kTRUE,  kTRUE  /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE */ /* kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE  */  /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /*  kTRUE, kFALSE, kFALSE */       /*kTRUE,  kTRUE ,  kTRUE,   kTRUE */ /*   kTRUE,    kFALSE,     kTRUE,      kTRUE  */};
+bool useRICHPID[]           = { /* kTRUE,  kFALSE,   kTRUE,   kTRUE,  kFALSE,   kTRUE */   kTRUE,  kTRUE,  kTRUE  /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE */ /* kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE  */  /*  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /* kFALSE,  kTRUE, kFALSE */       /*kFALSE, kTRUE ,  kTRUE,   kTRUE */ /*  kFALSE,    kFALSE,    kFALSE,     kFALSE  */};
+bool usePreShPID[]          = { /*kFALSE,   kTRUE,   kTRUE,  kFALSE,   kTRUE,   kTRUE */  kFALSE, kFALSE, kFALSE  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE */ /* kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE  */  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE  */  /* kFALSE, kFALSE, kFALSE */       /*kFALSE, kFALSE, kFALSE,  kFALSE */ /*  kFALSE,     kTRUE,     kTRUE,      kTRUE  */};
+double nSigmaTOFEle[]       = { /*   3.0,     3.0,     3.0,     3.0,     3.0,     3.0 */     3.0,    3.0,    3.0  /*    3.0,    3.0,    3.0,    3.0,    3.0 */ /*    3.0,     3.0,     3.0,     3.0,     3.0,     3.0  */  /*    3.0,    3.0,    3.0,    3.0,    3.0,    3.0  */  /*    3.0,    3.0,    3.0 */       /*  3.0,    3.0 ,    3.0,     3.0 */ /*     3.0,       3.0,       3.0,        3.0  */};
+double nSigmaTOFPi[]        = { /*   3.0,     3.0,     3.0,     3.0,     3.0,     3.0 */     3.0,    3.0,    3.0  /*    3.0,    3.0,    3.0,    3.0,    3.0 */ /*    3.0,     3.0,     3.0,     3.0,     3.0,     3.0  */  /*    3.0,    3.0,    3.0,    3.0,    3.0,    3.0  */  /*    3.0,    3.0,    3.0 */       /*  3.0,    3.0 ,    3.0,     3.0 */ /*     3.0,       3.0,       3.0,        3.0  */};
+double nSigmaRICHEle[]      = { /*   3.0,     3.0,     3.0,     3.0,     3.0,     3.0 */     3.0,    3.0,    3.0  /*    3.0,    3.0,    3.0,    3.0,    3.0 */ /*    3.0,     3.0,     3.0,     3.0,     3.0,     3.0  */  /*    3.0,    3.0,    3.0,    3.0,    3.0,    3.0  */  /*    3.0,    3.0,    3.0 */       /*  3.0,    3.0 ,    3.0,     3.0 */ /*     3.0,       3.0,       3.0,        3.0  */};
+double nSigmaRICHPi[]       = { /*   4.0,     4.0,     4.0,     4.0,     4.0,     4.0 */     4.0,    4.0,    4.0  /*    4.0,    4.0,    4.0,    4.0,    4.0 */ /*    4.0,     4.0,     4.0,     4.0,     4.0,     4.0  */  /*    4.0,    4.0,    4.0,    4.0,    4.0,    4.0  */  /*    4.0,    4.0,    4.0 */       /*  3.0,    3.0 ,    3.5,     4.0 */ /*     4.0,       4.0,       4.0,        4.0  */};
+double PtCut02[]            = { /*  0.08,    0.08,    0.08,    0.08,    0.08,    0.08 */    0.08,   0.08,   0.08  /*   0.08,   0.08,   0.08,   0.08,   0.08 */ /*   0.08,    0.08,    0.08,    0.08,    0.08,    0.08  */  /*   0.08,   0.08,   0.08,   0.08,   0.08,   0.08  */  /*   0.08,   0.08,   0.08 */       /*  0.03,   0.03,   0.03,     0.3 */ /*    0.08,      0.08,      0.08,       0.08  */};
+double PtCut05[]            = { /*   0.2,     0.2,     0.2,     0.2,     0.2,     0.2 */     0.2,    0.2,    0.2  /*    0.2,    0.2,    0.2,    0.2,    0.2 */ /*    0.2,     0.2,     0.2,     0.2,     0.2,     0.2  */  /*    0.2,    0.2,    0.2,    0.2,    0.2,    0.2  */  /*    0.2,    0.2,    0.2 */       /*  0.03,   0.03,   0.03,     0.3 */ /*     0.2,       0.2,       0.2,        0.2  */};
+double PtCut20[]            = { /*   0.3,     0.3,     0.3,     0.3,     0.3,     0.3 */     0.3,    0.3,    0.3  /*    0.3,    0.3,    0.3,    0.3,    0.3 */ /*    0.3,     0.3,     0.3,     0.3,     0.3,     0.3  */  /*    0.3,    0.3,    0.3,    0.3,    0.3,    0.3  */  /*    0.3,    0.3,    0.3 */       /*  0.03,   0.03,   0.03,     0.3 */ /*     0.3,       0.3,       0.3,        0.3  */};
+double EtaCut[]             = { /*   0.8,     0.8,     0.8,     0.8,     0.8,     0.8 */    1.75,   1.75,   1.75  /*    0.8,    0.8,    0.8,    0.8,    0.8 */ /*    0.8,    1.25,    1.75,     2.5,     3.0,     4.0  */  /*    0.8,    0.8,    0.8,    0.8,    0.8,    0.8  */  /*    0.8,    0.8,    0.8 */                                            /*     0.8,       0.8,       0.8,        0.8  */};
+bool busePFpid[]            = { /*kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE,  kFALSE */  kFALSE, kFALSE, kFALSE  /* kFALSE, kFALSE, kFALSE, kFALSE, kFALSE */                                                                                                                                                                                            /*  kFALSE,    kFALSE,    kFALSE,     kFALSE  */};
+bool usePFtrackVec[]        = { /* kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE,   kTRUE */  kFALSE, kFALSE,  kTRUE  /* kFALSE, kFALSE,  kTRUE,  kTRUE,  kTRUE */                                                             /* kFALSE, kFALSE,  kTRUE,  kTRUE,  kTRUE,  kTRUE  */  /* kFALSE, kFALSE, kFALSE */                                            /*  kFALSE,    kFALSE,    kFALSE,     kFALSE  */};
+double pf_pt_cut[]          = { /*  0.02,    0.02,    0.02,    0.02,    0.02,    0.02 */    0.08,   0.08,   0.02  /*   0.08,   0.08,   0.02,   0.02,   0.02 */ /*   0.08,    0.08,    0.08,    0.08,    0.08,    0.08  */  /*   0.00,   0.08,   0.02,   0.02,   0.02,   0.02  */  /*   0.00,   0.00,   0.00 */                                            /*    0.02,      0.02,      0.02,       0.02  */}; /* use small pt cut first in rising order */
+double pf_opAngle_cut[]     = { /*   0.1,     0.1,     0.1,     0.1,     0.1,     0.1 */     0.1,    0.1,    0.1  /*    0.1,    0.1,   0.08,    0.1,   0.12 */                                                             /*   0.00,   0.08,   0.08,    0.1,   0.12,   0.12  */  /*   0.00,   0.00,   0.00 */                                            /*     0.1,       0.1,       0.1,        0.1  */};
+double pf_mass_cut[]        = { /*  0.05,    0.05,    0.05,    0.05,    0.05,    0.05 */    0.05,   0.05,   0.05  /*   0.05,   0.05,   0.05,   0.05,   0.05 */                                                             /*   0.00,   0.05,   0.05,   0.05,   0.05,   0.06  */  /*   0.00,   0.00,   0.00 */                                            /*    0.05,      0.05,      0.05,       0.05  */};
+double tof_EleAccep_p_cut[] = { /*   0.6                                              */     0.6,    0.6,    0.6  /*    0.6,    0.6,    0.6,    0.6,    0.6 */                                                                                                                                                                                            /*     99.,       99.,       99.,        0.6  */};
+double ps_EleAccep_pt_cut[] = { /*   0.0,     0.4,     1.5,     0.0,     0.4,     1.5 */     99.,    99.,    99.  /*    99.,    99.,    99.,    99.,    99. */                                                                                                                                                                                            /*     0.0,       0.0,       0.0,        0.4  */};
 
 // TOF pte > 0.04 B = 0.2 T (highest priority) or TOF pte > 0.08 B = 0.5 T
 // TOF RICH pte > 0.2 B = 0.5 T (highest priority) or TOF RICH pte > 0.08  B = 0.5 T
@@ -172,7 +173,7 @@ bool doTOFPID(Track * track, bool useTOF, double p_tofMaxAcc, double p_tofPionRe
   double p = track->P;
   bool TOFpid = false;
   //TOF PID
-  if(useTOF && (toflayer.hasTOF(*track)) /*&& (p < p_tofMaxAcc)*/) {
+  if(useTOF && (toflayer.hasTOF(*track)) && (p < p_tofMaxAcc)) {
     if(fabs(PIDnsigmaTOF[0]) < nSigmaTOFele)
       TOFpid = true; // is within 3 sigma of the electron band (TOF)
     else TOFpid = false;
@@ -842,9 +843,11 @@ void anaEEstudy(
   // hMPtDCA_LS_rec_misIDPion[j]        = new TH3F(Form("hMPtDCA_LS_rec_misIDPion_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   // hMPtDCA_LS_rec_misIDhf[j]          = new TH3F(Form("hMPtDCA_LS_rec_misIDhf_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
 
+  hMPtDCA_LS_rec_lfTOe[j]           = new TH3F(Form("hMPtDCA_LS_rec_lfTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   hMPtDCA_LS_rec_charmTOe[j]        = new TH3F(Form("hMPtDCA_LS_rec_charmTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   hMPtDCA_LS_rec_beautyTOe[j]       = new TH3F(Form("hMPtDCA_LS_rec_beautyTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   hMPtDCA_LS_rec_hfTOe[j]           = new TH3F(Form("hMPtDCA_LS_rec_hfTOe_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
+  hMPtDCA_LS_rec_Pi0TOee[j]          = new TH3F(Form("hMPtDCA_LS_rec_Pi0TOee_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   hMPtDCA_LS_rec_lfTOee[j]           = new TH3F(Form("hMPtDCA_LS_rec_lfTOee_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   hMPtDCA_LS_rec_lfTOee_selectPDG[j] = new TH3F(Form("hMPtDCA_LS_rec_lfTOee_selectPDG_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
   hMPtDCA_LS_rec_ccTOee[j]           = new TH3F(Form("hMPtDCA_LS_rec_ccTOee_sce%i",j+1),title3d.c_str(),n_mee_bin_c,mee_bin_c,n_ptee_bin_c,ptee_bin_c,n_dca_bin_c,dca_bin_c);
@@ -913,9 +916,11 @@ void anaEEstudy(
     // lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_misIDPion[iPID_scenario]);
     // lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_misIDhf[iPID_scenario]);
 
+    lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_lfTOe[iPID_scenario]);
     lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_charmTOe[iPID_scenario]);
     lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_beautyTOe[iPID_scenario]);
     lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_hfTOe[iPID_scenario]);
+    lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_Pi0TOee[iPID_scenario]);
     lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_lfTOee[iPID_scenario]);
     lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_lfTOee_selectPDG[iPID_scenario]);
     lRecPIDscenario[iPID_scenario]->Add(hMPtDCA_LS_rec_ccTOee[iPID_scenario]);
@@ -1426,8 +1431,9 @@ void anaEEstudy(
         if(abs(particle->PID) == 11 ) hAfterKineCuts_Pt_Eta_Phi_rec[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
 
         //#########################
-        //     prefilter PID
+        //   PID before prefilter
         //#########################
+        // if prefilter is not used these are the standard PID cuts
         // PID equivilant to standard PID, just with different Nsigma cuts and pt acceptance
 
         bool   i_useTOFPID;
@@ -1437,6 +1443,7 @@ void anaEEstudy(
         double i_SigmaTOFPi;
         double i_SigmaRICHEle;
         double i_SigmaRICHPi;
+        double tof_p_acc;
         double ps_pt_acc;
         if(busePFpid[iPID_scenario] == kTRUE){
           i_useTOFPID    = pf_PID_useTOF;
@@ -1446,6 +1453,7 @@ void anaEEstudy(
           i_SigmaTOFPi   = pf_PID_NSigTOFpi;
           i_SigmaRICHEle = pf_PID_NSigRICHele;
           i_SigmaRICHPi  = pf_PID_NSigRICHpi;
+          tof_p_acc      = pf_PID_TOFpacc;
           ps_pt_acc      = pf_PID_PSptacc;
         }
         else {
@@ -1456,6 +1464,7 @@ void anaEEstudy(
           i_SigmaTOFPi   = nSigmaTOFPi[iPID_scenario];
           i_SigmaRICHEle = nSigmaRICHEle[iPID_scenario];
           i_SigmaRICHPi  = nSigmaRICHPi[iPID_scenario];
+          tof_p_acc      = tof_EleAccep_p_cut[iPID_scenario];
           ps_pt_acc      = ps_EleAccep_pt_cut[iPID_scenario];
         }
 
@@ -1467,8 +1476,8 @@ void anaEEstudy(
         if ( (abs(particle->PID) == 211) && (isElectronPreShower == true) )   hTrack_Pion_Rec_Pt_Eta_Phi_afterPSPID[iPID_scenario]->Fill(track->PT,track->Eta,phiRec,weight);
 
         bool bool_doPID = false;
-        if(                       i_useRICHPID && !bUseiTOF && doPID(track, i_useTOFPID, i_useRICHPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, PIDnsigmaTOF, PIDnsigmaRICH) ) bool_doPID = true;
-        else if(  i_useTOFPID && !i_useRICHPID && !bUseiTOF && doTOFPID(track, i_useTOFPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, PIDnsigmaTOF) ) bool_doPID = true;
+        if(                       i_useRICHPID && !bUseiTOF && doPID(track, i_useTOFPID, i_useRICHPID, tof_p_acc, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, PIDnsigmaTOF, PIDnsigmaRICH) ) bool_doPID = true;
+        else if(  i_useTOFPID && !i_useRICHPID && !bUseiTOF && doTOFPID(track, i_useTOFPID, tof_p_acc, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, PIDnsigmaTOF) ) bool_doPID = true;
         else if(  i_useTOFPID &&                   bUseiTOF && doTOFPID(track, i_useTOFPID, itof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, PIDnsigmaTOF) ) bool_doPID = true;
 
         // ----------- PID strategy -----------
@@ -1504,7 +1513,7 @@ void anaEEstudy(
     //#########################
     for (int iPID_scenario = 0; iPID_scenario < nPIDscenarios; iPID_scenario++) {
       if(usePreFilter[iPID_scenario] && !usePFtrackVec[iPID_scenario]){
-        PreFilter(&vecNegTracks[iPID_scenario], &vecPosTracks[iPID_scenario], iPID_scenario, vecPFhistos[iPID_scenario]);
+        PreFilter(&vecNegTracks_pfPID[iPID_scenario], &vecPosTracks_pfPID[iPID_scenario], iPID_scenario, vecPFhistos[iPID_scenario]);
       }
       else if(usePreFilter[iPID_scenario] && usePFtrackVec[iPID_scenario]){
         std::vector<Int_t> vecMotherID;
@@ -1873,6 +1882,8 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) == 211)&&(fabs(particle2->PID)==211) ))  hMPtDCA_LS_rec_misIDPion[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) != 11) && (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)!=11) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_misIDhf[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
+      if((!pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) || (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) ) hMPtDCA_LS_rec_lfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+
       if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_LS_rec_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((!pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles) ) || (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_hfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
@@ -1881,6 +1892,7 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       if((!pairULS && MCpidEle) && ( hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) ) )  hMPtDCA_LS_rec_bbTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && MCpidEle) && ( ((hasCharmAncestor(particle1, particles) && hasCharmAncestor(particle2, particles)) || (hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) ) )  hMPtDCA_LS_rec_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && (m1Pid == 111) && (m2Pid == 111) ) hMPtDCA_LS_rec_Pi0TOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((!pairULS && MCpidEle) && ( ((!hasCharmAncestor(particle1, particles)&&!hasCharmAncestor(particle2, particles)) && (!hasBeautyAncestor(particle1, particles)&&!hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_lfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((!pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) ) hMPtDCA_LS_rec_lfTOee_selectPDG[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && MCpidEle) && ( ((abs(m1Pid) == 111 && abs(m2Pid) == 111) || (abs(m1Pid) == 221 && abs(m2Pid) == 221) || (abs(m1Pid) == 331 && abs(m2Pid) == 331) || (abs(m1Pid) == 223 && abs(m2Pid) == 223) || (abs(m1Pid) == 333 && abs(m2Pid) == 333) || (abs(m1Pid) == 113 && abs(m2Pid) == 113))) ) hMPtDCA_LS_rec_lfTOee_selectPDG[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
@@ -2187,6 +2199,7 @@ void ApplyPID(std::vector<Track *>* vecTracks_pfPID, std::vector<Track *>* vecTr
     double i_SigmaTOFPi   = nSigmaTOFPi[iPID_scenario];
     double i_SigmaRICHEle = nSigmaRICHEle[iPID_scenario];
     double i_SigmaRICHPi  = nSigmaRICHPi[iPID_scenario];
+    double tof_p_acc      = tof_EleAccep_p_cut[iPID_scenario];
     double ps_pt_acc      = ps_EleAccep_pt_cut[iPID_scenario];
 
 
@@ -2197,8 +2210,8 @@ void ApplyPID(std::vector<Track *>* vecTracks_pfPID, std::vector<Track *>* vecTr
     }
 
     bool bool_doPID = false;
-    if(                       i_useRICHPID && !bUseiTOF && doPID(track, i_useTOFPID, i_useRICHPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, PIDnsigmaTOF, PIDnsigmaRICH) ) bool_doPID = true;
-    else if(  i_useTOFPID && !i_useRICHPID && !bUseiTOF && doTOFPID(track, i_useTOFPID, tof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, PIDnsigmaTOF) ) bool_doPID = true;
+    if(                       i_useRICHPID && !bUseiTOF && doPID(track, i_useTOFPID, i_useRICHPID, tof_p_acc, tof_PionRej_p_cut, rich_PionRejection_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, i_SigmaRICHEle, i_SigmaRICHPi, PIDnsigmaTOF, PIDnsigmaRICH) ) bool_doPID = true;
+    else if(  i_useTOFPID && !i_useRICHPID && !bUseiTOF && doTOFPID(track, i_useTOFPID, tof_p_acc, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, PIDnsigmaTOF) ) bool_doPID = true;
     else if(  i_useTOFPID &&                   bUseiTOF && doTOFPID(track, i_useTOFPID, itof_EleAccep_p_cut, tof_PionRej_p_cut, i_SigmaTOFEle, i_SigmaTOFPi, PIDnsigmaTOF) ) bool_doPID = true;
 
     // ----------- PID strategy -----------

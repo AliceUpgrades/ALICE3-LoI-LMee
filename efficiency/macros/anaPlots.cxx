@@ -20,23 +20,24 @@ bool bwriteFileLFHFweights = kFALSE;
 bool bGenerateBackground = kTRUE;
 
 int ith_PIDscenario = 1;
-int nPIDscenarios = 1;
-bool semiCentral = false;
-Bool_t DCAcut = false;
+int nPIDscenarios = 3;
+bool bSemiCentral = true;
+Bool_t DCAcut = true;
 
 // TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
 // TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, TOF only", "0.0 < #it{p}_{T,e}, TOF only"};
 // TString strPIDscenario[] = {"0.04 < #it{p}_{T,e}, iTOF only", "0.0 < #it{p}_{T,e}, iTOF only"};
 // TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF", "0.2 < #it{p}_{T,e}, RICH", "0.2 < #it{p}_{T,e}, TOF+RICH"};
+TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, oTOF+RICH woPF", "0.2 < #it{p}_{T,e}, oTOF+RICH wPF", "0.2 < #it{p}_{T,e}, TOF+RICH wPF_iTOF","0.2 < #it{p}_{T,e}, TOF+RICH wPF_iTOF","0.2 < #it{p}_{T,e}, TOF+RICH wPF_iTOF"};
 // TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF+RICH", "0.2 < #it{p}_{T,e}, TOF+PS", "0.2 < #it{p}_{T,e}, TOF+RICH+PS","0.2 < #it{p}_{T,e}, TOF+RICH", "0.2 < #it{p}_{T,e}, TOF+PS", "0.2 < #it{p}_{T,e}, TOF+RICH+PS"};
-TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF", "0.2 < #it{p}_{T,e}, PS", "0.2 < #it{p}_{T,e}, TOF+PS"};
+// TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, TOF", "0.2 < #it{p}_{T,e}, PS", "0.2 < #it{p}_{T,e}, TOF+PS", "0.2 < #it{p}_{T,e}, TOF+PS"};
 // TString strPIDscenario[] = {"0.2 < #it{p}_{T,e}, PS"};
 // TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, iTOF only"};
 // TString strPIDscenario[] = {"TOF+RICH (4#sigma_{#pi} 0.2<pte)", "TOF+RICH (4#sigma_{#pi} 0.08<pte)"};
 
-Double_t etaCutsVec[] = {0.8,0.8,0.8,0.8,0.8,0.8};
+Double_t etaCutsVec08[] = {0.8,0.8,0.8,0.8,0.8,0.8};
 // Double_t etaCutsVec[] = {0.8,1.25,1.75,2.5,3.0,4.0};
-// Double_t etaCutsVec[] = {1.75,1.75,1.75};
+Double_t etaCutsVec175[] = {1.75,1.75,1.75,1.75,1.75};
 
 std::vector<Double_t> vec_proj_bin_p = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
 std::vector<Double_t> vec_proj_bin_pt = {0.0, 0.3, 0.5, 0.7, 1.0, 2.0, 4.0, 10.0};
@@ -236,7 +237,7 @@ TH1F* AddHistosDiffRange(TH1F* h1, TH1F* h2) {
 void anaPlots(TString inputFile)
 {
   TFile *fIn  = TFile::Open(inputFile.Data());
-  // for (Int_t ith_PIDscenario = 1; ith_PIDscenario <= nPIDscenarios; ith_PIDscenario++) {
+  for (Int_t ith_PIDscenario = 1; ith_PIDscenario <= nPIDscenarios; ith_PIDscenario++) {
 
 
   // select which PID cenario (written in the input file) should be analyzed
@@ -313,8 +314,8 @@ void anaPlots(TString inputFile)
     if (bUseAdditionalFiles) {
       if(bReadPionPt){
         fReadChPi = TFile::Open("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/PtePi_PbPb_HEPData-ins1759506-v1-Table_1.root");
-        Int_t centralSection = 1; // 0-5% central   +1 = 5-10%
-        if (semiCentral) centralSection = 5;  // 30-40% central   +1 = 40-50%
+        Int_t centralSection = 1; // 0-5% central   x+1 = 5-10%
+        if (bSemiCentral) centralSection = 5;  // 30-40% central   x+1 = 40-50%
         hPaper_chPi_Pt_firstCentralSection = (TH1F*) fReadChPi->Get(Form("Table 1/Hist1D_y%i",centralSection));
         hPaper_chPi_Pt_firstCentralSection_stat_Err = (TH1F*) fReadChPi->Get(Form("Table 1/Hist1D_y%i_e1",centralSection));
         hPaper_chPi_Pt_firstCentralSection_sys_Err = (TH1F*) fReadChPi->Get(Form("Table 1/Hist1D_y%i_e2",centralSection));
@@ -387,9 +388,14 @@ void anaPlots(TString inputFile)
 //        hSingleElefromHF_Cocktail->Reset();
         hSingleElefromHF_Cocktail->Add(hbeauty_cTOe);
 
+        // contribution from cocktail already should be e+ + e-
+        // multiply the cocktil also by a factor of 2 (like the HFtoe data below) to have a smooth transition.
+        // use it as an extrapolation, and not as a given expectation
+         hSingleElefromHF_Cocktail->Scale(2.);
+
         makeHistNice(hSingleElefromHF_Cocktail,kRed);
         hSingleElefromHF_Cocktail->Scale(1./1.6); //normalize for eta
-        if(semiCentral) hSingleElefromHF_Cocktail->Scale(250.8/1444.); // scale for 30-50 central events Ncoll_semicentral/Ncoll_central
+        if(bSemiCentral) hSingleElefromHF_Cocktail->Scale(250.8/1444.); // scale for 30-50 central events Ncoll_semicentral/Ncoll_central
 //        ScaleBinWidth(hSingleElefromHF_Cocktail,kTRUE);
         invariantYield(hSingleElefromHF_Cocktail);
 
@@ -397,7 +403,7 @@ void anaPlots(TString inputFile)
         // paper: yield of electrons from HF (c,b -> e)
         TString sPtHFtoeData = "/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/PtHFtoe_PbPb_HEPData-ins1759860-v1-Table_2.1.root";
         TString fTable = "Table 2.1";
-        if (semiCentral) {
+        if (bSemiCentral) {
           sPtHFtoeData = "/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/PtHFtoe_PbPb_HEPData-ins1759860-v1-Table_2.2_30-50central.root";
           fTable = "Table 2.2";
         }
@@ -405,6 +411,9 @@ void anaPlots(TString inputFile)
         hPaper_HFtoe_Pt = (TH1F*) fReadHEP_paper_HFtoE->Get(Form("%s/Hist1D_y1",fTable.Data()));
         TH1F* hPaper_stat_Err = (TH1F*) fReadHEP_paper_HFtoE->Get(Form("%s/Hist1D_y1_e1",fTable.Data()));
         TH1F* hPaper_sys_Err = (TH1F*) fReadHEP_paper_HFtoE->Get(Form("%s/Hist1D_y1_e2",fTable.Data()));
+        hPaper_stat_Err->Scale(2.);             // The data is (e+ + e-)/2 to only have electron contribution. Multiply by two to have e+ + e-
+        hPaper_sys_Err->Scale(2.);              // The data is (e+ + e-)/2 to only have electron contribution. Multiply by two to have e+ + e-
+        hPaper_HFtoe_Pt->Scale(2.);             // The data is (e+ + e-)/2 to only have electron contribution. Multiply by two to have e+ + e-
 
         hPaper_HFtoe_Pt_stat = (TH1F*) hPaper_HFtoe_Pt->Clone();
         hPaper_HFtoe_Pt_syst = (TH1F*) hPaper_HFtoe_Pt->Clone();
@@ -475,7 +484,7 @@ void anaPlots(TString inputFile)
   // TH3F* hGen_Track_Proton_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_Proton_Gen_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
   TH3F* hGen_Track_ElePos_LF_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_ElePos_LF_Gen_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
   TH3F* hGen_Track_ElePos_HF_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_ElePos_HF_Gen_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
-  TH3F* hGen_Track_ElePos_MotherPi0_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_ElePos_MotherPi0_Gen_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
+  // TH3F* hGen_Track_ElePos_MotherPi0_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_ElePos_MotherPi0_Gen_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
   // TH3F* hGen_Track_ElePos_MotherPi0_Pt_Eta_Phi = (TH3F*) fIn->Get(Form("%s/hTrack_ElePos_Pi0_Gen_Pt_Eta_Phi_sce%i",pathGenPIDScenario.Data(),ith_PIDscenario));
 
   // TH3F* hGenSmeared_Track_ElePos_Pt_Eta_Phi_beforeKineCuts = (TH3F*) fIn->Get("hTrack_ElePos_GenSmeared_Pt_Eta_Phi_beforeKineCuts");
@@ -655,9 +664,11 @@ if (bPlotPIDhistograms) {
 
   TH3F* hMPtDCA_LS_rec = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_MCpidEle = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_MCpidEle_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hMPtDCA_LS_rec_lfTOe    = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_lfTOe_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_charmTOe  = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_charmTOe_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_beautyTOe = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_beautyTOe_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_hfTOe     = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_hfTOe_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
+  TH3F* hMPtDCA_LS_rec_Pi0TOee   = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_Pi0TOee_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_lfTOee_selectPDG = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_lfTOee_selectPDG_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_hfTOee = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_hfTOee_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
   TH3F* hMPtDCA_LS_rec_ccTOee = (TH3F*) fIn->Get(Form("%s/hMPtDCA_LS_rec_ccTOee_sce%i",pathRecPIDScenario.Data(),ith_PIDscenario));
@@ -736,7 +747,7 @@ if (bPlotPIDhistograms) {
 
   TH1F* ptGenTrackElePos_LF  = (TH1F*) hGen_Track_ElePos_LF_Pt_Eta_Phi->ProjectionX("Gen ElePos from LF ptTrack");
   TH1F* ptGenTrackElePos_HF  = (TH1F*) hGen_Track_ElePos_HF_Pt_Eta_Phi->ProjectionX("Gen ElePos from HF ptTrack");
-  TH1F* ptGenTrackElePos_Pi0  = (TH1F*) hGen_Track_ElePos_MotherPi0_Pt_Eta_Phi->ProjectionX("Gen ElePos from Pi0 ptTrack");
+  // TH1F* ptGenTrackElePos_Pi0  = (TH1F*) hGen_Track_ElePos_MotherPi0_Pt_Eta_Phi->ProjectionX("Gen ElePos from Pi0 ptTrack");
 
 
   TH1F* ptGenTrackAll   = (TH1F*) hGen_Track_All_Pt_Eta_Phi->ProjectionX("Gen All ptTrack");
@@ -881,29 +892,53 @@ if (bPlotPIDhistograms) {
 
     TH1F* proj_recLS_MCpidEle_Mee = (TH1F*) hMPtDCA_LS_rec_MCpidEle->Project3D("x");
     TH1F* proj_recLS_MCpidEle_Ptee = (TH1F*) hMPtDCA_LS_rec_MCpidEle->Project3D("y");
+    TH1F* proj_recLS_MCpidEle_DCA = (TH1F*) hMPtDCA_LS_rec_MCpidEle->Project3D("z");
     proj_recLS_MCpidEle_Mee->SetTitle("proj_recLS_MCpidEle_Mee");
     proj_recLS_MCpidEle_Ptee->SetTitle("proj_recLS_MCpidEle_Ptee");
+    proj_recLS_MCpidEle_DCA->SetTitle("proj_recLS_MCpidEle_DCA");
 
     TH1F* proj_recLS_Ctoe_Mee  = (TH1F*) hMPtDCA_LS_rec_charmTOe->ProjectionX("proj_recLS_Ctoe_Mee");
     TH1F* proj_recLS_Ctoe_Ptee = (TH1F*) hMPtDCA_LS_rec_charmTOe->ProjectionY("proj_recLS_Ctoe_Ptee");
+    TH1F* proj_recLS_Ctoe_DCA  = (TH1F*) hMPtDCA_LS_rec_charmTOe->ProjectionZ("proj_recLS_Ctoe_DCA");
 
     TH1F* proj_recLS_Btoe_Mee  = (TH1F*) hMPtDCA_LS_rec_beautyTOe->ProjectionX("proj_recLS_Btoe_Mee");
     TH1F* proj_recLS_Btoe_Ptee = (TH1F*) hMPtDCA_LS_rec_beautyTOe->ProjectionY("proj_recLS_Btoe_Ptee");
+    TH1F* proj_recLS_Btoe_DCA  = (TH1F*) hMPtDCA_LS_rec_beautyTOe->ProjectionZ("proj_recLS_Btoe_DCA");
+
+    TH1F* proj_recLS_LFtoe_Mee  = (TH1F*) hMPtDCA_LS_rec_lfTOe->Project3D("x");
+    TH1F* proj_recLS_LFtoe_Ptee = (TH1F*) hMPtDCA_LS_rec_lfTOe->Project3D("y");
+    TH1F* proj_recLS_LFtoe_DCA  = (TH1F*) hMPtDCA_LS_rec_lfTOe->Project3D("z");
+    proj_recLS_LFtoe_Mee->SetTitle("proj_recLS_LFtoe_Mee");
+    proj_recLS_LFtoe_Ptee->SetTitle("proj_recLS_LFtoe_Ptee");
+    proj_recLS_LFtoe_DCA->SetTitle("proj_recLS_LFtoe_DCA");
 
     TH1F* proj_recLS_HFtoe_Mee  = (TH1F*) hMPtDCA_LS_rec_hfTOe->Project3D("x");
     TH1F* proj_recLS_HFtoe_Ptee = (TH1F*) hMPtDCA_LS_rec_hfTOe->Project3D("y");
+    TH1F* proj_recLS_HFtoe_DCA  = (TH1F*) hMPtDCA_LS_rec_hfTOe->Project3D("z");
     proj_recLS_HFtoe_Mee->SetTitle("proj_recLS_HFtoe_Mee");
     proj_recLS_HFtoe_Ptee->SetTitle("proj_recLS_HFtoe_Ptee");
+    proj_recLS_HFtoe_DCA->SetTitle("proj_recLS_HFtoe_DCA");
 
-    TH1F* proj_recLS_LFtoee_Mee  = (TH1F*) hMPtDCA_LS_rec_lfTOee_selectPDG->Project3D("x"); //Project3D("x")
+    TH1F* proj_recLS_Pi0toee_Mee  = (TH1F*) hMPtDCA_LS_rec_Pi0TOee->Project3D("x");
+    TH1F* proj_recLS_Pi0toee_Ptee = (TH1F*) hMPtDCA_LS_rec_Pi0TOee->Project3D("y");
+    TH1F* proj_recLS_Pi0toee_DCA  = (TH1F*) hMPtDCA_LS_rec_Pi0TOee->Project3D("z");
+    proj_recLS_Pi0toee_Mee->SetTitle("proj_recLS_Pi0toee_Mee");
+    proj_recLS_Pi0toee_Ptee->SetTitle("proj_recLS_Pi0toee_Ptee");
+    proj_recLS_Pi0toee_DCA->SetTitle("proj_recLS_Pi0toee_DCA");
+
+    TH1F* proj_recLS_LFtoee_Mee  = (TH1F*) hMPtDCA_LS_rec_lfTOee_selectPDG->Project3D("x");
     TH1F* proj_recLS_LFtoee_Ptee = (TH1F*) hMPtDCA_LS_rec_lfTOee_selectPDG->Project3D("y");
+    TH1F* proj_recLS_LFtoee_DCA  = (TH1F*) hMPtDCA_LS_rec_lfTOee_selectPDG->Project3D("z");
     proj_recLS_LFtoee_Mee->SetTitle("proj_recLS_LFtoee_Mee");
     proj_recLS_LFtoee_Ptee->SetTitle("proj_recLS_LFtoee_Ptee");
+    proj_recLS_LFtoee_DCA->SetTitle("proj_recLS_LFtoee_DCA");
 
     TH1F* proj_recLS_HFtoee_Mee  = (TH1F*) hMPtDCA_LS_rec_hfTOee->Project3D("x");
     TH1F* proj_recLS_HFtoee_Ptee = (TH1F*) hMPtDCA_LS_rec_hfTOee->Project3D("y");
+    TH1F* proj_recLS_HFtoee_DCA  = (TH1F*) hMPtDCA_LS_rec_hfTOee->Project3D("z");
     proj_recLS_HFtoee_Mee->SetTitle("proj_recLS_HFtoee_Mee");
     proj_recLS_HFtoee_Ptee->SetTitle("proj_recLS_HFtoee_Ptee");
+    proj_recLS_HFtoee_DCA->SetTitle("proj_recLS_HFtoee_DCA");
 
     TH1F* proj_recLS_ccTOee_Mee  = (TH1F*) hMPtDCA_LS_rec_ccTOee->ProjectionX("proj_recLS_cctoee_Mee");
     TH1F* proj_recLS_bbTOee_Mee  = (TH1F*) hMPtDCA_LS_rec_bbTOee->ProjectionX("proj_recLS_bbtoee_Mee");
@@ -928,7 +963,10 @@ if (bPlotPIDhistograms) {
     proj_genLS_Mee->Scale(1./nEventsCent);
     proj_genLS_Ptee->Scale(1./nEventsCent);
 
-    double etacoverage = 2*etaCutsVec[ith_PIDscenario-1];
+    double etacoverage;
+    if(!bSemiCentral) etacoverage = 2*etaCutsVec08[ith_PIDscenario-1];
+    else if(bSemiCentral) etacoverage = 2*etaCutsVec175[ith_PIDscenario-1];
+
     // normlise by Nevents, dy = 1.6 (for |eta|<0.8)
     proj_recULS_MCpidEle_charmTOe_Mee->Scale(1/(etacoverage*nEventsCent));
     proj_recULS_MCpidEle_beautyTOe_Mee->Scale(1/(etacoverage*nEventsCent));
@@ -940,17 +978,29 @@ if (bPlotPIDhistograms) {
 
     proj_recLS_Ctoe_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_Ctoe_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_Ctoe_DCA->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_Btoe_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_Btoe_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_Btoe_DCA->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_LFtoe_Mee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_LFtoe_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_LFtoe_DCA->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_HFtoe_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_HFtoe_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_HFtoe_DCA->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_MCpidEle_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_MCpidEle_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_MCpidEle_DCA->Scale(1./(etacoverage*nEventsCent));
 
+    proj_recLS_Pi0toee_Mee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_Pi0toee_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_Pi0toee_DCA->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_LFtoee_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_LFtoee_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_LFtoee_DCA->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_HFtoee_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_HFtoee_Ptee->Scale(1./(etacoverage*nEventsCent));
+    proj_recLS_HFtoee_DCA->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_ccTOee_Mee->Scale(1./(etacoverage*nEventsCent));
     proj_recLS_bbTOee_Mee->Scale(1./(etacoverage*nEventsCent));
 
@@ -973,16 +1023,28 @@ if (bPlotPIDhistograms) {
 
     make3HistNice(proj_recLS_MCpidEle_Mee,kBlack);
     make3HistNice(proj_recLS_MCpidEle_Ptee,kBlack);
+    make3HistNice(proj_recLS_MCpidEle_DCA,kBlack);
     make3HistNice(proj_recLS_Ctoe_Mee,kOrange+2);
     make3HistNice(proj_recLS_Ctoe_Ptee,kOrange+2);
+    make3HistNice(proj_recLS_Ctoe_DCA,kOrange+2);
     make3HistNice(proj_recLS_Btoe_Mee,kMagenta+1);
     make3HistNice(proj_recLS_Btoe_Ptee,kMagenta+1);
+    make3HistNice(proj_recLS_Btoe_DCA,kMagenta+1);
+    make3HistNice(proj_recLS_LFtoe_Mee,kGreen+1);
+    make3HistNice(proj_recLS_LFtoe_Ptee,kGreen+1);
+    make3HistNice(proj_recLS_LFtoe_DCA,kGreen+1);
     make3HistNice(proj_recLS_HFtoe_Mee,kRed+2);
     make3HistNice(proj_recLS_HFtoe_Ptee,kRed+2);
+    make3HistNice(proj_recLS_HFtoe_DCA,kRed+2);
+    make3HistNice(proj_recLS_Pi0toee_Mee,kRed);
+    make3HistNice(proj_recLS_Pi0toee_Ptee,kRed);
+    make3HistNice(proj_recLS_Pi0toee_DCA,kRed);
     make3HistNice(proj_recLS_LFtoee_Mee,kCyan+1);
     make3HistNice(proj_recLS_LFtoee_Ptee,kCyan+1);
+    make3HistNice(proj_recLS_LFtoee_DCA,kCyan+1);
     make3HistNice(proj_recLS_HFtoee_Mee,kRed+2);
     make3HistNice(proj_recLS_HFtoee_Ptee,kRed+2);
+    make3HistNice(proj_recLS_HFtoee_DCA,kRed+2);
     makeHistNice(proj_recLS_ccTOee_Mee,kOrange+2);
     makeHistNice(proj_recLS_bbTOee_Mee,kMagenta+1);
 
@@ -1013,7 +1075,7 @@ if (bPlotPIDhistograms) {
  // TH1F* ptGenSmearedTrackElePos_beforeKineCuts_rebin = (TH1F*) ptGenSmearedTrackElePos_beforeKineCuts->Rebin(nbinspt_proj_2D,"ptGenSmearedTrackElePos_beforeKineCuts_rebin",&pte_bin_2D[0]);
  TH1F* ptGenTrackElePos_LF_rebin = (TH1F*) ptGenTrackElePos_LF->Rebin(nbinspt_proj_2D,"ptGenTrackElePos_LF_rebin",&pte_bin_2D[0]);
  TH1F* ptGenTrackElePos_HF_rebin = (TH1F*) ptGenTrackElePos_HF->Rebin(nbinspt_proj_2D,"ptGenTrackElePos_HF_rebin",&pte_bin_2D[0]);
- TH1F* ptGenTrackElePos_Pi0_rebin = (TH1F*) ptGenTrackElePos_Pi0->Rebin(nbinspt_proj_2D,"ptGenTrackElePos_Pi0_rebin",&pte_bin_2D[0]);
+ // TH1F* ptGenTrackElePos_Pi0_rebin = (TH1F*) ptGenTrackElePos_Pi0->Rebin(nbinspt_proj_2D,"ptGenTrackElePos_Pi0_rebin",&pte_bin_2D[0]);
 
 
 
@@ -1369,7 +1431,7 @@ if (bPlotTrackContamination) {
   makeHistNice(ptGenTrackElePos_HF_rebin,kBlue);
   ptGenTrackElePos_HF_rebin->SetMarkerStyle(24);
 
-  makeHistNice(ptGenTrackElePos_Pi0_rebin, kOrange+1);
+  // makeHistNice(ptGenTrackElePos_Pi0_rebin, kOrange+1);
 
   normalizeToBinWidth(ptGenTrackElePos_rebin);
   normalizeToBinWidth(ptGenSmearedTrackElePos_rebin);
@@ -1625,7 +1687,7 @@ if (bPlotTrackContamination) {
   legHFtoe->SetTextSize(24);
   legHFtoe->SetHeader("HF #rightarrow e");
   legHFtoe->AddEntry(ptGenTrackElePos_HF_rebin,"fast sim.","l");
-  legHFtoe->AddEntry(hSingleElefromHF_Cocktail,"Cocktail","l");
+  legHFtoe->AddEntry(hSingleElefromHF_Cocktail,"extrapolation","l");
   legHFtoe->AddEntry(hPaper_HFtoe_Pt_stat,"PLB 804 (2020) 135377","pe1");
 
 
@@ -1693,6 +1755,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
   legTrackLFtoeeHFtoe->SetTextFont(43);
   legTrackLFtoeeHFtoe->SetTextSize(17);
   legTrackLFtoeeHFtoe->AddEntry(proj_recLS_MCpidEle_Mee,"LS, Sum, two electrons","p");
+  legTrackLFtoeeHFtoe->AddEntry(proj_recLS_LFtoe_Mee,"LS, at least one LF leg","p");
+  legTrackLFtoeeHFtoe->AddEntry(proj_recLS_Pi0toee_Mee,"LS, both legs from #pi^{0}","p");
   legTrackLFtoeeHFtoe->AddEntry(proj_recLS_LFtoee_Mee,"LS, both legs from LF","p");
   legTrackLFtoeeHFtoe->AddEntry(proj_recLS_HFtoe_Mee,"LS, at least one HF leg","p");
 
@@ -2040,7 +2104,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
   //
   // cTrackPFVectorPt->SaveAs("./plots/PtTrack_prefilterVec_GenRec.png");
 
-
+  TLine* line1 = new TLine(0.1,1.,10.,1.);
+  line1->SetLineStyle(2);
 
 
   // plot Pt of single Track charged Pions
@@ -2092,12 +2157,13 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
   hRatioPlot->GetXaxis()->SetTitleOffset(0.8);
   hRatioPlot->GetYaxis()->SetTitleOffset(0.4);
   hRatioPlot->Draw("c hist");
+  line1->Draw("same");
 
   cChPiPt->SaveAs("./plots/ChPionPt.png");
 
   if(bwriteFileLFHFweights){
     TString centralityRange = "0-10central";
-    if(semiCentral) centralityRange = "30-50central";
+    if(bSemiCentral) centralityRange = "30-50central";
     TFile *fOutputWeightsLF = TFile::Open(Form("./corrWeights/lfe_weights_%s.root",centralityRange.Data()),"RECREATE");
     hRatioPlot->SetName("lftoe_weights_paper_data_ratio");
     hRatioPlot->Write();
@@ -2139,11 +2205,12 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     ptGenTrackElePos_HF_rebin->GetYaxis()->SetTitle("1/(2#pi#it{p}_{T}#it{N}_{ev})d^{2}N/(d#it{p}_{T}dy)");
     ptGenTrackElePos_HF_rebin->GetXaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c}^{2})");
     ptGenTrackElePos_HF_rebin->GetXaxis()->SetRangeUser(0.1,10.);
-    ptGenTrackElePos_HF_rebin->GetYaxis()->SetRangeUser(0.00001,100);
-    ptGenTrackElePos_HF_rebin->Draw("c hist");
-    hSingleElefromHF_Cocktail->Draw("hist c same");
+    ptGenTrackElePos_HF_rebin->GetYaxis()->SetRangeUser(0.0000001,100);
+    ptGenTrackElePos_HF_rebin->Draw("p e1 hist");
+    hSingleElefromHF_Cocktail->Draw("hist p e1 same");
     hPaper_HFtoe_Pt_syst->Draw("p E2 same");
     hPaper_HFtoe_Pt_stat->Draw("p E1 same");
+    // hPaper_HFtoe_Pt->Draw("same p");
     legHFtoe->Draw("same");
     pad2->cd();
     TH1F* hRatioCocktailPaper = (TH1F*) RatioToTheoryy(hSingleElefromHF_Cocktail,hPaper_HFtoe_Pt_stat);
@@ -2162,7 +2229,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     hdummy->GetYaxis()->SetTitle("Ratio PLB 804/X");
     hdummy->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hdummy->GetXaxis()->SetRangeUser(0.1,10.0);
-    hdummy->GetYaxis()->SetRangeUser(0.,2.5);
+    hdummy->GetYaxis()->SetRangeUser(0.,2.);
     hdummy->GetXaxis()->SetLabelSize(0.1);
     hdummy->GetYaxis()->SetLabelSize(0.1);
     hdummy->GetXaxis()->SetTitleSize(0.1);
@@ -2170,14 +2237,15 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     hdummy->GetXaxis()->SetTitleOffset(0.8);
     hdummy->GetYaxis()->SetTitleOffset(0.4);
     hdummy->Draw("");
-    hRatioCocktailFastSim->Draw("c hist same");
-    hRatioRecHFPaper->Draw("c hist same");
-    hRatioCocktailPaper->Draw("c hist same");
+    line1->Draw("same");
+    hRatioCocktailFastSim->Draw("p e1 same");
+    hRatioRecHFPaper->Draw("p e1 same");
+    hRatioCocktailPaper->Draw("p e1 same");
     cPt_HFtoe->SaveAs("./plots/Pte_HFtoe+Cocktail+Paper.png");
 
     if(bwriteFileLFHFweights){
       TString centralityRange = "0-10central";
-      if(semiCentral) centralityRange = "30-50central";
+      if(bSemiCentral) centralityRange = "30-50central";
       TFile *fOutputWeights = TFile::Open(Form("./corrWeights/hfe_weights_%s.root",centralityRange.Data()),"RECREATE");
       hRatioCocktailFastSim->Write(); // below 0.6 GeV/c
       hRatioRecHFPaper->Write();  // above 0.6 GeV/c
@@ -2186,129 +2254,129 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
 
 
 
-    // plot the ratio (π0->e  +  c,b->e)/(π+ + π-) , using generated π0->e and data of c,b->e and π+ + π-
-    auto cRatioPi0cbToeOverChPion = new TCanvas("cRatioPi0cbToeOverChPion","cRatioPi0cbToeOverChPion",800,800);
-    cRatioPi0cbToeOverChPion->SetTopMargin(0.03);
-    cRatioPi0cbToeOverChPion->SetRightMargin(0.03);
-
-    TH1F* ptGenTrackElePos_HF_lowPt;
-
-    pad1->SetBottomMargin(0.);
-    pad1->SetLeftMargin(0.13);
-    pad1->SetRightMargin(0.02);
-    pad1->SetLogx(false);
-    pad1->SetLogy();
-    pad1->SetTicks();
-    pad1->Draw();
-    cRatioPi0cbToeOverChPion->cd();
-
-    pad2->SetTopMargin(0);
-    pad2->SetLeftMargin(0.13);
-    pad2->SetRightMargin(0.02);
-    pad2->SetLogx(false);
-    pad2->SetTicks();
-    pad2->Draw();
-    pad2->cd();
-    pad1->SetTopMargin(0.02);
-    pad2->SetTopMargin(pad2->GetTopMargin()*2.0);
-    pad2->SetBottomMargin(0.25);
-    pad1->cd();
-
-
-
-    // for c,b->e data only down to pt > 0.6 GeV/c, below use corrected fast simulation
-    ptGenTrackElePos_Pi0_rebin->Scale(1./(etacoverage * nEventsCent));
-    normalizeToBinWidth(ptGenTrackElePos_Pi0_rebin);
-    // invariantYield(ptGenTrackElePos_Pi0_rebin);
-    // hPaper_HFtoe_Pt_stat->GetXaxis()->SetRangeUser(0.1,10.);
-    hPaper_HFtoe_Pt_stat->GetXaxis()->SetRangeUser(0.1,4.);
-    ptGenTrackElePos_HF_lowPt = (TH1F*) ptGenTrackElePos_HF_rebin->Clone();
-    ptGenTrackElePos_HF_lowPt->GetXaxis()->SetRangeUser(0.,0.5);
-    ClearBinsAbove(ptGenTrackElePos_HF_lowPt,0.5);
-    reverseInvariantYield(ptGenTrackElePos_HF_lowPt);
-    reverseInvariantYield(hPaper_HFtoe_Pt_stat);
-
-    TH1F* hNominator = (TH1F*) ptGenTrackElePos_Pi0_rebin->Clone();
-    hNominator->Add(ptGenTrackElePos_HF_lowPt,1.);
-    AddHistosDiffRange(hNominator,hPaper_HFtoe_Pt_stat);
-    hNominator->SetMarkerColor(kRed+1);
-    hNominator->SetLineColor(kRed+1);
-    // invariantYield(hPaper_chPi_Pt_fullCentralSection_stat_Err);
-
-    hPaper_chPi_Pt_fullCentralSection_stat_Err->SetMarkerColor(kGreen);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err->SetLineColor(kGreen);
-    TH1F* hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000 = (TH1F*) hPaper_chPi_Pt_fullCentralSection_stat_Err->Clone();
-    TH1F* hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000 = (TH1F*) hPaper_chPi_Pt_fullCentralSection_stat_Err->Clone();
-    makeHistNice(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000, kGreen+2);
-    makeHistNice(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000, kGreen+4);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000->Scale(1./1000.);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->Scale(1./5000.);
-    ptGenTrackElePos_HF_lowPt->SetMarkerStyle(20);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->SetMinimum(0.0000001);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->SetMaximum(1000000);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetYaxis()->SetTitleOffset(1.15);
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetYaxis()->SetTitle("1/#it{N}_{ev} d^{2}N/(d#it{p}_{T}dy)");
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetXaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c})");
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetXaxis()->SetRangeUser(0.1,4.);
-
-    TF1 *fPSeff = new TF1("effPS_inverse","0.8*(1.-exp(-1.6*(x-0.05)))",0,10);
-    TF1 *fPSeff_inverse = new TF1("effPS_inverse","1./( 0.8*(1.-exp(-1.6*(x-0.05))) )",0,10);
-    TH1F* hNominator_scaled = (TH1F*) hNominator->Clone();
-    hNominator_scaled->Divide(fPSeff_inverse);
-    hNominator_scaled->SetMarkerColor(kRed+2);
-    hNominator_scaled->SetLineColor(kRed+2);
-
-    auto legPi0cbToeOverChPion = new TLegend(0.5,0.75,0.8,0.96);
-    legPi0cbToeOverChPion->SetBorderSize(0);
-    legPi0cbToeOverChPion->SetFillStyle(0);
-    legPi0cbToeOverChPion->SetTextFont(43);
-    legPi0cbToeOverChPion->SetTextSize(20);
-    // legPi0cbToeOverChPion->AddEntry(ptGenTrackElePos_Pi0_rebin,"fast sim, #pi^{0} #rightarrow e","p");
-    // legPi0cbToeOverChPion->AddEntry(ptGenTrackElePos_HF_lowPt,"fast sim, c,b #rightarrow e, #it{p}_{T}<0.5 GeV/#it{c}","p");
-    // legPi0cbToeOverChPion->AddEntry(hPaper_HFtoe_Pt_stat,"paper, c,b #rightarrow e, #it{p}_{T}>0.5 GeV/#it{c}","p");
-    legPi0cbToeOverChPion->AddEntry(hPaper_chPi_Pt_fullCentralSection_stat_Err,"paper, #pi^{+} + #pi^{-}","p");
-    legPi0cbToeOverChPion->AddEntry(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000,"paper, #pi^{+} + #pi^{-} #times (1/1000)","p");
-    legPi0cbToeOverChPion->AddEntry(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000,"paper, #pi^{+} + #pi^{-} #times (1/5000)","p");
-    legPi0cbToeOverChPion->AddEntry(hNominator,"#pi^{0} #rightarrow e + c,b #rightarrow e","p");
-    legPi0cbToeOverChPion->AddEntry(hNominator_scaled,"eff_{e^{#pm}} #times (#pi^{0} #rightarrow e + c,b #rightarrow e)","p");
-
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->Draw("hist p e1");
-    hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000->Draw("hist p e1 same");
-    hPaper_chPi_Pt_fullCentralSection_stat_Err->Draw("hist p e1 same");
-    // ptGenTrackElePos_Pi0_rebin->Draw("hist p e1 same");
-    // hPaper_HFtoe_Pt_stat->Draw("hist p e1 same");
-    // ptGenTrackElePos_HF_lowPt->Draw("hist p e1 same");
-    hNominator->Draw("same hist p e1");
-    hNominator_scaled->Draw("same hist p e1");
-    fPSeff->Draw("same hist c");
-    legPi0cbToeOverChPion->Draw("same");
-
-    pad2->cd();
-    // pad2->SetLogy();
-
-    // TH1F* hRatioPi0cbToeOverChPion = (TH1F*) RatioToTheoryy(hPaper_chPi_Pt_fullCentralSection_stat_Err,hNominator);
-    TH1F* hRatioPi0cbToeOverChPion = (TH1F*) RatioToTheoryy(hNominator_scaled,hPaper_chPi_Pt_fullCentralSection_stat_Err);
-    TH1F* hRatioPi0cbToeOverChPion_PionRej1000 = (TH1F*) RatioToTheoryy(hNominator_scaled,hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000);
-    TH1F* hRatioPi0cbToeOverChPion_PionRej5000 = (TH1F*) RatioToTheoryy(hNominator_scaled,hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000);
-    // hRatioPi0cbToeOverChPion->GetXaxis()->SetRangeUser(0.1,10.);
-    hRatioPi0cbToeOverChPion->GetXaxis()->SetRangeUser(0.1,4.);
-    // hRatioPi0cbToeOverChPion->GetYaxis()->SetRangeUser(0.,100.);
-    // TString sYRatioLabel = "#frac{#pi^{0} #rightarrow e + c,b #rightarrow e}{#pi^{+} + #pi^{-}}";
-    TString sYRatioLabel = "#frac{#pi^{+} + #pi^{-}}{#pi^{0} #rightarrow e + c,b #rightarrow e}";
-    TString sXRatioLabel = "#it{p}_{T,e} (GeV/#it{c})";
-    // TLine* line10 = new TLine(0.,0.1,10.,0.1);
-    TLine* line10 = new TLine(0.1,0.1,4.,0.1);
-    line10->SetLineStyle(2);
-    makeRatioNice(hRatioPi0cbToeOverChPion,sXRatioLabel,sYRatioLabel);
-    hRatioPi0cbToeOverChPion->GetXaxis()->SetTitleOffset(1.08);
-    hRatioPi0cbToeOverChPion->GetYaxis()->SetTitleOffset(0.63);
-    // hRatioPi0cbToeOverChPion->GetYaxis()->SetRangeUser(0.001,3000.);
-    hRatioPi0cbToeOverChPion->GetYaxis()->SetRangeUser(0.,0.8);
-    hRatioPi0cbToeOverChPion->Draw();
-    hRatioPi0cbToeOverChPion_PionRej1000->Draw("same");
-    hRatioPi0cbToeOverChPion_PionRej5000->Draw("same");
-    line10->Draw("same");
-    cRatioPi0cbToeOverChPion->SaveAs("./plots/RatioPi0cbToeOverChPion.png");
+    // // plot the ratio (π0->e  +  c,b->e)/(π+ + π-) , using generated π0->e and data of c,b->e and π+ + π-
+    // auto cRatioPi0cbToeOverChPion = new TCanvas("cRatioPi0cbToeOverChPion","cRatioPi0cbToeOverChPion",800,800);
+    // cRatioPi0cbToeOverChPion->SetTopMargin(0.03);
+    // cRatioPi0cbToeOverChPion->SetRightMargin(0.03);
+    //
+    // TH1F* ptGenTrackElePos_HF_lowPt;
+    //
+    // pad1->SetBottomMargin(0.);
+    // pad1->SetLeftMargin(0.13);
+    // pad1->SetRightMargin(0.02);
+    // pad1->SetLogx(false);
+    // pad1->SetLogy();
+    // pad1->SetTicks();
+    // pad1->Draw();
+    // cRatioPi0cbToeOverChPion->cd();
+    //
+    // pad2->SetTopMargin(0);
+    // pad2->SetLeftMargin(0.13);
+    // pad2->SetRightMargin(0.02);
+    // pad2->SetLogx(false);
+    // pad2->SetTicks();
+    // pad2->Draw();
+    // pad2->cd();
+    // pad1->SetTopMargin(0.02);
+    // pad2->SetTopMargin(pad2->GetTopMargin()*2.0);
+    // pad2->SetBottomMargin(0.25);
+    // pad1->cd();
+    //
+    //
+    //
+    // // for c,b->e data only down to pt > 0.6 GeV/c, below use corrected fast simulation
+    // ptGenTrackElePos_Pi0_rebin->Scale(1./(etacoverage * nEventsCent));
+    // normalizeToBinWidth(ptGenTrackElePos_Pi0_rebin);
+    // // invariantYield(ptGenTrackElePos_Pi0_rebin);
+    // // hPaper_HFtoe_Pt_stat->GetXaxis()->SetRangeUser(0.1,10.);
+    // hPaper_HFtoe_Pt_stat->GetXaxis()->SetRangeUser(0.1,4.);
+    // ptGenTrackElePos_HF_lowPt = (TH1F*) ptGenTrackElePos_HF_rebin->Clone();
+    // ptGenTrackElePos_HF_lowPt->GetXaxis()->SetRangeUser(0.,0.5);
+    // ClearBinsAbove(ptGenTrackElePos_HF_lowPt,0.5);
+    // reverseInvariantYield(ptGenTrackElePos_HF_lowPt);
+    // reverseInvariantYield(hPaper_HFtoe_Pt_stat);
+    //
+    // TH1F* hNominator = (TH1F*) ptGenTrackElePos_Pi0_rebin->Clone();
+    // hNominator->Add(ptGenTrackElePos_HF_lowPt,1.);
+    // AddHistosDiffRange(hNominator,hPaper_HFtoe_Pt_stat);
+    // hNominator->SetMarkerColor(kRed+1);
+    // hNominator->SetLineColor(kRed+1);
+    // // invariantYield(hPaper_chPi_Pt_fullCentralSection_stat_Err);
+    //
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err->SetMarkerColor(kGreen);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err->SetLineColor(kGreen);
+    // TH1F* hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000 = (TH1F*) hPaper_chPi_Pt_fullCentralSection_stat_Err->Clone();
+    // TH1F* hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000 = (TH1F*) hPaper_chPi_Pt_fullCentralSection_stat_Err->Clone();
+    // makeHistNice(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000, kGreen+2);
+    // makeHistNice(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000, kGreen+4);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000->Scale(1./1000.);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->Scale(1./5000.);
+    // ptGenTrackElePos_HF_lowPt->SetMarkerStyle(20);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->SetMinimum(0.0000001);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->SetMaximum(1000000);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetYaxis()->SetTitleOffset(1.15);
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetYaxis()->SetTitle("1/#it{N}_{ev} d^{2}N/(d#it{p}_{T}dy)");
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetXaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c})");
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->GetXaxis()->SetRangeUser(0.1,4.);
+    //
+    // TF1 *fPSeff = new TF1("effPS_inverse","0.8*(1.-exp(-1.6*(x-0.05)))",0,10);
+    // TF1 *fPSeff_inverse = new TF1("effPS_inverse","1./( 0.8*(1.-exp(-1.6*(x-0.05))) )",0,10);
+    // TH1F* hNominator_scaled = (TH1F*) hNominator->Clone();
+    // hNominator_scaled->Divide(fPSeff_inverse);
+    // hNominator_scaled->SetMarkerColor(kRed+2);
+    // hNominator_scaled->SetLineColor(kRed+2);
+    //
+    // auto legPi0cbToeOverChPion = new TLegend(0.5,0.75,0.8,0.96);
+    // legPi0cbToeOverChPion->SetBorderSize(0);
+    // legPi0cbToeOverChPion->SetFillStyle(0);
+    // legPi0cbToeOverChPion->SetTextFont(43);
+    // legPi0cbToeOverChPion->SetTextSize(20);
+    // // legPi0cbToeOverChPion->AddEntry(ptGenTrackElePos_Pi0_rebin,"fast sim, #pi^{0} #rightarrow e","p");
+    // // legPi0cbToeOverChPion->AddEntry(ptGenTrackElePos_HF_lowPt,"fast sim, c,b #rightarrow e, #it{p}_{T}<0.5 GeV/#it{c}","p");
+    // // legPi0cbToeOverChPion->AddEntry(hPaper_HFtoe_Pt_stat,"paper, c,b #rightarrow e, #it{p}_{T}>0.5 GeV/#it{c}","p");
+    // legPi0cbToeOverChPion->AddEntry(hPaper_chPi_Pt_fullCentralSection_stat_Err,"paper, #pi^{+} + #pi^{-}","p");
+    // legPi0cbToeOverChPion->AddEntry(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000,"paper, #pi^{+} + #pi^{-} #times (1/1000)","p");
+    // legPi0cbToeOverChPion->AddEntry(hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000,"paper, #pi^{+} + #pi^{-} #times (1/5000)","p");
+    // legPi0cbToeOverChPion->AddEntry(hNominator,"#pi^{0} #rightarrow e + c,b #rightarrow e","p");
+    // legPi0cbToeOverChPion->AddEntry(hNominator_scaled,"eff_{e^{#pm}} #times (#pi^{0} #rightarrow e + c,b #rightarrow e)","p");
+    //
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000->Draw("hist p e1");
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000->Draw("hist p e1 same");
+    // hPaper_chPi_Pt_fullCentralSection_stat_Err->Draw("hist p e1 same");
+    // // ptGenTrackElePos_Pi0_rebin->Draw("hist p e1 same");
+    // // hPaper_HFtoe_Pt_stat->Draw("hist p e1 same");
+    // // ptGenTrackElePos_HF_lowPt->Draw("hist p e1 same");
+    // hNominator->Draw("same hist p e1");
+    // hNominator_scaled->Draw("same hist p e1");
+    // fPSeff->Draw("same hist c");
+    // legPi0cbToeOverChPion->Draw("same");
+    //
+    // pad2->cd();
+    // // pad2->SetLogy();
+    //
+    // // TH1F* hRatioPi0cbToeOverChPion = (TH1F*) RatioToTheoryy(hPaper_chPi_Pt_fullCentralSection_stat_Err,hNominator);
+    // TH1F* hRatioPi0cbToeOverChPion = (TH1F*) RatioToTheoryy(hNominator_scaled,hPaper_chPi_Pt_fullCentralSection_stat_Err);
+    // TH1F* hRatioPi0cbToeOverChPion_PionRej1000 = (TH1F*) RatioToTheoryy(hNominator_scaled,hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej1000);
+    // TH1F* hRatioPi0cbToeOverChPion_PionRej5000 = (TH1F*) RatioToTheoryy(hNominator_scaled,hPaper_chPi_Pt_fullCentralSection_stat_Err_PionRej5000);
+    // // hRatioPi0cbToeOverChPion->GetXaxis()->SetRangeUser(0.1,10.);
+    // hRatioPi0cbToeOverChPion->GetXaxis()->SetRangeUser(0.1,4.);
+    // // hRatioPi0cbToeOverChPion->GetYaxis()->SetRangeUser(0.,100.);
+    // // TString sYRatioLabel = "#frac{#pi^{0} #rightarrow e + c,b #rightarrow e}{#pi^{+} + #pi^{-}}";
+    // TString sYRatioLabel = "#frac{#pi^{+} + #pi^{-}}{#pi^{0} #rightarrow e + c,b #rightarrow e}";
+    // TString sXRatioLabel = "#it{p}_{T,e} (GeV/#it{c})";
+    // // TLine* line10 = new TLine(0.,0.1,10.,0.1);
+    // TLine* line10 = new TLine(0.1,0.1,4.,0.1);
+    // line10->SetLineStyle(2);
+    // makeRatioNice(hRatioPi0cbToeOverChPion,sXRatioLabel,sYRatioLabel);
+    // hRatioPi0cbToeOverChPion->GetXaxis()->SetTitleOffset(1.08);
+    // hRatioPi0cbToeOverChPion->GetYaxis()->SetTitleOffset(0.63);
+    // // hRatioPi0cbToeOverChPion->GetYaxis()->SetRangeUser(0.001,3000.);
+    // hRatioPi0cbToeOverChPion->GetYaxis()->SetRangeUser(0.,0.8);
+    // hRatioPi0cbToeOverChPion->Draw();
+    // hRatioPi0cbToeOverChPion_PionRej1000->Draw("same");
+    // hRatioPi0cbToeOverChPion_PionRej5000->Draw("same");
+    // line10->Draw("same");
+    // cRatioPi0cbToeOverChPion->SaveAs("./plots/RatioPi0cbToeOverChPion.png");
 
 
 
@@ -2365,14 +2433,14 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     ptRecTrackElePos_rebin->SetLineColor(kBlue+1);
     ptRecTrackElePos_rebin->SetMarkerColor(kBlue+1);
 
-    auto cMeePteeCharmBeautyHFtoe = new TCanvas("cMeePteeCharmBeautyHFtoe","cMeePteeCharmBeautyHFtoe",1350,600);
-    cMeePteeCharmBeautyHFtoe->Divide(2,1);
+    auto cMeePteeDCACharmBeautyHFtoe = new TCanvas("cMeePteeDCACharmBeautyHFtoe","cMeePteeDCACharmBeautyHFtoe",1350,600);
+    cMeePteeDCACharmBeautyHFtoe->Divide(3,1);
     for (size_t i = 1; i < 4; i++) {
-      cMeePteeCharmBeautyHFtoe->cd(i)->SetTopMargin(0.03);
-      cMeePteeCharmBeautyHFtoe->cd(i)->SetRightMargin(0.03);
+      cMeePteeDCACharmBeautyHFtoe->cd(i)->SetTopMargin(0.03);
+      cMeePteeDCACharmBeautyHFtoe->cd(i)->SetRightMargin(0.03);
     }
-    cMeePteeCharmBeautyHFtoe->cd(1);
-    cMeePteeCharmBeautyHFtoe->cd(1)->SetLogy();
+    cMeePteeDCACharmBeautyHFtoe->cd(1);
+    cMeePteeDCACharmBeautyHFtoe->cd(1)->SetLogy();
     proj_recLS_HFtoe_Mee->GetYaxis()->SetTitleOffset(1.);
     proj_recLS_HFtoe_Mee->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->e}/d#it{m}_{ee}dy");
     proj_recLS_HFtoe_Mee->GetXaxis()->SetTitle("#it{m}_{ee} (GeV/#it{c}^{2})");
@@ -2381,8 +2449,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_Btoe_Mee->Draw("hist p e1 same");
     legTrackLFHFtoe->Draw("same");
 
-    cMeePteeCharmBeautyHFtoe->cd(2);
-    cMeePteeCharmBeautyHFtoe->cd(2)->SetLogy();
+    cMeePteeDCACharmBeautyHFtoe->cd(2);
+    cMeePteeDCACharmBeautyHFtoe->cd(2)->SetLogy();
     proj_recLS_HFtoe_Ptee->GetYaxis()->SetTitleOffset(1.);
     proj_recLS_HFtoe_Ptee->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->e}/d#it{p}_{T,ee}dy");
     proj_recLS_HFtoe_Ptee->GetXaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c})");
@@ -2391,19 +2459,29 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_Ctoe_Ptee->Draw("hist p e1 same");
     proj_recLS_Btoe_Ptee->Draw("hist p e1 same");
 
-    cMeePteeCharmBeautyHFtoe->SaveAs("./plots/MeePtee_CharmBeautyHFtoe.png");
+    cMeePteeDCACharmBeautyHFtoe->cd(3);
+    cMeePteeDCACharmBeautyHFtoe->cd(3)->SetLogy();
+    proj_recLS_HFtoe_DCA->GetYaxis()->SetTitleOffset(1.);
+    proj_recLS_HFtoe_DCA->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->e}/dDCAdy");
+    proj_recLS_HFtoe_DCA->GetXaxis()->SetTitle("DCA_{ee} (cm)");
+    proj_recLS_HFtoe_DCA->GetXaxis()->SetRangeUser(0.0,10.0);
+    proj_recLS_HFtoe_DCA->Draw("hist p e1");
+    proj_recLS_Ctoe_DCA->Draw("hist p e1 same");
+    proj_recLS_Btoe_DCA->Draw("hist p e1 same");
+
+    cMeePteeDCACharmBeautyHFtoe->SaveAs("./plots/MeePteeDCA_CharmBeautyHFtoe.png");
 
 
 
-    auto cMeePteeCharmBeautyHFtoee = new TCanvas("cMeePteeCharmBeautyHFtoee","cMeePteeCharmBeautyHFtoee",1350,600);
-    cMeePteeCharmBeautyHFtoee->SetLogy();
-    cMeePteeCharmBeautyHFtoee->Divide(2,1);
+    auto cMeePteeDCACharmBeautyHFtoee = new TCanvas("cMeePteeDCACharmBeautyHFtoee","cMeePteeDCACharmBeautyHFtoee",1350,600);
+    cMeePteeDCACharmBeautyHFtoee->SetLogy();
+    cMeePteeDCACharmBeautyHFtoee->Divide(3,1);
     for (size_t i = 1; i < 4; i++) {
-      cMeePteeCharmBeautyHFtoee->cd(i)->SetTopMargin(0.03);
-      cMeePteeCharmBeautyHFtoee->cd(i)->SetRightMargin(0.03);
+      cMeePteeDCACharmBeautyHFtoee->cd(i)->SetTopMargin(0.03);
+      cMeePteeDCACharmBeautyHFtoee->cd(i)->SetRightMargin(0.03);
     }
-    cMeePteeCharmBeautyHFtoee->cd(1);
-    cMeePteeCharmBeautyHFtoee->cd(1)->SetLogy();
+    cMeePteeDCACharmBeautyHFtoee->cd(1);
+    cMeePteeDCACharmBeautyHFtoee->cd(1)->SetLogy();
     proj_recLS_LFtoee_Mee->GetYaxis()->SetTitleOffset(1.);
     proj_recLS_LFtoee_Mee->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->ee}/d#it{m}_{ee}dy");
     proj_recLS_LFtoee_Mee->GetXaxis()->SetTitle("#it{m}_{ee} (GeV/#it{c}^{2})");
@@ -2411,8 +2489,8 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_HFtoee_Mee->Draw("hist p e1 same");
     legTrackLFHFtoee->Draw("same");
 
-    cMeePteeCharmBeautyHFtoee->cd(2);
-    cMeePteeCharmBeautyHFtoee->cd(2)->SetLogy();
+    cMeePteeDCACharmBeautyHFtoee->cd(2);
+    cMeePteeDCACharmBeautyHFtoee->cd(2)->SetLogy();
     proj_recLS_LFtoee_Ptee->GetYaxis()->SetTitleOffset(1.);
     proj_recLS_LFtoee_Ptee->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->ee}/d#it{p}_{T,ee}dy");
     proj_recLS_LFtoee_Ptee->GetXaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c})");
@@ -2420,38 +2498,61 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_LFtoee_Ptee->Draw("hist p e1");
     proj_recLS_HFtoee_Ptee->Draw("hist p e1 same");
 
-    cMeePteeCharmBeautyHFtoee->SaveAs("./plots/MeePtee_LFHFtoee.png");
+    cMeePteeDCACharmBeautyHFtoee->cd(3);
+    cMeePteeDCACharmBeautyHFtoee->cd(3)->SetLogy();
+    proj_recLS_LFtoee_DCA->GetYaxis()->SetTitleOffset(1.);
+    proj_recLS_LFtoee_DCA->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->ee}/dDCAdy");
+    proj_recLS_LFtoee_DCA->GetXaxis()->SetTitle("DCA_{ee} (cm)");
+    proj_recLS_LFtoee_DCA->GetXaxis()->SetRangeUser(0.0,10.0);
+    proj_recLS_LFtoee_DCA->Draw("hist p e1");
+    proj_recLS_HFtoee_DCA->Draw("hist p e1 same");
+
+    cMeePteeDCACharmBeautyHFtoee->SaveAs("./plots/MeePteeDCA_LFHFtoee.png");
 
 
 
-    auto cMeePteeLFtoeeHFtoe = new TCanvas("cMeePteeLFtoeeHFtoe","cMeePteeLFtoeeHFtoe",1350,600);
-    cMeePteeLFtoeeHFtoe->SetLogy();
-    cMeePteeLFtoeeHFtoe->Divide(2,1);
+    auto cMeePteeDCALFtoeeHFtoe = new TCanvas("cMeePteeDCALFtoeeHFtoe","cMeePteeDCALFtoeeHFtoe",1350,600);
+    cMeePteeDCALFtoeeHFtoe->SetLogy();
+    cMeePteeDCALFtoeeHFtoe->Divide(3,1);
     for (size_t i = 1; i < 4; i++) {
-      cMeePteeLFtoeeHFtoe->cd(i)->SetTopMargin(0.03);
-      cMeePteeLFtoeeHFtoe->cd(i)->SetRightMargin(0.03);
+      cMeePteeDCALFtoeeHFtoe->cd(i)->SetTopMargin(0.03);
+      cMeePteeDCALFtoeeHFtoe->cd(i)->SetRightMargin(0.03);
     }
-    cMeePteeLFtoeeHFtoe->cd(1);
-    cMeePteeLFtoeeHFtoe->cd(1)->SetLogy();
+    cMeePteeDCALFtoeeHFtoe->cd(1);
+    cMeePteeDCALFtoeeHFtoe->cd(1)->SetLogy();
     proj_recLS_MCpidEle_Mee->GetYaxis()->SetTitleOffset(1.);
     proj_recLS_MCpidEle_Mee->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->ee}/d#it{m}_{ee}dy");
     proj_recLS_MCpidEle_Mee->GetXaxis()->SetTitle("#it{m}_{ee} (GeV/#it{c}^{2})");
     proj_recLS_MCpidEle_Mee->Draw("hist p e1");
+    proj_recLS_LFtoe_Mee->Draw("hist p e1 same");
+    proj_recLS_Pi0toee_Mee->Draw("hist p e1 same");
     proj_recLS_LFtoee_Mee->Draw("hist p e1 same");
     proj_recLS_HFtoe_Mee->Draw("hist p e1 same");
     legTrackLFtoeeHFtoe->Draw("same");
 
-    cMeePteeLFtoeeHFtoe->cd(2);
-    cMeePteeLFtoeeHFtoe->cd(2)->SetLogy();
+    cMeePteeDCALFtoeeHFtoe->cd(2);
+    cMeePteeDCALFtoeeHFtoe->cd(2)->SetLogy();
     proj_recLS_MCpidEle_Ptee->GetYaxis()->SetTitleOffset(1.);
     proj_recLS_MCpidEle_Ptee->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->ee}/d#it{p}_{T,ee}dy");
     proj_recLS_MCpidEle_Ptee->GetXaxis()->SetTitle("#it{p}_{T,ee} (GeV/#it{c})");
     proj_recLS_MCpidEle_Ptee->GetXaxis()->SetRangeUser(0.0,4.0);
     proj_recLS_MCpidEle_Ptee->Draw("hist p e1");
+    proj_recLS_LFtoe_Ptee->Draw("hist p e1 same");
     proj_recLS_LFtoee_Ptee->Draw("hist p e1 same");
     proj_recLS_HFtoe_Ptee->Draw("hist p e1 same");
 
-    cMeePteeLFtoeeHFtoe->SaveAs("./plots/MeePtee_LFtoeeHFtoe.png");
+    cMeePteeDCALFtoeeHFtoe->cd(3);
+    cMeePteeDCALFtoeeHFtoe->cd(3)->SetLogy();
+    proj_recLS_MCpidEle_DCA->GetYaxis()->SetTitleOffset(1.);
+    proj_recLS_MCpidEle_DCA->GetYaxis()->SetTitle("1/#it{N}_{ev}d^{2}#it{N}_{X->ee}/dDCAdy");
+    proj_recLS_MCpidEle_DCA->GetXaxis()->SetTitle("DCA_{ee} (cm)");
+    proj_recLS_MCpidEle_DCA->GetXaxis()->SetRangeUser(0.0,10.0);
+    proj_recLS_MCpidEle_DCA->Draw("hist p e1");
+    proj_recLS_LFtoe_DCA->Draw("hist p e1 same");
+    proj_recLS_LFtoee_DCA->Draw("hist p e1 same");
+    proj_recLS_HFtoe_DCA->Draw("hist p e1 same");
+
+    cMeePteeDCALFtoeeHFtoe->SaveAs("./plots/MeePteeDCA_LFtoeeHFtoe.png");
 
     auto cPF_opAngle_mass = new TCanvas("cTrackPFVectorPt","cTrackPFVectorPt",800,800);
     // auto cPF_opAngle_mass = new TCanvas("cTrackPFVectorPt","cTrackPFVectorPt",1900,800);
@@ -2482,8 +2583,11 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
 
     // generate root file with LS background mee ptee and  LF->ee , HF->e and Sum
     if (bGenerateBackground) {
+      TString sDCAcut;
+      if(DCAcut) sDCAcut = "wDCAcut";
+      else if(!DCAcut) sDCAcut = "woDCAcut";
       // TFile *fBackground_weights = TFile::Open("./plots/MeePtee_LFtoeeHFtoe_noweight.root","RECREATE");
-      TFile *fBackground_weights = TFile::Open(Form("./plots/plottingMacros/MeePtee_recLS_wPreFilter_sce%i.root",ith_PIDscenario),"RECREATE");
+      TFile *fBackground_weights = TFile::Open(Form("./plots/plottingMacros/MeePtee_recLS_wPreFilter_%s_sce%i.root",sDCAcut.Data(),ith_PIDscenario),"RECREATE");
       proj_recLS_MCpidEle_Mee->SetName("proj_recLS_MCpidEle_Mee");
       proj_recLS_LFtoee_Mee->SetName("proj_recLS_LFtoee_Mee");
       proj_recLS_HFtoe_Mee->SetName("proj_recLS_HFtoe_Mee");
@@ -2511,7 +2615,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
       hMeeOpAngle_RecULS_bPF->Write("beforePF_opAngle_mass");
       hMeeOpAngle_RecULS_aPF->Write("afterPF_opAngle_mass");
       fBackground_weights->Close();
-      printf(" MeePtee_recLS_wPreFilter_sce%i has been written. \n", ith_PIDscenario);
+      printf(" MeePtee_recLS_wPreFilter_%s_sce%i.root has been written. \n",sDCAcut.Data(),ith_PIDscenario);
     }
 
 
@@ -3664,5 +3768,5 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
   }
   fOut->Close();
 
-// }
+}
 }

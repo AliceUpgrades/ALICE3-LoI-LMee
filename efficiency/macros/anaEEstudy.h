@@ -72,9 +72,11 @@ TH3F* hMPtDCA_LS_rec_MCpidEle[6];
 // TH3F* hMPtDCA_LS_rec_misIDPion[6];
 // TH3F* hMPtDCA_LS_rec_misIDhf[6];
 
+TH3F* hMPtDCA_LS_rec_lfTOe[6];
 TH3F* hMPtDCA_LS_rec_charmTOe[6];
 TH3F* hMPtDCA_LS_rec_beautyTOe[6];
 TH3F* hMPtDCA_LS_rec_hfTOe[6];
+TH3F* hMPtDCA_LS_rec_Pi0TOee[6];
 TH3F* hMPtDCA_LS_rec_lfTOee[6];
 TH3F* hMPtDCA_LS_rec_lfTOee_selectPDG[6];
 TH3F* hMPtDCA_LS_rec_ccTOee[6];
