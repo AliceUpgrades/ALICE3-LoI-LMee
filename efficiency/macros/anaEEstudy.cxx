@@ -1867,6 +1867,7 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       std::vector<Int_t> vecLFpdgs = {111,221,331,223,333,113};
       if(pairULS && !MCpidEle)  hMPtDCA_ULS_rec[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if(!pairULS && !MCpidEle) hMPtDCA_LS_rec[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      // ULS
       if(pairULS && MCpidEle)  hMPtDCA_ULS_rec_MCpidEle[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_ULS_rec_MCpidEle_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_ULS_rec_MCpidEle_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
@@ -1876,13 +1877,14 @@ void dileptonPairingRec(std::vector<Track *> vec_track_neg,std::vector<Track *> 
       if((pairULS && MCpidEle) && ( hasBeautyAncestor(particle1, particles) && hasBeautyAncestor(particle2, particles) ) )  hMPtDCA_ULS_rec_MCpidEle_bbTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) ) )  hMPtDCA_ULS_rec_MCpidEle_hfTOee[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
+      // LS
       if(!pairULS && MCpidEle) hMPtDCA_LS_rec_MCpidEle[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)||(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDoneLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) != 11)&&(fabs(particle2->PID)!=11) ))  hMPtDCA_LS_rec_misIDtwoLeg[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && !MCpidEle) && (  (fabs(particle1->PID) == 211)&&(fabs(particle2->PID)==211) ))  hMPtDCA_LS_rec_misIDPion[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       // if((!pairULS && !MCpidEle) && ( ((fabs(particle1->PID) != 11) && (hasCharmAncestor(particle1, particles) || hasBeautyAncestor(particle1, particles)) ) || ((fabs(particle2->PID)!=11) && (hasCharmAncestor(particle2, particles) || hasBeautyAncestor(particle2, particles)) )) )  hMPtDCA_LS_rec_misIDhf[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
-      if((!pairULS && MCpidEle) && (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) || (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) ) hMPtDCA_LS_rec_lfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
+      if((!pairULS && MCpidEle) && ( (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m1Pid) != vecLFpdgs.end()) || (std::find(vecLFpdgs.begin(), vecLFpdgs.end(), m2Pid) != vecLFpdgs.end()) )) hMPtDCA_LS_rec_lfTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
 
       if((!pairULS && MCpidEle) && ( (hasCharmAncestor(particle1, particles)  ) || (hasCharmAncestor(particle2, particles)  )) )  hMPtDCA_LS_rec_charmTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);
       if((!pairULS && MCpidEle) && ( (hasBeautyAncestor(particle1, particles) ) || (hasBeautyAncestor(particle2, particles) )) )  hMPtDCA_LS_rec_beautyTOe[iSce]->Fill(LV.Mag(),LV.Pt(),dca,weight_neg*weight_pos);

@@ -22,7 +22,7 @@ bool bGenerateBackground = kTRUE;
 int ith_PIDscenario = 1;
 int nPIDscenarios = 3;
 bool bSemiCentral = true;
-Bool_t DCAcut = true;
+Bool_t DCAcut = false;
 
 // TString strPIDscenario[] = {"TOF", "TOF+RICH (3#sigma_{#pi}^{RICH} rej)", "TOF+RICH (3.5#sigma_{#pi}^{RICH} rej)", "TOF+RICH (4#sigma_{#pi}^{RICH} rej)"};
 // TString strPIDscenario[] = {"0.08 < #it{p}_{T,e}, TOF only", "0.0 < #it{p}_{T,e}, TOF only"};
@@ -237,7 +237,7 @@ TH1F* AddHistosDiffRange(TH1F* h1, TH1F* h2) {
 void anaPlots(TString inputFile)
 {
   TFile *fIn  = TFile::Open(inputFile.Data());
-  for (Int_t ith_PIDscenario = 1; ith_PIDscenario <= nPIDscenarios; ith_PIDscenario++) {
+  // for (Int_t ith_PIDscenario = 1; ith_PIDscenario <= nPIDscenarios; ith_PIDscenario++) {
 
 
   // select which PID cenario (written in the input file) should be analyzed
@@ -310,7 +310,7 @@ void anaPlots(TString inputFile)
     TH1F* hPaper_HFtoe_Pt_stat;
     TH1F* hPaper_HFtoe_Pt_syst;
 
-
+    // cout << __LINE__ << "cout line" << endl;
     if (bUseAdditionalFiles) {
       if(bReadPionPt){
         fReadChPi = TFile::Open("/data/feisenhut/DelphesO2/ALICE3-LoI-LMee/efficiency/data/PtePi_PbPb_HEPData-ins1759506-v1-Table_1.root");
@@ -333,11 +333,13 @@ void anaPlots(TString inputFile)
         hCombStatErr->Add(hPaper_chPi_Pt_secondCentralSection_stat_Err,1);
         hCombSysErr->Add(hPaper_chPi_Pt_secondCentralSection_sys_Err,1);
         hCombSysUnc->Add(hPaper_chPi_Pt_secondCentralSection_sys_unc,1);
+        // cout << __LINE__ << "cout line" << endl;
 
         hPaper_chPi_Pt_fullCentralSection->Scale(1./2.);
         hCombStatErr->Scale(1./2.);
         hCombSysErr->Scale(1./2.);
         hCombSysUnc->Scale(1./2.);
+        // cout << __LINE__ << "cout line" << endl;
 
         ScaleBinWidth(hCombStatErr, kFALSE);
         ScaleBinWidth(hCombSysErr, kFALSE);
@@ -360,15 +362,22 @@ void anaPlots(TString inputFile)
         ScaleBinWidth(hPaper_chPi_Pt_fullCentralSection_stat_Err, kTRUE);
         ScaleBinWidth(hPaper_chPi_Pt_fullCentralSection_sys_Err, kTRUE);
         ScaleBinWidth(hPaper_chPi_Pt_fullCentralSection_sys_unc, kTRUE);
+        // cout << __LINE__ << "cout line" << endl;
 
         for (size_t iBin = 1; iBin < hPaper_chPi_Pt_fullCentralSection_stat_Err->GetNbinsX(); iBin++) {
-          double iBinStatErr = hCombStatErr_rebin->GetBinContent(iBin);
-          double iBinSysErr = hCombSysErr_rebin->GetBinContent(iBin);
-          double iBinSysUnc = hCombSysUnc_rebin->GetBinContent(iBin);
+          // double iBinStatErr = hCombStatErr_rebin->GetBinContent(iBin);
+          // double iBinSysErr = hCombSysErr_rebin->GetBinContent(iBin);
+          // double iBinSysUnc = hCombSysUnc_rebin->GetBinContent(iBin);
+
+          double iBinStatErr = hCombStatErr->GetBinContent(iBin);
+          double iBinSysErr = hCombSysErr->GetBinContent(iBin);
+          double iBinSysUnc = hCombSysUnc->GetBinContent(iBin);
           hPaper_chPi_Pt_fullCentralSection_stat_Err->SetBinError(iBin,iBinStatErr);
           hPaper_chPi_Pt_fullCentralSection_sys_Err->SetBinError(iBin,iBinSysErr);
           hPaper_chPi_Pt_fullCentralSection_sys_unc->SetBinError(iBin,iBinSysUnc);
         }
+        // cout << __LINE__ << "cout line" << endl;
+
 
         makeHistNice(hPaper_chPi_Pt_fullCentralSection_stat_Err,kBlack);
         makeHistNice(hPaper_chPi_Pt_fullCentralSection_sys_Err,kBlack);
@@ -887,8 +896,10 @@ if (bPlotPIDhistograms) {
     // DCA cut on pairs
     if(DCAcut) hMPtDCA_LS_rec_MCpidEle->GetZaxis()->SetRangeUser(0.,1.2);
     if(DCAcut) hMPtDCA_LS_rec_lfTOee_selectPDG->GetZaxis()->SetRangeUser(0.,1.2);
+    if(DCAcut) hMPtDCA_LS_rec_lfTOe->GetZaxis()->SetRangeUser(0.,1.2);
     if(DCAcut) hMPtDCA_LS_rec_hfTOe->GetZaxis()->SetRangeUser(0.,1.2);
     if(DCAcut) hMPtDCA_LS_rec_hfTOee->GetZaxis()->SetRangeUser(0.,1.2);
+    if(DCAcut) hMPtDCA_LS_rec_Pi0TOee->GetZaxis()->SetRangeUser(0.,1.2);
 
     TH1F* proj_recLS_MCpidEle_Mee = (TH1F*) hMPtDCA_LS_rec_MCpidEle->Project3D("x");
     TH1F* proj_recLS_MCpidEle_Ptee = (TH1F*) hMPtDCA_LS_rec_MCpidEle->Project3D("y");
@@ -2229,7 +2240,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     hdummy->GetYaxis()->SetTitle("Ratio PLB 804/X");
     hdummy->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
     hdummy->GetXaxis()->SetRangeUser(0.1,10.0);
-    hdummy->GetYaxis()->SetRangeUser(0.,2.);
+    hdummy->GetYaxis()->SetRangeUser(0.,1.4);
     hdummy->GetXaxis()->SetLabelSize(0.1);
     hdummy->GetYaxis()->SetLabelSize(0.1);
     hdummy->GetXaxis()->SetTitleSize(0.1);
@@ -2518,6 +2529,20 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
       cMeePteeDCALFtoeeHFtoe->cd(i)->SetTopMargin(0.03);
       cMeePteeDCALFtoeeHFtoe->cd(i)->SetRightMargin(0.03);
     }
+    ScaleBinWidth(proj_recLS_MCpidEle_Mee,kTRUE);
+    ScaleBinWidth(proj_recLS_LFtoe_Mee,kTRUE);
+    ScaleBinWidth(proj_recLS_Pi0toee_Mee,kTRUE);
+    ScaleBinWidth(proj_recLS_LFtoee_Mee,kTRUE);
+    ScaleBinWidth(proj_recLS_HFtoe_Mee,kTRUE);
+    ScaleBinWidth(proj_recLS_MCpidEle_Ptee,kTRUE);
+    ScaleBinWidth(proj_recLS_LFtoe_Ptee,kTRUE);
+    ScaleBinWidth(proj_recLS_LFtoee_Ptee,kTRUE);
+    ScaleBinWidth(proj_recLS_HFtoe_Ptee,kTRUE);
+    ScaleBinWidth(proj_recLS_MCpidEle_DCA,kTRUE);
+    ScaleBinWidth(proj_recLS_LFtoe_DCA,kTRUE);
+    ScaleBinWidth(proj_recLS_LFtoee_DCA,kTRUE);
+    ScaleBinWidth(proj_recLS_HFtoe_DCA,kTRUE);
+
     cMeePteeDCALFtoeeHFtoe->cd(1);
     cMeePteeDCALFtoeeHFtoe->cd(1)->SetLogy();
     proj_recLS_MCpidEle_Mee->GetYaxis()->SetTitleOffset(1.);
@@ -2538,6 +2563,7 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_MCpidEle_Ptee->GetXaxis()->SetRangeUser(0.0,4.0);
     proj_recLS_MCpidEle_Ptee->Draw("hist p e1");
     proj_recLS_LFtoe_Ptee->Draw("hist p e1 same");
+    proj_recLS_Pi0toee_Ptee->Draw("hist p e1 same");
     proj_recLS_LFtoee_Ptee->Draw("hist p e1 same");
     proj_recLS_HFtoe_Ptee->Draw("hist p e1 same");
 
@@ -2549,10 +2575,26 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
     proj_recLS_MCpidEle_DCA->GetXaxis()->SetRangeUser(0.0,10.0);
     proj_recLS_MCpidEle_DCA->Draw("hist p e1");
     proj_recLS_LFtoe_DCA->Draw("hist p e1 same");
+    proj_recLS_Pi0toee_DCA->Draw("hist p e1 same");
     proj_recLS_LFtoee_DCA->Draw("hist p e1 same");
     proj_recLS_HFtoe_DCA->Draw("hist p e1 same");
 
     cMeePteeDCALFtoeeHFtoe->SaveAs("./plots/MeePteeDCA_LFtoeeHFtoe.png");
+
+    ScaleBinWidth(proj_recLS_MCpidEle_Mee,kFALSE);
+    // ScaleBinWidth(proj_recLS_LFtoe_Mee,kFALSE);
+    // ScaleBinWidth(proj_recLS_Pi0toee_Mee,kFALSE);
+    ScaleBinWidth(proj_recLS_LFtoee_Mee,kFALSE);
+    ScaleBinWidth(proj_recLS_HFtoe_Mee,kFALSE);
+    ScaleBinWidth(proj_recLS_MCpidEle_Ptee,kFALSE);
+    // ScaleBinWidth(proj_recLS_LFtoe_Ptee,kFALSE);
+    ScaleBinWidth(proj_recLS_LFtoee_Ptee,kFALSE);
+    ScaleBinWidth(proj_recLS_HFtoe_Ptee,kFALSE);
+    ScaleBinWidth(proj_recLS_MCpidEle_DCA,kFALSE);
+    // ScaleBinWidth(proj_recLS_LFtoe_DCA,kFALSE);
+    ScaleBinWidth(proj_recLS_LFtoee_DCA,kFALSE);
+    ScaleBinWidth(proj_recLS_HFtoe_DCA,kFALSE);
+
 
     auto cPF_opAngle_mass = new TCanvas("cTrackPFVectorPt","cTrackPFVectorPt",800,800);
     // auto cPF_opAngle_mass = new TCanvas("cTrackPFVectorPt","cTrackPFVectorPt",1900,800);
@@ -3768,5 +3810,5 @@ legSigLFtoee->AddEntry(hCocktailPhitoee,"cocktail #phi #rightarrow ee","l");
   }
   fOut->Close();
 
-}
+// }
 }

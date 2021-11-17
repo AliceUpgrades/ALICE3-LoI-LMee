@@ -45,14 +45,14 @@ runDelphes() {
   # DelphesPythia8 propagate.tcl pythia8_$5.cc.$1.cfg delphes.cc.$1.root  &> delphes.cc.$1.log &&
   # DelphesPythia8 propagate.tcl pythia8_$5.bb.$1.cfg delphes.bb.$1.root  &> delphes.bb.$1.log &&
   DelphesPythia8 propagate.tcl pythia8_$5.$1.cfg delphes.$5.$1.root  &> delphes.$5.$1.log &&
-  hadd -f delphes.$1.root delphes.*.$1.root && rm delphes.*.$1.root &&
-  root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
-  # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
+  hadd -f delphes.$1.root delphes.*.$1.root && rm delphes.*.$1.root #&&
+  # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")" &> anaEEstudy.$1.log
+    # root -b -q -l "anaEEstudy.cxx(\"delphes.$1.root\", \"anaEEstudy.$1.root\")"
 }
 
 
 NJOBS=100        # number of max parallel runs                   50
-NRUNS=300        # number of runs                               100
+NRUNS=100        # number of runs                               100
 
 NEVENTS=1000    # number of events in a run                     1000
 NEVENTSCC=1000  # number of events in the charm sample
@@ -242,6 +242,12 @@ echo " RICHLEN     = ${RICHLEN}       # RICH half length [cm]"
 echo " ----------------------------------"
 echo ""
 
+DELPHESFILEPATH="./data/delphes_files/$(expr $NEVENTS \* $NRUNS)events_${SYSTEM}_${SCENARIO}_B=${BFIELD}kG"
+[ ! -d "$DELPHESFILEPATH" ] &&
+(mkdir -p $DELPHESFILEPATH && echo " Created directory: $DELPHESFILEPATH") ||
+(echo " Delphes directory already exsits")
+
+
 ### loop over runs
 echo " Run Delphes... "
 for I in $(seq 1 $NRUNS); do
@@ -257,9 +263,10 @@ for I in $(seq 1 $NRUNS); do
     touch .running.$I
 
     runDelphes $I $NEVENTS $NEVENTSCC $NEVENTSBB $SYSTEM &&
-    (rm -rf delphes.$I.root &&
+    (#rm -rf delphes.$I.root &&
+     mv delphes.$I.root $DELPHESFILEPATH/delphes.${I}.root
      rm -rf .running.$I && echo " --- run $I completed") ||
-    (rm -rf delphes.$I.root &&
+    (#rm -rf delphes.$I.root &&
      rm -rf .running.$I && echo " --- run $I crashed") &
 
 done
@@ -267,18 +274,26 @@ done
 
 wait
 
-# hadd delphes.$(expr $NEVENTS \* $NRUNS).root delphes.*.root
-# mv delphes.$(expr $NEVENTS \* $NRUNS).root ./data/delphes_files/
+### Use when one DelphesFile is required
+# echo " Merge delphes files..."
+# hadd delphes.$(expr $NEVENTS \* $NRUNS).${SYSTEM}.${BFIELD}kG.${CENTRALITYRANGE}central.root delphes.*.root
+# mv delphes.$(expr $NEVENTS \* $NRUNS).${SYSTEM}.${BFIELD}kG.${CENTRALITYRANGE}central.root ./data/delphes_files/
 # rm -rf delphes.*.root
+# echo " Merge delphes files done"
+
+
+
+
 
 echo " Finished running Delphes "
 ### merge runs when all done
-hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root &&# rm -rf anaEEstudy.*.root &&
+# hadd -f -j $NJOBS anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root anaEEstudy.*.root &&# rm -rf anaEEstudy.*.root &&
 ### run analysis scrip on new file
-# cp ./macros/anaPlots.cxx anaPlots.cxx &&
-# root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
-# rm anaPlots.cxx
-mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod && rm -rf anaEEstudy.*.root &&
+    # cp ./macros/anaPlots.cxx anaPlots.cxx &&
+    # root -l -b -q "anaPlots.cxx(\"anaEEstudy.${SYSTEM}.${SCENARIO}.B=0.${BFIELD}_$(expr $NEVENTS \* $NRUNS)events.root\")" &&
+    # rm anaPlots.cxx
+# mv anaEEstudy.${SYSTEM}.${SCENARIO}.B=${BFIELD}kG_$(expr $NEVENTS \* $NRUNS)events.root ./data/prod && rm -rf anaEEstudy.*.root &&
+
 ### clean up
 rm lutCovm*
 rm propagate.tcl
@@ -287,5 +302,6 @@ rm *.root
 # rm *.log
 rm *.cfg
 rm anaEEstudy.cxx
+rm anaEEstudy.h
 # rm preparePreshowerEff.C
 # ./cleanup.sh
