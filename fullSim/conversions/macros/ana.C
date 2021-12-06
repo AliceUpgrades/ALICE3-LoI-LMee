@@ -7,28 +7,39 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "TGraph.h"
 #include "TLegend.h"
 #include "TPad.h"
 #include "TParticle.h"
 #include "TParticlePDG.h"
 #include "TRandom.h"
 #include "TDatime.h"
+#include "TF1.h"
 
 #include "DetectorsCommonDataFormats/DetID.h"
 #include "SimulationDataFormat/MCTrack.h"
 
 bool isStable(int pdg);
-bool isInFITacc(double eta);
+
 bool isHF(int pdg);
+double dca(const o2::MCTrack& t, TGraph* res);
 
 enum isCharm { kIsNoCharm,
                kIsCharm,
                kIsCharmFromBeauty };
 
-void ana(TString generator = "pythia8hi")
+void ana(bool its3 = false, bool sigmaDCA = false)
 {
+  TString generator;
   TChain mcTree("o2sim");
-  mcTree.AddFile(Form("../input/%s/chunk_pythia8hi.root", generator.Data()));
+  if (its3) {
+    generator = "pythia8hi_its3";
+    mcTree.AddFile(Form("../input/%s/o2sim_Kine_small.root", generator.Data()));
+    // mcTree.AddFile(Form("../input/%s/o2sim_Kine_its3_1.root", generator.Data()));
+  } else {
+    generator = "pythia8hi";
+    mcTree.AddFile(Form("../input/%s/chunk_pythia8hi.root", generator.Data()));
+  }
   mcTree.SetBranchStatus("*", 0);
   mcTree.SetBranchStatus("MCTrack*", 1);
 
@@ -36,6 +47,19 @@ void ana(TString generator = "pythia8hi")
   mcTree.SetBranchAddress("MCTrack", &mcTracks);
 
   const int nEvents = mcTree.GetEntries();
+
+  // get file with resolution for DCA
+  TFile* fInDCAres;
+  TGraph* grDCAres;
+  if (its3) {
+    fInDCAres = TFile::Open("../input/dcaRes_its3.root");
+    grDCAres = (TGraph*)fInDCAres->Get("dcaRes");
+  } else {
+    fInDCAres = TFile::Open("../input/dcaRes_alice3.root");
+    grDCAres = (TGraph*)fInDCAres->Get("dcaRes_alice3");
+  }
+  if (!grDCAres) printf("No resolution file found\n");
+
   TH1D hEvents{"hEvents", "nEvents", 1, 0, 1};
   // hEvents.SetBinContent(1, nEvents);
   const float r = 10.;
@@ -44,6 +68,24 @@ void ana(TString generator = "pythia8hi")
              200, 0, 10};
   TH1D allPt{"hAllPt", "p_{T} spectrum of electrons; p_{T} (GeV/c)",
              200, 0, 10};
+  double minDCAx, maxDCAx;
+  int binsDCAx;
+  if (sigmaDCA) {
+    binsDCAx = 100;
+    minDCAx = -20;
+    maxDCAx = 20;
+  } else {
+    binsDCAx = 1000;
+    minDCAx = -0.4;
+    maxDCAx = 0.4;
+  }
+  TH1D dcaPrim{"dcaPrim", "DCA distribution primaries; DCA (cm)", 100, minDCAx, maxDCAx}; // -0.1,0.1
+  TH1D dcaHF{"dcaHF", "DCA distribution HF; DCA (cm)", 100, minDCAx, maxDCAx};            // -0.1,0.1
+  TH1D dcaConv{"dcaConv", "DCA distribution conversions; DCA (cm)", 100, minDCAx, maxDCAx};
+
+  TH1D etaConv{"etaConv", "Eta dist conversions; #eta", 1000, -3, 3};
+  TH1D dPhiConv{"dPhiConv", "phi difference between e and #gamma for conversions; #Delta #phi", 1000, -0.5, 0.5};
+
   TH2D hVertex{"hVertex",
                "prod. vertices of e^{+}/e^{-} with photon mother;x (cm);y (cm)",
                1000,
@@ -74,7 +116,7 @@ void ana(TString generator = "pythia8hi")
     200, 0., 4.};
   TH2D hInvMass_dPhi{
     "hInvMass_dPhi",
-    "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);#Delta #phi",
+    "invariant mass of e^{+}/e^{-} with photon mother;m (GeV/c);#omega_{ee}",
     200,
     0.,
     2.,
@@ -83,7 +125,7 @@ void ana(TString generator = "pythia8hi")
     3.4};
   TH2D hInvMass_dPhiPrim{
     "hInvMass_dPhiPrim",
-    "invariant mass of primary e^{+}/e^{-};m (GeV/c);#Delta #phi",
+    "invariant mass of primary e^{+}/e^{-};m (GeV/c);#omega_{ee}",
     200,
     0.,
     2.,
@@ -133,11 +175,17 @@ void ana(TString generator = "pythia8hi")
   double eMass = 0.000511;
   double etaCut = 0.8;
   double ptCut = 0.2;
+  // double ptCut = 0.02;
 
   bool runPrefilter = false;
-  double prfltrPt_Cut = 0.2;
+  double prfltrPt_Cut = 0.02;
   double prfltrM_cut = 0.10;
   double prfltrOA_cut = 0.10;
+
+  // double rCut = 10.;
+  // if (its3) rCut = 10.;
+  double rCut = 0.55;
+  if (its3) rCut = 2.1;
 
   TDatime t;
   gRandom->SetSeed(t.GetDate() + t.GetYear() * t.GetHour() * t.GetMinute() * t.GetSecond());
@@ -150,14 +198,8 @@ void ana(TString generator = "pythia8hi")
     TLorentzVector lv1, lv2;
     t1.Get4Momentum(lv1);
     t2.Get4Momentum(lv2);
-    // printf("OA: %f, phi: %f\n", lv1.Vect().Angle(lv2.Vect()), fabs(t1.GetPhi() - t2.GetPhi()));
     if ((lv1 + lv2).M() < prfltrM_cut &&
-        // (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrOA_cut)) {
         ((oa(lv1, lv2)) < prfltrOA_cut)) {
-      // (fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))) < prfltrOA_cut)) {
-
-      // printf(">>> mass: %f \t dPhi: %f\n", (lv1 + lv2).M(),
-      //        fabs(t1.GetPhi() - t2.GetPhi()));
       return false;
     } else
       return true;
@@ -166,18 +208,28 @@ void ana(TString generator = "pythia8hi")
                                                    TLorentzVector& lv2) {
     TLorentzVector lv1;
     t1.Get4Momentum(lv1);
-    // printf("OA: %f, phi: %f\n", lv1.Vect().Angle(lv2.Vect()), fabs(t1.GetPhi() - t2.GetPhi()));
     if ((lv1 + lv2).M() < prfltrM_cut &&
-        // (fabs(t1.GetPhi() - t2.GetPhi()) < prfltrOA_cut)) {
         ((oa(lv1, lv2)) < prfltrOA_cut)) {
-      // (fabs(TVector2::Phi_mpi_pi(lv1.Vect().Angle(lv2.Vect()))) < prfltrOA_cut)) {
-
-      // printf(">>> mass: %f \t dPhi: %f\n", (lv1 + lv2).M(),
-      //        fabs(t1.GetPhi() - t2.GetPhi()));
       return false;
     } else
       return true;
   };
+  // lambda to calculate track dca
+  // auto dca = [](auto& t) {
+  //   auto Bz = 0.5;
+  //   auto phi = t.GetPhi();
+  //   auto pt = t.GetPt();
+  //   auto startX = t.GetStartVertexCoordinatesX();
+  //   auto startY = t.GetStartVertexCoordinatesY();
+  //   auto q = 1.0;
+  //   auto pdg = t.GetPdgCode();
+  //   TParticlePDG* pPDG = TDatabasePDG::Instance()->GetParticle(pdg);
+  //   q = (pPDG->Charge() > 0.) ?  1. : -1.;
+  //   auto Radius = pt / (0.3 * q * Bz);
+  //   auto xR = startX + Radius * sin(phi);
+  //   auto yR = startY - Radius * cos(phi);
+  //   return sqrt(xR * xR + yR * yR) - fabs(Radius);
+  // };
 
   std::vector<o2::MCTrack> ep, em, ep_prim, em_prim;
   for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
@@ -191,25 +243,22 @@ void ana(TString generator = "pythia8hi")
     mcTree.GetEntry(iEvent);
     int nConv = 0;
     int Ntracks = 0;
+
     // track loop for Multiplicity
-    for (const auto track : *mcTracks) {
+    for (const auto& track : *mcTracks) {
       // if (!track.isPrimary()) continue; //only tracks from generator, not
       // geant
       const auto r_vtx =
         std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) +
                   std::pow(track.GetStartVertexCoordinatesY(), 2));
-      if (r_vtx > 0.1)
-        continue; // additional 'primary' selection
+      // if (r_vtx > 0.1)
+      //   continue; // additional 'primary' selection
       auto pdg = track.GetPdgCode();
-      if (!pdg)
-        continue; // if pdg code is 0 something is wrong
+      if (!pdg) continue; // if pdg code is 0 something is wrong
       TParticlePDG* pPDG = TDatabasePDG::Instance()->GetParticle(pdg);
-      if (!pPDG)
-        continue; // if no particle, something is wrong
-      if (fabs(pPDG->Charge()) < 3.)
-        continue; // charge of quarks is 1/2 hadrons is 3
-      if (!isStable(pdg))
-        continue; // check list of 'stable particles'
+      if (!pPDG) continue;                     // if no particle, something is wrong
+      if (fabs(pPDG->Charge()) < 3.) continue; // charge of quarks is 1/2 hadrons is 3
+      if (!isStable(pdg)) continue;            // check list of 'stable particles'
       int mpdg = 0;
       auto motherId = track.getMotherTrackId();
       if (motherId < 0)
@@ -218,28 +267,27 @@ void ana(TString generator = "pythia8hi")
         auto mTrack = (*mcTracks)[motherId];
         mpdg = mTrack.GetPdgCode();
       }
-      if (isStable(pdg) && isStable(mpdg))
-        continue; // if both (mother and daugther) are stable, just fill the
-                  // mother (other iteration)
-      if (abs(track.GetEta()) > 0.5)
-        continue;
-      Ntracks++; // check that we are in the right eta range
-    }            // end track loop for multiplicity
+      if (isStable(pdg) && isStable(mpdg)) continue; // if both (mother and daugther) are stable, just fill the
+                                                     // mother (other iteration)
+      if (abs(track.GetEta()) > 0.5) continue;       // check that we are in the right eta range
+      Ntracks++;
+    } // end track loop for multiplicity
     hMult.Fill(Ntracks);
 
     // start loop for prefilter track selection
-    for (const auto track : *mcTracks) {
+    for (const auto& track : *mcTracks) {
       if (abs(track.GetPdgCode()) != 11)
         continue;
       if (TMath::Abs(track.GetEta()) > etaCut)
         continue;
       if (track.GetPt() < prfltrPt_Cut)
         continue;
-
+      if (fabs(track.GetStartVertexCoordinatesZ()) > 10.) continue;
       const auto r_vtx =
         std::sqrt(std::pow(track.GetStartVertexCoordinatesX(), 2) +
                   std::pow(track.GetStartVertexCoordinatesY(), 2));
-      if (r_vtx > 0.55)
+      if (r_vtx > rCut)
+        // if (r_vtx > 0.55)
         continue;
       if (r_vtx < 0.05) // check for primaries... TODO: implement proper is
                         // physical primary based on particle species etc.
@@ -262,15 +310,16 @@ void ana(TString generator = "pythia8hi")
         continue; // conversions will only be taken into account if they are
                   // produced in the inner most layer/ Be-foil and come from a
                   // photon... no weak decays
-      // hVertex.Fill(track.GetStartVertexCoordinatesX(),
-      //              track.GetStartVertexCoordinatesY());
-      // hVertexR.Fill(track.GetStartVertexCoordinatesZ(), r_vtx);
+      dPhiConv.Fill((mTrack.GetPhi() - track.GetPhi()));
+      hVertexR.Fill(track.GetStartVertexCoordinatesZ(), r_vtx);
       ++nConv;
+      hVertex.Fill(track.GetStartVertexCoordinatesX(), track.GetStartVertexCoordinatesY());
       if (track.GetPdgCode() == 11)
         ep.emplace_back(track);
       else
         em.emplace_back(track);
     }
+
     // calculate random rejection Efficiency
     int NTestParticles = 1000;
     for (int iTestPart = 0; iTestPart < NTestParticles; iTestPart++) {
@@ -278,7 +327,7 @@ void ana(TString generator = "pythia8hi")
       auto isNotRejected = true;
       auto eta_gen = gRandom->Uniform() * 1.6 - 0.8;
       auto phi_gen = gRandom->Uniform() * TMath::Pi() * 2;
-      auto pt_gen = gRandom->Uniform() * 4.;
+      auto pt_gen = gRandom->Uniform() * (4. - prfltrPt_Cut) + prfltrPt_Cut; // generate between min cut of the prefilter tracks and 4 GeV/c
       lv_test.SetPtEtaPhiM(pt_gen, eta_gen, phi_gen, eMass);
       pt_eta_phi_gen.Fill(pt_gen, eta_gen, phi_gen);
       for (unsigned long int e = 0; e < em.size(); ++e) {
@@ -344,7 +393,7 @@ void ana(TString generator = "pythia8hi")
     // add some cuts on the left over tracks, e.g. the actual kinematic cuts for
     // the analysis
     // use this to make the code more readable
-    auto pt_cut = [&ptCut](auto& track) { return track.GetPt() < ptCut; };
+    auto pt_cut = [&ptCut](auto& track) { return ((track.GetPt() < ptCut) && (track.GetPt() > 1.5)); };
     em.erase(std::remove_if(em.begin(), em.end(), pt_cut), em.end());
     em_prim.erase(std::remove_if(em_prim.begin(), em_prim.end(), pt_cut), em_prim.end());
     ep.erase(std::remove_if(ep.begin(), ep.end(), pt_cut), ep.end());
@@ -395,8 +444,43 @@ void ana(TString generator = "pythia8hi")
       }
     }
 
-    //??????????????????????????????????????????????????????
-    // printf("nConv / nTracks = %i / %zu\n", nConv, mcTracks->size());
+    auto isConv = [&mcTracks](auto& track) {
+      auto motherId = track.getMotherTrackId();
+      if (motherId < 0)
+        return false;
+      auto mTrack = (*mcTracks)[motherId];
+      // our track is an electron and we have its mother!
+      // check if its a phton mother:
+      int mpdg = abs(mTrack.GetPdgCode());
+      if (abs(mpdg) == 22)
+        return true;
+      else
+        return false;
+    };
+    for (auto& track : em) {
+      auto dca_val = dca(track, grDCAres);
+      if (sigmaDCA) dca_val /= (grDCAres->Eval(track.GetPt()) * 1e-4);
+      if (isConv(track)) {
+        dcaConv.Fill(dca_val);
+        etaConv.Fill(track.GetEta());
+      } else if (isHFe(track))
+        dcaHF.Fill(dca_val);
+      else
+        dcaPrim.Fill(dca_val);
+    }
+
+    for (auto& track : ep) {
+      auto dca_val = dca(track, grDCAres);
+      if (sigmaDCA) dca_val /= grDCAres->Eval(track.GetPt()) * 1e-4;
+      if (isConv(track)) {
+        dcaConv.Fill(dca_val);
+        etaConv.Fill(track.GetEta());
+      } else if (isHFe(track))
+        dcaHF.Fill(dca_val);
+      else
+        dcaPrim.Fill(dca_val);
+    }
+
     for (auto p : ep) {
       TLorentzVector vp;
       p.Get4Momentum(vp);
@@ -518,12 +602,13 @@ void ana(TString generator = "pythia8hi")
   }
 
   std::unique_ptr<TFile> f{
-    TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s_prf_%d.root", ptCut,
+    TFile::Open(Form("../output/ana_%1.2f_%1.1f_%s_prf_%d_smearDCA.root", ptCut,
                      etaCut, generator.Data(), (int)runPrefilter),
                 "RECREATE")};
   f->WriteTObject(&hEvents);
   f->WriteTObject(&hMult);
   f->WriteTObject(&hVertex);
+  f->WriteTObject(&hVertexR);
   f->WriteTObject(&allPt);
   f->WriteTObject(&hfePt);
   f->WriteTObject(&hLS1);
@@ -539,6 +624,11 @@ void ana(TString generator = "pythia8hi")
   f->WriteTObject(&hULS_HF);
   f->WriteTObject(&pt_eta_phi_gen);
   f->WriteTObject(&pt_eta_phi_rec);
+  f->WriteTObject(&dcaPrim);
+  f->WriteTObject(&dcaHF);
+  f->WriteTObject(&dcaConv);
+  f->WriteTObject(&etaConv);
+  f->WriteTObject(&dPhiConv);
 }
 
 bool isStable(int pdg)
@@ -603,3 +693,31 @@ bool isHF(int pdg)
 {
   return (((pdg > 400) && pdg < (600)) || ((pdg > 4000) && pdg < (6000)));
 }
+
+double dca(const o2::MCTrack& t, TGraph* res)
+{
+  auto val = 0.0;
+  auto Bz = 0.5;
+  auto phi = t.GetPhi();
+  auto pt = t.GetPt();
+  auto startX = t.GetStartVertexCoordinatesX(); //cm
+  auto startY = t.GetStartVertexCoordinatesY(); //cm
+  auto q = 1.0;
+  auto pdg = t.GetPdgCode();
+  TParticlePDG* pPDG = TDatabasePDG::Instance()->GetParticle(pdg);
+  q = (pPDG->Charge() > 0.) ? 1. : -1.;
+  // R [m] = pt[GeV] / (0.3 * q * *B[T])
+  auto Radius = pt / (0.3 * q * Bz) * 100; // factor 100 to calculate it in cm
+  auto xR = startX - Radius * cos(phi);
+  auto yR = startY + Radius * sin(phi);
+  val = q * (sqrt(xR * xR + yR * yR) - fabs(Radius));
+
+  // now smear
+
+  auto resVal = res->Eval(pt) * 1e-4;
+  TF1 g("g", "gaus", val - 7 * resVal, val + 7 * resVal);
+  g.SetNpx(100000);
+  g.SetParameters(1, val, resVal);
+  val = g.GetRandom();
+  return val;
+};

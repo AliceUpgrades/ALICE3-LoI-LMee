@@ -10,8 +10,20 @@ for cross checks with previous studies we also use hijing with:
 ```
 o2-sim -e TGeant3 -n 5000 -m A3IP TRK -g external --configKeyValues 'GeneratorExternal.fileName=./input/hijing.C'
 ```
+The produced files can get large.
+
 For more details on HIJING
 (https://alice.its.cern.ch/jira/browse/AOGM-246)[https://alice.its.cern.ch/jira/browse/AOGM-246]
+
+
+### Conversions
+A simple macro `ana.C` is used to analise the kinematics files from the full simulation `o2`
+
+A smearing based on look up tables produced with DelphesO2 is used to mimic a realistic detector response for the impact parameter and can be found here:
+* For ALICE 3: https://cernbox.cern.ch/index.php/s/SEbT2rl9eg9Xinw
+* For ITS 3: https://cernbox.cern.ch/index.php/s/pTI8MiUdUYbqLHN
+
+
 
 ### Low pt tracking
 We for now have a collection of scripts to steer the tracking. Thanks to David for sharing his code.
