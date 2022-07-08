@@ -11,11 +11,12 @@ runDelphes() {
   root -q -l "doubleTOF.cxx(\"delphes.$1.root\", \"doubleTOF.$1.root\")" &> doubleTOF.$1.log
 }
 
-SYSTEM="pp_cc_cr2"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
+SYSTEM="pp_inel"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
+# SYSTEM="pp_cc_cr2"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 # SYSTEM="PbPb"   # Select the system. This will copy the coresponding pythia configuration. Make sure it exists in the pythia directory.
 
 NJOBS=25        # number of max parallel runs
-NRUNS=25       # number of runs
+NRUNS=25        # number of runs
 
 NEVENTS=10000     # number of events in a run
 
@@ -23,7 +24,7 @@ RADIUS=20     # radius tracks have to reach for reco
 
 BFIELD=5      # magnetic field  [kG]
 SIGMAT=0.020   # time resolution [ns]
-SIGMA0=0.200         # vertex time spread [ns]
+SIGMA0=0.000         # vertex time spread [ns]
 TAILLX=1.0     # tail on left    [q]
 TAILRX=1.3     # tail on right   [q]
 TOFRAD=100.    # TOF radius      [cm]
@@ -80,18 +81,18 @@ sed -i -e "s/double Bz .*$/double Bz = ${BFIELD}e\-1;/" doubleTOF.cxx
 
 ### set TOF radius
 sed -i -e "s/set barrel_Radius .*$/set barrel_Radius ${TOFRAD}e\-2/" propagate.tcl
-sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" doubleTOF.cxx
+# sed -i -e "s/double tof_radius = .*$/double tof_radius = ${TOFRAD}\;/" doubleTOF.cxx
 ### set TOF length
 sed -i -e "s/set barrel_HalfLength .*$/set barrel_HalfLength ${TOFLEN}e\-2/" propagate.tcl
 sed -i -e "s/double tof_length = .*$/double tof_length = ${TOFLEN}\;/" doubleTOF.cxx
 ### set TOF acceptance
 sed -i -e "s/set barrel_Acceptance .*$/set barrel_Acceptance \{ 0.0 + 1.0 * fabs(eta) < ${TOFETA} \}/" propagate.tcl
 ### set TOF time resolution and tails
-sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
-sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
-sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
-sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" doubleTOF.cxx
-sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" doubleTOF.cxx
+# sed -i -e "s/set barrel_TimeResolution .*$/set barrel_TimeResolution ${SIGMAT}e\-9/" propagate.tcl
+# sed -i -e "s/set barrel_TailRight .*$/set barrel_TailRight ${TAILRX}/" propagate.tcl
+# sed -i -e "s/set barrel_TailLeft  .*$/set barrel_TailLeft ${TAILLX}/" propagate.tcl
+# sed -i -e "s/double tof_sigmat = .*$/double tof_sigmat = ${SIGMAT}\;/" doubleTOF.cxx
+# sed -i -e "s/double tof_sigma0 = .*$/double tof_sigma0 = ${SIGMA0}\;/" doubleTOF.cxx
 
 
 ### create LUTs
