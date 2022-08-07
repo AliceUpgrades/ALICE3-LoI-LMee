@@ -134,12 +134,12 @@ makeTOFpid(Track track, double tofPos, double tofRes,
   double pmass[5] = {0.00051099891, 0.10565800, 0.13957000, 0.49367700,
                      0.93827200};
   tofRes *= 1000.; // from [ns] to [ps]
+  double timeError = gRandom->Gaus(0, tofRes);
   for (Int_t ipart = 0; ipart < 5; ++ipart) {
     double lExpectedTimeInformation =
         lThisTrackLength /
         Velocity(o2track.getP(),
                  pmass[ipart]); // time we get for different mass hypothesis
-    double timeError = gRandom->Gaus(0, tofRes);
     double lMeasuredTimeInformation = lExpectedTimeInformation + timeError;
 
     deltat[ipart] = lMeasuredTimeInformation - lTimeInformation;
